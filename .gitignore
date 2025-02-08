@@ -64,3 +64,5 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+*/compiler_depend.make
+src/CMakeFiles/AyaCore.dir/compiler_depend.make

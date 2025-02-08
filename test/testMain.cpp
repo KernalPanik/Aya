@@ -3,6 +3,10 @@
 #include <iostream>
 #include <assert.h>
 
+// TEST HEADERS
+#include "framework/testRunnerTests.h"
+// TEST HEADERS END
+
 //NOTE: Pass '1' to AyaTest to stop at first assert failure
 int main(int argc, char** argv)
 {
@@ -13,5 +17,7 @@ int main(int argc, char** argv)
         tr.SetFailOnAssert(true);
     }
     
+    tr.RunTest(TestRunnerSanityCheck, "TestRunnerSanityCheck");
+
     return 0;
 }

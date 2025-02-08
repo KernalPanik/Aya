@@ -1,16 +1,19 @@
 #pragma once
 
-#include "testRunnerUtils.h"
+#include <chrono>
 
-#define TEST_EXPECT(condition) (condition ? : AssertThrow(#condition, __FILE__, __func__, __LINE__))
-#define TEST_EXPECT1(condition) (condition ? : fprintf(stderr,"%s:%d %s: expectation (%s) failed.\n", __FILE__ , __LINE__ , __func__ , #condition))
-
-struct TestRunner 
+class TestRunner 
 {
-    bool failOnAssert;
-
+public:
     TestRunner(bool failOnAssert);
 
     void SetFailOnAssert(bool value);
     void RunTest(void(test)(), const char* printableFuncName);
+
+private:
+    bool failOnAssert;
+    size_t totalTestCount;
+    size_t failureCount;
+
+    std::chrono::microseconds totalExecutionTimeMs;
 };

@@ -4,16 +4,19 @@
 #include <iostream>
 #include <stdexcept>
 
-static void PrintTestFailureReport(const char* testName) {
-    printf("%s [\e[1;91mFAIL\e[0m]\n", testName);
+static void PrintTestFailureReport(const char* testName, std::chrono::microseconds ms) {
+    std::cout << testName << " [\e[1;91mFAIL\e[0m]" << "[ " << ms.count() << " ms]" << std::endl;;
 }
 
-static void PrintTestPassReport(const char* testName) {
-    printf("%s [\e[1;92mOK\e[0m]\n", testName);
+static void PrintTestPassReport(const char* testName, std::chrono::microseconds ms) {
+    std::cout << testName << " [\e[1;92mOK\e[0m]" << "[ " << ms.count() << " ms]" << std::endl;
 }
 
 TestRunner::TestRunner(bool failOnAssert) {
+    this->totalTestCount = 0;
+    this->failureCount = 0;
     this->failOnAssert = failOnAssert;
+    this->totalExecutionTimeMs = std::chrono::microseconds(0);
 }
 
 void TestRunner::SetFailOnAssert(bool value) {
@@ -21,10 +24,21 @@ void TestRunner::SetFailOnAssert(bool value) {
 }
 
 void TestRunner::RunTest(void(test)(), const char* printableFuncName) {
+    std::chrono::microseconds ms;
+    auto start = std::chrono::high_resolution_clock::now();
+    
     try {
+        totalTestCount++;
         test();
+        auto end = std::chrono::high_resolution_clock::now();
+        ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    
     } catch (std::logic_error &e) {
-        PrintTestFailureReport(printableFuncName);
+        PrintTestFailureReport(printableFuncName, ms);
+        failureCount++;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
         if (failOnAssert) {
             exit(1);
@@ -33,5 +47,5 @@ void TestRunner::RunTest(void(test)(), const char* printableFuncName) {
         return;
     }
 
-    PrintTestPassReport(printableFuncName);
+    PrintTestPassReport(printableFuncName, ms);
 }

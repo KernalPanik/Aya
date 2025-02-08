@@ -1,0 +1,1 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk -dynamiclib -Wl,-headerpad_max_install_names -o libAyaCore.dylib -install_name @rpath/libAyaCore.dylib CMakeFiles/AyaCore.dir/common/util.cpp.o  -lm

@@ -1,6 +1,4 @@
-#ifndef AYA_TYPES
-#define AYA_TYPES
-
+#pragma once
 #include <stdint.h>
 #include <stddef.h>
 
@@ -35,5 +33,3 @@ typedef bool(*ComparerFunc)(void*, void*);
 
 // Consumer must override their type.ToString() for PrettyPrint functions
 typedef char*(*ToStringFunc)(void*);
-
-#endif // AYA_TYPES

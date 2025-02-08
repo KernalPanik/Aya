@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
-project(AyaCore CXX)
 
 set(CMAKE_CXX_STANDARD 11)
-
 if(APPLE)
     set(LIBRARY_EXTENSION "dylib")
 elseif(UNIX AND NOT APPLE)
@@ -13,7 +11,5 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
-add_definitions(-w)
-
-add_subdirectory(src)
-add_subdirectory(test)
+add_executable(AyaTest testMain.cpp testRunner.cpp ../src/common/util.cpp)
+target_link_libraries(AyaTest m)

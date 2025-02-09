@@ -5,11 +5,11 @@
 #include <stdexcept>
 
 static void PrintTestFailureReport(const char* testName, std::chrono::microseconds ms) {
-    std::cout << testName << " [\e[1;91mFAIL\e[0m]" << "[ " << ms.count() << " ms]" << std::endl;;
+    std::cout << testName << " \t[\e[1;91mFAIL\e[0m]" << "[ " << ms.count() << " microseconds]" << std::endl;;
 }
 
 static void PrintTestPassReport(const char* testName, std::chrono::microseconds ms) {
-    std::cout << testName << " [\e[1;92mOK\e[0m]" << "[ " << ms.count() << " ms]" << std::endl;
+    std::cout << testName << " \t[\e[1;92mOK\e[0m]" << "[ " << ms.count() << " microseconds]" << std::endl;
 }
 
 TestRunner::TestRunner(bool failOnAssert) {

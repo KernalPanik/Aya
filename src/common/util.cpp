@@ -4,6 +4,8 @@
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
+#include <vector>
+#include <numeric>
 
 void memswap(ptr a, ptr b, size_t n)
 {
@@ -30,35 +32,28 @@ void memswap(ptr a, ptr b, size_t n)
 // https://en.wikipedia.org/wiki/Fisher–Yates_shuffle
 /*
  *  Shuffles an array of ints and takes first N elements
- *  n -- total amount of indices
- *  x -- max amount of indices wanted
+ *  originalstorage -- vector to shuffle
+ *  wantedSize -- shuffled vector size
  */
-//TODO: rework to use vectors
-void shuffle(size_t n, size_t x, size_t* storage) {
-    if (storage == NULL) {
-        printf("storage is NULL\n");
-        return;
-    }
+// TODO: make it templated, pass T instead of size_t
+std::vector<size_t> shuffle(std::vector<size_t>& originalStorage, size_t wantedSize) {
+    std::vector<size_t> indices(originalStorage.size());
+    std::iota(std::begin(indices), std::end(indices), 0);
 
-    size_t* arr = (size_t*)malloc(sizeof(size_t) * n);
-
-    for (size_t i = 0; i < n; i++) {
-        arr[i] = i;
-    }
-
-    for (size_t i = n - 1; i > 0; i--) {
+    for (size_t i = originalStorage.size() - 1; i > 0; i--) {
         srand(time(NULL));
         size_t j = rand() % (i + 1);
-        size_t t = arr[i];
-        arr[i] = arr[j];
-        arr[j] = t;
+        size_t t = indices[i];
+        indices[i] = indices[j];
+        indices[j] = t;
     }
 
-    for (size_t i = 0; i < x; i++) {
-        storage[i] = arr[i];
+    std::vector<size_t> shuffledVector;
+    for (size_t i = 0; i < wantedSize; i++) {
+        shuffledVector.push_back(indices[i]);
     }
 
-    free(arr);
+    return shuffledVector;
 }
 
 // Sometime in the future, grab version metadata from .git

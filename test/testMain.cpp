@@ -5,6 +5,7 @@
 
 // TEST HEADERS
 #include "framework/testRunnerTests.h"
+#include "../src/common/util-tests.h"
 // TEST HEADERS END
 
 //NOTE: Pass '1' to AyaTest to stop at first assert failure
@@ -18,6 +19,9 @@ int main(int argc, char** argv)
     }
     
     tr.RunTest(TestRunnerSanityCheck, "TestRunnerSanityCheck");
+    tr.RunTest(UtilTests_memswap_chars, "UtilTests_memswap_chars");
+    tr.RunTest(UtilTests_memswap_mallocdMem, "UtilTests_memswap_mallocd");
+    tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
 
     return 0;
 }

@@ -45,7 +45,7 @@ void UtilTests_shuffle_doesnt_produce_garbage() {
     std::vector<size_t> indices(10);
     std::iota(std::begin(indices), std::end(indices), 0);
 
-    size_t wantedSize = 5;
+    const size_t wantedSize = 5;
 
     auto shuffledVec = shuffle(indices, wantedSize);
     for (size_t i = 0; i < wantedSize; i++) {

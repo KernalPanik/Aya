@@ -11,5 +11,5 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
-add_executable(AyaTest testMain.cpp framework/testRunnerTests.cpp framework/testRunner.cpp ../src/common/util.cpp ../src/common/util-tests.cpp)
+add_executable(AyaTest testMain.cpp framework/testRunnerTests.cpp framework/testRunner.cpp ../src/common/util.cpp ../src/common/util-tests.cpp ../src/core/testableFunction.cpp ../src/core/testableFunction-tests.cpp)
 target_link_libraries(AyaTest m)

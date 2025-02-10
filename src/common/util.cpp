@@ -36,7 +36,7 @@ void memswap(ptr a, ptr b, size_t n)
  *  wantedSize -- shuffled vector size
  */
 // TODO: make it templated, pass T instead of size_t
-std::vector<size_t> shuffle(std::vector<size_t>& originalStorage, size_t wantedSize) {
+std::vector<size_t> shuffle(const std::vector<size_t>& originalStorage, const size_t wantedSize) {
     std::vector<size_t> indices(originalStorage.size());
     std::iota(std::begin(indices), std::end(indices), 0);
 

@@ -4,22 +4,21 @@
 #include <iostream>
 #include <functional>
 #include <string>
+#include <tuple>
+#include <utility>
 
-void test(int x) {
-    std::cout << "Test1 " << x << std::endl;
-}
-
-void test2(std::string s, double k) {
+int test(std::string s, double&& k) {
     std::cout << s << " " << k << std::endl;
+    k += 1.0f;
+    return 42;
 }
 
 void TestSimpleVoidFunction() {
-    std::function<void(int)> tx;
-    tx = test;
-    tx(2);
+    TestableFunction<int, std::string, double&&> func(test);
+    auto x = func.Invoke("test33", 3.0f);
 
-    TestableFunction<void, int> txx(test);
-    txx.Invoke(2);    
+    std::cout << std::move(std::get<double&&>(x)) << std::endl;
+    std::cout << std::move(std::get<int>(x)) << std::endl;
 }
 
 void TestSimpleFunctionWithReturn() {}

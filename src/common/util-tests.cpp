@@ -1,6 +1,7 @@
 #include "util-tests.h"
 #include "util.h"
 #include "../../test/framework/testRunnerUtils.h"
+#include "tuple-utils.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -52,5 +53,13 @@ void UtilTests_shuffle_doesnt_produce_garbage() {
         std::cout << shuffledVec[i] << " ";
         TEST_EXPECT(shuffledVec[i] < 10);
     }
-    std::cout << std::endl;
 }
+
+void UtilTests_Tuple_SimpleToString() {
+    auto t = std::make_tuple("testString", 20.0f, 42);
+    std::string wantedOutput = std::string("[testString; 20; 42; ]");
+    std::string s = TupleToString(t);
+    TEST_EXPECT(s == wantedOutput);
+}
+
+void UtilTests_Tuple_SimpleComparison(){}

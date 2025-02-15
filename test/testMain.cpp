@@ -23,6 +23,8 @@ int main(int argc, char** argv)
     tr.RunTest(UtilTests_memswap_chars, "UtilTests_memswap_chars");
     tr.RunTest(UtilTests_memswap_mallocdMem, "UtilTests_memswap_mallocd");
     tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
+    tr.RunTest(UtilTests_Tuple_SimpleToString, "UtilTests_Tuple_SimpleToString");
+    tr.RunTest(UtilTests_Tuple_SimpleComparison, "UtilTests_Tuple_SimpleComparison");
 
     // Testable function tests
     tr.RunTest(TestSimpleVoidFunction, "TestSimpleVoidFunction");

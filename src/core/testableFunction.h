@@ -3,6 +3,7 @@
 #include <iostream>
 #include <functional>
 #include <tuple>
+#include <optional>
 
 template <typename T, class... Args> 
 class TestableFunction
@@ -12,29 +13,30 @@ public:
         this->func = f;
     }
 
-    std::tuple<T, Args...> Invoke(Args&&... args) {
+   std::tuple<T, Args... > Invoke(Args&&... args) {
         auto r = this->func(std::forward<Args>(args)...);
-        // TODO: override make_tuple to make forwarded (rvalue) const values from rvalue references or references
-        return std::make_tuple(r, std::forward<Args>(args)...);
-    }
+        auto x = std::tie(r, args...);
+        return x;
+   }
 
 private:
     std::function<T(Args&&... args)> func;
 };
 
 template <class... Args> 
-class TestableVoidFunction
+class TestableFunction<void, Args...>
 {
 public:
-    TestableVoidFunction(std::function<void(Args... args)> f) {
+    TestableFunction(std::function<void(Args&&... args)> f) {
         this->func = f;
     }
 
-    void Invoke(Args... args) {
-        std::cout << "Called a void function!" << std::endl;
-        this->func(args...);
-    }
+   std::tuple<Args... > Invoke(Args&&... args) {
+        this->func(std::forward<Args>(args)...);
+        auto x = std::tie(args...);
+        return x;
+   }
 
 private:
-    std::function<void(Args... args)> func;
+    std::function<void(Args&&... args)> func;
 };

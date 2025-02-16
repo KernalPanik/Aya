@@ -24,13 +24,13 @@ int main(int argc, char** argv)
     tr.RunTest(UtilTests_memswap_mallocdMem, "UtilTests_memswap_mallocd");
     tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
     tr.RunTest(UtilTests_Tuple_SimpleToString, "UtilTests_Tuple_SimpleToString");
-    tr.RunTest(UtilTests_Tuple_SimpleComparison, "UtilTests_Tuple_SimpleComparison");
 
     // Testable function tests
-    tr.RunTest(TestSimpleVoidFunction, "TestSimpleVoidFunction");
-    tr.RunTest(TestSimpleFunctionWithReturn, "TestSimpleFunctionWithReturn");
-    tr.RunTest(TestSimpleVoidFunctionWithArgs, "TestSimpleVoidFunctionWithArgs");
-    tr.RunTest(TestSimpleFunctionWithReturnWithArgs, "TestSimpleFunctionWithReturnWithArgs");
+    tr.RunTest(TestableFunction_SimpleReturningFunction, "TestableFunction_SimpleReturningFunction");
+    tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
+    tr.RunTest(TestableFunction_NonVoidStateChanging_StateChanged, "TestableFunction_NonVoidStateChanging_StateChanged");
+    tr.RunTest(TestableFunction_VoidStateChanging_StateChanged, "TestableFunction_VoidStateChanging_StateChanged");
+    tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
 
     return 0;
 }

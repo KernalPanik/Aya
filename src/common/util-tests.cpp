@@ -61,5 +61,3 @@ void UtilTests_Tuple_SimpleToString() {
     std::string s = TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
 }
-
-void UtilTests_Tuple_SimpleComparison(){}

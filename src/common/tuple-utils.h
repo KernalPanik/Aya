@@ -9,6 +9,8 @@
 Unexplored caveat: std::string() operator overrides for more complex data types
 */
 
+// TODO: Explore making this a template class
+
 // Internal
 template<class Tuple, size_t N>
 struct TupleStringify {

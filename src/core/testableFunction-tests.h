@@ -2,7 +2,8 @@
 
 #include "testableFunction.h"
 
-void TestSimpleVoidFunction();
-void TestSimpleFunctionWithReturn();
-void TestSimpleVoidFunctionWithArgs();
-void TestSimpleFunctionWithReturnWithArgs();
+void TestableFunction_SimpleReturningFunction();
+void TestableFunction_VoidNonStateChanging_StateUnchanged();
+void TestableFunction_NonVoidStateChanging_StateChanged();
+void TestableFunction_VoidStateChanging_StateChanged();
+void TestableFunction_VoidNonStateChanging_StateUnchanged();

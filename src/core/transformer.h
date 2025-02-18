@@ -3,61 +3,41 @@
 #include <functional>
 #include <memory>
 
-/*class BaseTransformer {
-public:
-    virtual ~BaseTransformer() = default;
-    virtual void Apply() = 0;
-};
-
-template<class... Args>
-class Transformer : BaseTransformer {
-public:
-    Transformer(std::function<void()> f) : func(f) {}
-
-    void Apply(Args&&... args) override {
-        func(std::forward<Args>(args)...);
-    }
-
-private:
-    std::function<void(Args...)> func;
-};
-*/
-template<class... Args>
-class Transformer {
-public:
-    Transformer(std::function<void(Args...)> f) : func(f) {}
-
-    void Apply(Args&&... args) {
-        func(std::forward<Args>(args)...);
-    }
-
-private:
-    std::function<void(Args...)> func;
-};
-
-// Base class for polymorphism
 class BaseTransformer {
 public:
     virtual ~BaseTransformer() = default;
-    virtual void Apply() = 0;
+    virtual void Apply(void* data) = 0;
 };
 
-// Derived class template to wrap Transformer and provide polymorphic behavior
-template<class... Args>
-class TransformerWrapper : public BaseTransformer {
+template<typename T, class... Args>
+class Transformer : public BaseTransformer {
 public:
-    TransformerWrapper(std::function<void(Args...)> f) : transformer(f) {}
+    Transformer(std::function<void(T&, Args...)> f, Args&&... args)
+        : func(f), args(std::make_tuple(std::forward<Args>(args)...)) {}
 
-    void Apply() override {
-        transformer.Apply(2);
+    void Apply(void* data) override {
+        auto baseValue = *reinterpret_cast<T*>(data);
+        ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+        memcpy(data, &baseValue, sizeof(baseValue));
     }
 
 private:
-    Transformer<Args...> transformer;
+    template<std::size_t... I>
+    void ApplyImpl(std::index_sequence<I...>, T& baseValue) {
+        func(baseValue, std::forward<Args>(std::get<I>(args))...);
+    }
+
+    std::function<void(T&, Args...)> func;
+    std::tuple<Args...> args;
 };
 
-template<class... Args, typename Callable>
-std::shared_ptr<BaseTransformer> ConstructTransformer(Callable&& f) {
-    // Deduce Args... from the callable signature
-    return std::make_shared<TransformerWrapper<Args...>>(std::forward<Callable>(f));
+template<typename T, class... Args, typename Callable>
+std::shared_ptr<BaseTransformer> ConstructTransformer(Callable&& f, Args&&... args) {
+    return std::make_shared<Transformer<T, Args...>>(std::forward<Callable>(f), std::forward<Args>(args)...);
+}
+
+inline void ApplyTransformChain(void* val, std::vector<std::shared_ptr<BaseTransformer>> transformChain) {
+    for (auto &tc : transformChain) {
+        tc->Apply(val);
+    }
 }

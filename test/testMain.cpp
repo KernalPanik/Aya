@@ -38,9 +38,9 @@ int main(int argc, char** argv)
     //tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
 
     // Transformer tests
-    tr.RunTest(TransformerTests_SimpleCall, "TransformerTests_SimpleCall");
     tr.RunTest(TransformerTests_MutableCall, "TransformerTests_MutableCall");
-    tr.RunTest(TransformerTests_Various, "TransformerTests_Various");
+    tr.RunTest(TransformerTests_MutableStruct, "TransformerTests_MutableStruct");
+    tr.RunTest(TransformerTests_MultipleTransformers, "TransformerTests_MultipleTransformers");
 
     return 0;
 }

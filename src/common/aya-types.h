@@ -22,9 +22,6 @@ typedef struct
     f64 p2;
 } largeF64;
 
-// Tested function that takes the base (first arg), transformer (second arg), and stores the result (third arg)
-typedef void(*TestableFunc)(void*, void*, ptr*);
-
 // base, transformer, storage, tag
 typedef void(*TransformerFunc)(void*, void*, void**, char**);
 

@@ -22,13 +22,13 @@ public:
     }
 
 private:
+    std::function<void(T&, Args...)> func;
+    std::tuple<Args...> args;
+
     template<std::size_t... I>
     void ApplyImpl(std::index_sequence<I...>, T& baseValue) {
         func(baseValue, std::forward<Args>(std::get<I>(args))...);
     }
-
-    std::function<void(T&, Args...)> func;
-    std::tuple<Args...> args;
 };
 
 template<typename T, class... Args, typename Callable>

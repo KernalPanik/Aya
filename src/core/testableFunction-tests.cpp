@@ -29,35 +29,24 @@ static void StateChangingVoidFunc(double& d) {
 static float SimpleReturningFunction() {
     return 42.1f;
 }
-int add(int a, int b) {
-    return a + b;
-}
 
 void print(const std::string& message) {
     std::cout << message << std::endl;
 }
 
+int square(int x) {
+    return x * x;
+}
+
 void TestableFunction_SimpleReturningFunction() {
-auto addFunc = TestableFunction<int, int, int>(add);
-    std::any result = addFunc.Invoke(2, 3);
-    if (result.has_value()) {
-        std::cout << "Addition result: " << std::any_cast<int>(result) << std::endl;
-    }
+    auto testable = ConstructTestableFunction<int, int>(square);
+    InvokeTestableFunction(testable, 25);
 
-    // Function that returns void with an argument
-    auto printFunc = TestableFunction<void, std::string>(print);
-    printFunc.Invoke("Hello, World!");
-    if (printFunc.Invoke("This should not print").has_value()) {
-        std::cout << "This should not be reached for void functions" << std::endl;
-    }
+    
 
-    // Function with no arguments
-    auto randomFunc = TestableFunction<int>([]() { return std::rand() % 100; });
-    std::cout << "Random number: " << std::any_cast<int>(randomFunc.Invoke()) << std::endl;
-
-    // Function returning void with no arguments
-    auto timeFunc = TestableFunction<void>([]() { std::cout << "Current time: " << std::time(nullptr) << std::endl; });
-    timeFunc.Invoke();
+ //   auto func = ConstructTestableFunction<int, std::string&, long long>(nonStateChangingNonVoidFunc);// TestableFunctionV2<int, std::string&, long long>(nonStateChangingNonVoidFunc);
+ //   std::string t("Test");
+ //   InvokeTestableFunction(func, &t, 12);
 }
 
 /*void TestableFunction_NonVoidNonStateChanging_StateUnchanged() {

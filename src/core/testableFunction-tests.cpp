@@ -34,14 +34,17 @@ void print(const std::string& message) {
     std::cout << message << std::endl;
 }
 
-int square(int x) {
-    return x * x;
+int square(int& x) {
+    int r = x * x;
+
+    x += 1;
+    return r;
 }
 
 void TestableFunction_SimpleReturningFunction() {
-    auto testable = ConstructTestableFunction<int, int>(square);
-    InvokeTestableFunction(testable, 25);
-
+    auto testable = ConstructTestableFunction<int, int&>(square);
+    auto invokeRes = InvokeTestableFunction(testable, 25);
+    std::cout << TupleToString(*invokeRes) << std::endl;
     
 
  //   auto func = ConstructTestableFunction<int, std::string&, long long>(nonStateChangingNonVoidFunc);// TestableFunctionV2<int, std::string&, long long>(nonStateChangingNonVoidFunc);

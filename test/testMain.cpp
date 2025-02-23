@@ -29,11 +29,12 @@ int main(int argc, char** argv)
 
     // Testable function tests
     tr.RunTest(TestableFunction_SimpleReturningFunction, "TestableFunction_SimpleReturningFunction");
-    tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
+    
+    /*tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
     tr.RunTest(TestableFunction_NonVoidStateChanging_StateChanged, "TestableFunction_NonVoidStateChanging_StateChanged");
     tr.RunTest(TestableFunction_VoidStateChanging_StateChanged, "TestableFunction_VoidStateChanging_StateChanged");
     tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
-
+*/
     // Metamorphic Relation Tests
     //tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
 

@@ -9,7 +9,9 @@
 #include <tuple>
 #include <utility>
 
-static int nonStateChangingNonVoidFunc(std::string& s, long long t) {
+static int nonStateChangingNonVoidFunc(std::string& s, int& t) {
+    std::cout << "got " << s << std::endl;
+    s += "testa";
     return 42;
 }
 
@@ -34,22 +36,18 @@ void print(const std::string& message) {
     std::cout << message << std::endl;
 }
 
-int square(int& x) {
-    int r = x * x;
-
-    x += 1;
-    return r;
-}
-
 void TestableFunction_SimpleReturningFunction() {
-    auto testable = ConstructTestableFunction<int, int&>(square);
-    auto invokeRes = InvokeTestableFunction(testable, 25);
-    std::cout << TupleToString(*invokeRes) << std::endl;
-    
-
- //   auto func = ConstructTestableFunction<int, std::string&, long long>(nonStateChangingNonVoidFunc);// TestableFunctionV2<int, std::string&, long long>(nonStateChangingNonVoidFunc);
- //   std::string t("Test");
- //   InvokeTestableFunction(func, &t, 12);
+    /*auto testable = ConstructTestableFunction<int, std::string&, int>(nonStateChangingNonVoidFunc);
+    std::string t("Test");
+    int vals = 12;
+    auto state = InvokeTestableFunction<int>(testable, t, vals);
+    std::cout << TupleToString(*state) << std::endl;*/
+    std::string t("Test");
+    int vals = 12;
+    auto testable = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
+    auto state = InvokeTestableFunction<int>(testable, t, vals); // Explicit Args
+    std::cout << "Final result: " << TupleToString(*state) << std::endl;
+    std::cout << "Modified t: " << t << std::endl;
 }
 
 /*void TestableFunction_NonVoidNonStateChanging_StateUnchanged() {

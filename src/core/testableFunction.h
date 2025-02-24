@@ -65,8 +65,8 @@ private:
 #pragma region Testable Function Interfaces
 template<typename T, typename... Args, typename Callable>
 std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
-    return std::make_shared<TestableFunction<T, Args...>>(
-        std::function<T(Args...)>(std::forward<Callable>(f)));
+    return std::make_shared<TestableFunction<T, Args&&...>>(
+        std::function<T(Args&&...)>(std::forward<Callable>(f)));
 }
 
 template<typename T,

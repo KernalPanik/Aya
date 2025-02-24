@@ -9,7 +9,7 @@
 #include <tuple>
 #include <utility>
 
-static int nonStateChangingNonVoidFunc(std::string& s, int& t) {
+static int nonStateChangingNonVoidFunc(std::string& s, int t) {
     std::cout << "got " << s << std::endl;
     s += "testa";
     return 42;
@@ -37,15 +37,10 @@ void print(const std::string& message) {
 }
 
 void TestableFunction_SimpleReturningFunction() {
-    /*auto testable = ConstructTestableFunction<int, std::string&, int>(nonStateChangingNonVoidFunc);
-    std::string t("Test");
-    int vals = 12;
-    auto state = InvokeTestableFunction<int>(testable, t, vals);
-    std::cout << TupleToString(*state) << std::endl;*/
     std::string t("Test");
     int vals = 12;
     auto testable = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-    auto state = InvokeTestableFunction<int>(testable, t, vals); // Explicit Args
+    auto state = InvokeTestableFunction<int>(testable, t, vals);
     std::cout << "Final result: " << TupleToString(*state) << std::endl;
     std::cout << "Modified t: " << t << std::endl;
 }

@@ -49,3 +49,20 @@ std::string TupleToString(std::tuple<Args...>& t) {
 
     return base;
 }
+
+/*
+    Returns decayed tuple -- Tuple where each element is value, not reference.
+    Useful when Invoking TestableFunction via it's interface -- state is a tuple of references, not values.
+*/
+template<class... types>
+auto TupleDecay(const std::tuple<types...>& t) {
+    return std::apply([](auto&&... args) {
+        return std::make_tuple(std::decay_t<decltype(args)>(std::forward<decltype(args)>(args))...);
+    }, t);
+}
+
+template<typename Tuple1, typename Tuple2>
+bool CompareTuples(const Tuple1& t1, const Tuple2& t2) {
+    static_assert(std::tuple_size<Tuple1>::value == std::tuple_size<Tuple2>::value, "Tuple sizes must match");
+    return TupleDecay(t1) == TupleDecay(t2);
+}

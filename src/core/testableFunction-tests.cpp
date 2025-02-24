@@ -10,8 +10,6 @@
 #include <utility>
 
 static int nonStateChangingNonVoidFunc(std::string& s, int t) {
-    std::cout << "got " << s << std::endl;
-    s += "testa";
     return 42;
 }
 
@@ -39,10 +37,22 @@ void print(const std::string& message) {
 void TestableFunction_SimpleReturningFunction() {
     std::string t("Test");
     int vals = 12;
-    auto testable = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-    auto state = InvokeTestableFunction<int>(testable, t, 12);
-    std::cout << "Final result: " << TupleToString(*state) << std::endl;
-    std::cout << "Modified t: " << t << std::endl;
+    auto testableFunction = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
+
+    auto expectedState = std::make_tuple(42, t, vals);
+
+    //NOTE: This call crashes the compiler (Apple Clang 16):
+    //auto finalState = InvokeTestableFunction<int, std::string&, int&>(testableFunction, t, 12);
+
+    auto finalState = InvokeTestableFunction<int>(testableFunction, t, vals);
+    auto finalStateDecayed = TupleDecay(*finalState);
+
+    TEST_EXPECT(CompareTuples(expectedState, *finalState));
+}
+
+void TestableFunction_SimpleReturningFunction_OperateOnInputTuples() {
+    // Construct arguments as a tuple (emulate MR process)
+    // Pass Tuple elements as args...
 }
 
 /*void TestableFunction_NonVoidNonStateChanging_StateUnchanged() {

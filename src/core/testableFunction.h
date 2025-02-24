@@ -34,12 +34,10 @@ public:
     }
 
     std::shared_ptr<void> Invoke(TupleWrapperBase* args) override {
-        //auto concreteArgsPtr = static_cast<std::tuple<Args...>*>(args);
         auto* concreteArgs = dynamic_cast<TupleWrapper<Args...>*>(args);
         if (!concreteArgs) {
             throw std::runtime_error("Invalid tuple type");
         }
-
 
         if (std::is_void<T>().value) {
             InvokeImpl(std::index_sequence_for<Args...>{}, concreteArgs->tup);
@@ -55,8 +53,6 @@ private:
 
     template<std::size_t... I>
     T InvokeImpl(std::index_sequence<I...>, std::tuple<Args...>& tup) {
-        std::cout << "CONCRETE ARGS" << std::endl;
-        std::cout << TupleToString(tup) << std::endl;
         T r = func(std::forward<Args>(std::get<I>(tup))...);
         return r;
     }
@@ -72,6 +68,25 @@ std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
 template<typename T,
 class... Args,
 typename = std::enable_if_t<!std::is_void_v<T>>>
+auto InvokeTestableFunction(const std::shared_ptr<TestableFunctionBase>& func, Args&&... args) {
+    auto wrapper = std::make_unique<TupleWrapper<Args...>>(std::forward<Args>(args)...);
+    auto* concreteArgs = dynamic_cast<TupleWrapper<Args...>*>(wrapper.get());
+
+    auto retvalPtr = func->Invoke(wrapper.get());
+    if (retvalPtr) {
+        T val = *static_cast<T*>(retvalPtr.get());
+        return std::make_shared<std::tuple<T, Args...>>(val, std::forward<Args>(args)...);
+    }
+
+    throw std::logic_error("Expected some return from non void function!\n");
+}
+
+
+// TODO: Specialization for void func
+/*
+template<typename T,
+class... Args,
+typename = std::enable_if_t<!std::is_void_v<T>>>
 std::shared_ptr<std::tuple<T, Args...>> InvokeTestableFunction(const std::shared_ptr<TestableFunctionBase>& func, Args&&... args) {
     auto wrapper = std::make_unique<TupleWrapper<Args...>>(std::forward<Args>(args)...);
     auto* concreteArgs = dynamic_cast<TupleWrapper<Args...>*>(wrapper.get());
@@ -79,25 +94,10 @@ std::shared_ptr<std::tuple<T, Args...>> InvokeTestableFunction(const std::shared
     auto retvalPtr = func->Invoke(wrapper.get());
     if (retvalPtr) {
         T val = *static_cast<T*>(retvalPtr.get());
-        //return std::make_shared<std::tuple<T, Args...>>(std::make_tuple(val, std::forward<Args>(args)...));
         return std::make_shared<std::tuple<T, Args...>>(val, std::forward<Args>(args)...);
     }
 
     throw std::logic_error("Expected some return from non void function!\n");
-}
-
-//TODO:
-/*template<typename T,
-class... Args,
-typename = std::enable_if_t<std::is_void_v<T>>>
-std::shared_ptr<std::tuple<Args...>> InvokeTestableFunction(const std::shared_ptr<TestableFunctionBase>& func, Args... args) {
-    auto t = std::make_shared<std::tuple<Args...>>(std::make_tuple(std::forward<Args>(args)...));
-    auto retvalPtr = func->Invoke(t.get());
-
-    if (retvalPtr != nullptr) {
-        throw std::logic_error("No value is expected to be returned!\n");
-    }
-
-    return std::make_shared<std::tuple<Args...>>(std::make_tuple(std::forward<Args>(args)...));
 }*/
+
 #pragma endregion

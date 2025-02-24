@@ -38,16 +38,16 @@ void TestableFunction_SimpleReturningFunction() {
     std::string t("Test");
     int vals = 12;
     auto testableFunction = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-
+    auto packedInputs = std::make_tuple(t, vals);
     auto expectedState = std::make_tuple(42, t, vals);
 
     //NOTE: This call crashes the compiler (Apple Clang 16):
     //auto finalState = InvokeTestableFunction<int, std::string&, int&>(testableFunction, t, 12);
+    // TODO: move to separate task
 
-    auto finalState = InvokeTestableFunction<int>(testableFunction, t, vals);
-    auto finalStateDecayed = TupleDecay(*finalState);
+    auto finalState = InvokeWithPackedArguments<int>(testableFunction, std::move(packedInputs));
 
-    TEST_EXPECT(CompareTuples(expectedState, *finalState));
+    TEST_EXPECT(expectedState == finalState);
 }
 
 void TestableFunction_SimpleReturningFunction_OperateOnInputTuples() {

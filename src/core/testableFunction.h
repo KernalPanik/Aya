@@ -100,4 +100,24 @@ std::shared_ptr<std::tuple<T, Args...>> InvokeTestableFunction(const std::shared
     throw std::logic_error("Expected some return from non void function!\n");
 }*/
 
+
+template <typename T, typename... Args>
+auto TestableFunctionInvoker(const std::shared_ptr<TestableFunctionBase>& func, Args&&... args) {
+    return InvokeTestableFunction<T>(func, std::forward<decltype(args)>(args)...);
+}
+
+
+// Returns decayed (only values) tuple describing final function state
+// This is the preferred way to interact with TestableFunction
+template<typename T, typename... Args>
+auto InvokeWithPackedArguments(const std::shared_ptr<TestableFunctionBase>& func, std::tuple<Args...>&& tupleOfArgs) {
+    auto v = std::apply(
+        [&](auto&&... args) {
+            return TestableFunctionInvoker<T>(func, std::forward<decltype(args)>(args)...);
+        },
+        tupleOfArgs);
+
+    return TupleDecay(*v);
+}
+
 #pragma endregion

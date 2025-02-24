@@ -40,7 +40,7 @@ void TestableFunction_SimpleReturningFunction() {
     std::string t("Test");
     int vals = 12;
     auto testable = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-    auto state = InvokeTestableFunction<int>(testable, t, vals);
+    auto state = InvokeTestableFunction<int>(testable, t, 12);
     std::cout << "Final result: " << TupleToString(*state) << std::endl;
     std::cout << "Modified t: " << t << std::endl;
 }

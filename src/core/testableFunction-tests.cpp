@@ -14,7 +14,7 @@ static int nonStateChangingNonVoidFunc(std::string& s, int t) {
 }
 
 static short StateChangingNonVoidFunc(float& t) {
-    t += 24.0f;
+    t += 0.8f;
     return 42;
 }
 
@@ -26,63 +26,42 @@ static void StateChangingVoidFunc(double& d) {
     d += 24;
 }
 
-static float SimpleReturningFunction() {
-    return 42.1f;
-}
-
-void print(const std::string& message) {
-    std::cout << message << std::endl;
-}
-
 void TestableFunction_SimpleReturningFunction() {
-    std::string t("Test");
-    int vals = 12;
     auto testableFunction = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-    auto packedInputs = std::make_tuple(t, vals);
-    auto expectedState = std::make_tuple(42, t, vals);
+    auto packedInputs = std::make_tuple(std::string("Test"), 12);
+    auto expectedState = std::make_tuple(42, std::string("Test"), 12);
+    auto finalState = InvokeWithPackedArguments<int>(testableFunction, std::move(packedInputs));
 
     //NOTE: This call crashes the compiler (Apple Clang 16):
     //auto finalState = InvokeTestableFunction<int, std::string&, int&>(testableFunction, t, 12);
     // TODO: move to separate task
 
-    auto finalState = InvokeWithPackedArguments<int>(testableFunction, std::move(packedInputs));
+    TEST_EXPECT(expectedState == finalState);
+}
+
+void TestableFunction_NonVoidStateChanging_StateChanged() {
+    auto testableFunction = ConstructTestableFunction<short, float&>(StateChangingNonVoidFunc);
+    auto packedInputs = std::make_tuple(41.2f);
+    auto expectedState = std::make_tuple(42, 42.f);
+    auto finalState = InvokeWithPackedArguments<short>(testableFunction, std::move(packedInputs));
 
     TEST_EXPECT(expectedState == finalState);
 }
 
-void TestableFunction_SimpleReturningFunction_OperateOnInputTuples() {
-    // Construct arguments as a tuple (emulate MR process)
-    // Pass Tuple elements as args...
-}
-
-/*void TestableFunction_NonVoidNonStateChanging_StateUnchanged() {
-    auto func = TestableFunction<int, std::string&, long long>(nonStateChangingNonVoidFunc);
-    auto expectedState = std::make_tuple(42, "test", 12);
-    std::string str("test");
-    auto newState = func.Invoke(str, 12);
-    TEST_EXPECT(expectedState == newState);
-}
-
-void TestableFunction_NonVoidStateChanging_StateChanged() {
-    auto func = TestableFunction<short, float&>(StateChangingNonVoidFunc);
-    float val = 20;
-    auto expectedState = std::make_tuple(42, 44.0f);
-    auto state = func.Invoke(val);
-    TEST_EXPECT(state == expectedState);
-}
-
 void TestableFunction_VoidStateChanging_StateChanged() {
-    auto func = TestableFunction<void, double&>(StateChangingVoidFunc);
-    double val = 20;
-    auto expectedState = std::make_tuple(44.0f);
-    auto state = func.Invoke(val);
-    TEST_EXPECT(state == expectedState);
+    auto testableFunction = ConstructTestableFunction<void, double&>(StateChangingVoidFunc);
+    auto packedInputs = std::make_tuple(static_cast<double>(10.5f));
+    auto expectedState = std::make_tuple(static_cast<double>(34.5f));
+    auto finalState = InvokeWithPackedArguments<void>(testableFunction, std::move(packedInputs));
+    
+    TEST_EXPECT(expectedState == finalState);
 }
 
 void TestableFunction_VoidNonStateChanging_StateUnchanged() {
-    auto func = TestableFunction<void, int>(nonStateChangingVoidFunc);
-    int val = 10;
-    auto expectedState = std::make_tuple(val);
-    auto state = func.Invoke(std::move(val));
-    TEST_EXPECT(state == expectedState);
-}*/
+    auto testableFunction = ConstructTestableFunction<void, int&>(nonStateChangingVoidFunc);
+    auto packedInputs = std::make_tuple(static_cast<int>(42));
+    auto expectedState = std::make_tuple(static_cast<int>(42));
+    auto finalState = InvokeWithPackedArguments<void>(testableFunction, std::move(packedInputs));
+
+    TEST_EXPECT(expectedState == finalState);
+}

@@ -8,9 +8,11 @@
 #include <tuple>
 #include <vector>
 
+using namespace Callable;
+
 #pragma region helper_functions
 struct TestStruct {
-    int testValue{};
+    int testValue {};
     std::string testString;
 };
 

@@ -1,6 +1,6 @@
 #include "util-tests.h"
 #include "util.h"
-#include "../../test/framework/testRunnerUtils.h"
+#include "../../test/Framework/testRunnerUtils.h"
 #include "tuple-utils.h"
 
 #include <stdio.h>

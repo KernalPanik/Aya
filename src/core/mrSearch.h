@@ -1,7 +1,9 @@
 #pragma once
 
 #include "metamorphicRelation.h"
-#include "testableFunction.h"
+#include "Modules/Callable/testableFunction.h"
+
+using namespace Callable;
 
 template <typename T, class... Args>
 void SearchForMRs(TestableFunction<T, Args...> testableFunc, MetamorphicRelation* mrs, size_t& mrCount) { }

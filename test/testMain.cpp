@@ -33,13 +33,13 @@ int main(int argc, char** argv)
     tr.RunTest(TestableFunction_VoidStateChanging_StateChanged, "TestableFunction_VoidStateChanging_StateChanged");
     tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
 
-    // Metamorphic Relation Tests
-    //tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
-
     // Transformer tests
     tr.RunTest(TransformerTests_MutableCall, "TransformerTests_MutableCall");
     tr.RunTest(TransformerTests_MutableStruct, "TransformerTests_MutableStruct");
     tr.RunTest(TransformerTests_MultipleTransformers, "TransformerTests_MultipleTransformers");
+
+    // Metamorphic Relation Tests
+    tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
 
     return 0;
 }

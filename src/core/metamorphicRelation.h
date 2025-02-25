@@ -5,10 +5,10 @@
 #include <vector>
 #include <iostream>
 
-// TODO: investigate the portability to C#
+using namespace Callable;
 
 struct MetamorphicRelation
 {
-    std::vector<std::vector<std::shared_ptr<Callable::BaseTransformer>>> inputTransformers;
-    std::vector<std::shared_ptr<Callable::BaseTransformer>> outputTransformers;
+    std::vector<std::vector<std::shared_ptr<BaseTransformer>>> inputTransformers;
+    std::vector<std::shared_ptr<BaseTransformer>> outputTransformers;
 };

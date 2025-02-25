@@ -1,5 +1,5 @@
 #include "metamorphicRelation-tests.h"
-#include "../../test/framework/testRunnerUtils.h"
+#include "../../test/Framework/testRunnerUtils.h"
 
 #include <iostream>
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 
 class BaseTransformer {
 public:
@@ -10,13 +9,17 @@ public:
 };
 
 template<typename T, class... Args>
-class Transformer : public BaseTransformer {
+class Transformer final : public BaseTransformer {
 public:
-    Transformer(std::function<void(T&, Args...)> f, Args&&... args)
+    explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
         : func(f), args(std::make_tuple(std::forward<Args>(args)...)) {}
 
     void Apply(void* data) override {
-        auto baseValue = *reinterpret_cast<T*>(data);
+        if (data == nullptr) {
+            throw std::invalid_argument("Cannot transform base that is null.");
+        }
+
+        auto baseValue = *static_cast<T*>(data);
         ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
         memcpy(data, &baseValue, sizeof(baseValue));
     }
@@ -36,8 +39,8 @@ std::shared_ptr<BaseTransformer> ConstructTransformer(Callable&& f, Args&&... ar
     return std::make_shared<Transformer<T, Args...>>(std::forward<Callable>(f), std::forward<Args>(args)...);
 }
 
-inline void ApplyTransformChain(void* val, std::vector<std::shared_ptr<BaseTransformer>> transformChain) {
-    for (auto &tc : transformChain) {
-        tc->Apply(val);
+inline void ApplyTransformChain(void* base, const std::vector<std::shared_ptr<BaseTransformer>>& transformChain) {
+    for (auto &transform : transformChain) {
+        transform->Apply(base);
     }
 }

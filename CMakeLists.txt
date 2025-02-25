@@ -13,7 +13,7 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
+include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
-
 add_subdirectory(src)
 add_subdirectory(test)

@@ -12,5 +12,6 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR})
 add_library(AyaCore SHARED common/util.cpp)
 target_link_libraries(AyaCore m)

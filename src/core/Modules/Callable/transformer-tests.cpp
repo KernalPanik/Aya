@@ -1,18 +1,16 @@
 #include "transformer-tests.h"
 #include "transformer.h"
-#include "../../test/framework/testRunnerUtils.h"
+#include "../../../../test/framework/testRunnerUtils.h"
 
 #include <iostream>
 #include <string>
-
-#include <iostream>
 #include <functional>
-#include <vector>
-#include <memory>
 #include <tuple>
+#include <vector>
 
+#pragma region helper_functions
 struct TestStruct {
-    int testValue;
+    int testValue{};
     std::string testString;
 };
 
@@ -32,10 +30,11 @@ static void Increment(float& f) {
 static void AddVal(float& f, float val) {
     f += val;
 }
+#pragma endregion
 
 void TransformerTests_MutableCall() {
     auto baseValue = 10;
-    auto transformer = ConstructTransformer<int>(ModifyBase);
+    const auto transformer = ConstructTransformer<int>(ModifyBase);
     transformer->Apply(&baseValue);
     TEST_EXPECT(baseValue == 20);
 }
@@ -45,7 +44,7 @@ void TransformerTests_MutableStruct() {
     sample.testValue = 40;
     sample.testString = "test";
 
-    auto transformer = ConstructTransformer<TestStruct>(ModifyStruct);
+    const auto transformer = ConstructTransformer<TestStruct>(ModifyStruct);
     transformer->Apply(&sample);
     TEST_EXPECT(sample.testValue == 42);
     TEST_EXPECT(sample.testString == "testa");

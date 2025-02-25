@@ -1,14 +1,14 @@
 #include "framework/testRunner.h"
 
 #include <iostream>
-#include <assert.h>
+#include <cassert>
 
 // TEST HEADERS
 #include "framework/testRunnerTests.h"
 #include "../src/common/util-tests.h"
 #include "../src/core/testableFunction-tests.h"
 #include "../src/core/metamorphicRelation-tests.h"
-#include "../src/core/transformer-tests.h"
+#include "../src/Core/Modules/Callable/transformer-tests.h"
 // TEST HEADERS END
 
 //NOTE: Pass '1' to AyaTest to stop at first assert failure

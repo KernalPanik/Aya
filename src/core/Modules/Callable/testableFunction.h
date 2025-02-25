@@ -9,11 +9,12 @@
 
 namespace Callable {
     #pragma region Testable Function Internals
+    // TODO: Tuple Wrappers to a shared location after MR context is designed
     struct TupleWrapperBase {
         virtual ~TupleWrapperBase() = default;
     };
 
-    template <typename ... Args>
+    template <typename... Args>
     struct TupleWrapper final : TupleWrapperBase {
         std::tuple<Args...> tup;
         explicit TupleWrapper(Args&&... args) : tup(std::forward<Args>(args)...) {}
@@ -80,7 +81,7 @@ namespace Callable {
         throw std::logic_error("Expected some return from non void function!\n");
     }
 
-    template<typename T,
+    template <typename T,
     class... Args,
     typename = std::enable_if_t<std::is_void_v<T>>>
     std::shared_ptr<std::tuple<Args...>> InvokeTestableFunction(const std::shared_ptr<TestableFunctionBase>& func, Args&&... args) {
@@ -103,7 +104,7 @@ namespace Callable {
             - Following arguments are function arguments passed as references, even if original function does not need a reference here.
         Invoke the testableFunction using InvokeWithPackedArguments (Preferred way). Or use direct calls to InvokeTestableFunction()
     */
-    template<typename T, typename... Args, typename Callable>
+    template <typename T, typename... Args, typename Callable>
     std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
         return std::make_shared<TestableFunction<T, Args&&...>>(
             std::function<T(Args&&...)>(std::forward<Callable>(f)));

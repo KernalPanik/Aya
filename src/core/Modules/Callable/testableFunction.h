@@ -14,7 +14,7 @@ namespace Callable {
     };
 
     template <typename ... Args>
-    struct TupleWrapper : public TupleWrapperBase {
+    struct TupleWrapper final : TupleWrapperBase {
         std::tuple<Args...> tup;
         explicit TupleWrapper(Args&&... args) : tup(std::forward<Args>(args)...) {}
     };
@@ -40,25 +40,21 @@ namespace Callable {
                 throw std::runtime_error("Invalid tuple type");
             }
 
-            if constexpr (!std::is_void_v<T>) {
-                T r = InvokeImpl(std::index_sequence_for<Args...>{}, concreteArgs->tup);
-                return std::make_shared<T>(r);
-            }
-
-            InvokeImpl(std::index_sequence_for<Args...>{}, concreteArgs->tup);
-            return nullptr;
+            return InvokeImpl(std::index_sequence_for<Args...>{}, concreteArgs->tup);
         }
 
     private:
         std::function<T(Args&&... args)> func;
 
         template <std::size_t... I>
-        T InvokeImpl(std::index_sequence<I...>, std::tuple<Args...>& tup) {
+        std::shared_ptr<T> InvokeImpl(std::index_sequence<I...>, std::tuple<Args...>& tup) {
             if constexpr (!std::is_void_v<T>) {
                 T r = func(std::forward<Args>(std::get<I>(tup))...);
-                return r;
+                return std::make_shared<T>(r);
             }
+
             func(std::forward<Args>(std::get<I>(tup))...);
+            return nullptr;
         }
     };
 
@@ -69,12 +65,6 @@ namespace Callable {
     #pragma endregion
 
     #pragma region Testable Function Interfaces
-    template<typename T, typename... Args, typename Callable>
-    std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
-        return std::make_shared<TestableFunction<T, Args&&...>>(
-            std::function<T(Args&&...)>(std::forward<Callable>(f)));
-    }
-
     template<typename T,
     class... Args,
     typename = std::enable_if_t<!std::is_void_v<T>>>
@@ -82,15 +72,13 @@ namespace Callable {
         auto wrapper = std::make_unique<TupleWrapper<Args...>>(std::forward<Args>(args)...);
         auto* concreteArgs = dynamic_cast<TupleWrapper<Args...>*>(wrapper.get());
 
-        auto retvalPtr = func->Invoke(wrapper.get());
-        if (retvalPtr) {
+        if (auto retvalPtr = func->Invoke(wrapper.get())) {
             T val = *static_cast<T*>(retvalPtr.get());
             return std::make_shared<std::tuple<T, Args...>>(val, std::forward<Args>(args)...);
         }
 
         throw std::logic_error("Expected some return from non void function!\n");
     }
-
 
     template<typename T,
     class... Args,
@@ -107,8 +95,32 @@ namespace Callable {
         throw std::logic_error("Expected some return from non void function!\n");
     }
 
-    // Returns decayed (only values) tuple describing final function state
-    // This is the preferred way to interact with TestableFunction
+    /*
+        Main function to construct an interface to a TestableFunction.
+        Usage:
+        const auto testableFunction = ConstructTestableFunction<void, int&>(nonStateChangingVoidFunc);
+            - First Template argument is the return type (can be void too).
+            - Following arguments are function arguments passed as references, even if original function does not need a reference here.
+        Invoke the testableFunction using InvokeWithPackedArguments (Preferred way). Or use direct calls to InvokeTestableFunction()
+    */
+    template<typename T, typename... Args, typename Callable>
+    std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
+        return std::make_shared<TestableFunction<T, Args&&...>>(
+            std::function<T(Args&&...)>(std::forward<Callable>(f)));
+    }
+
+    /*
+        Main function to invoke a TestableFunction
+        Expects a tuple of arguments, not a vararg.
+        Usage:
+        const auto testableFunction = ConstructTestableFunction<void, int&>(testFunc);
+        auto packedInputs = std::make_tuple(static_cast<int>(42));
+        const auto finalState = InvokeWithPackedArguments<void>(testableFunction, std::move(packedInputs));
+
+        Make sure to always std::move the tuple
+
+        Returns decayed (only values) tuple describing final function state
+    */
     template<typename T, typename... Args>
     auto InvokeWithPackedArguments(const std::shared_ptr<TestableFunctionBase>& func, std::tuple<Args...>&& tupleOfArgs) {
         auto v = std::apply(

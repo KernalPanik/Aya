@@ -9,6 +9,6 @@
 
 struct MetamorphicRelation
 {
-    std::vector<std::vector<std::shared_ptr<BaseTransformer>>> inputTransformers;
-    std::vector<std::shared_ptr<BaseTransformer>> outputTransformers;
+    std::vector<std::vector<std::shared_ptr<Callable::BaseTransformer>>> inputTransformers;
+    std::vector<std::shared_ptr<Callable::BaseTransformer>> outputTransformers;
 };

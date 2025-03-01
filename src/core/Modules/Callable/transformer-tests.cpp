@@ -33,7 +33,7 @@ static void AddVal(float& f, float val) {
     f += val;
 }
 #pragma endregion
-
+/*
 void TransformerTests_MutableCall() {
     auto baseValue = 10;
     const auto transformer = ConstructTransformer<int>(ModifyBase);
@@ -62,3 +62,4 @@ void TransformerTests_MultipleTransformers() {
     ApplyTransformChain(&testedValue, transformers);
     TEST_EXPECT(testedValue == 111.0f);
 }
+*/

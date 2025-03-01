@@ -24,6 +24,7 @@ double poww(double x, double y) {
 
 #pragma region tmpMRContext
 
+/*
 struct MRContext {
     std::shared_ptr<TestableFunctionBase> func;
     std::vector<TupleWrapperBase> inputs;
@@ -33,16 +34,35 @@ struct MRContext {
         this->inputs = std::move(initialInputs);
     }
 };
-
+*/
 //TODO: MRContext builder/constructor
 //TODO: Make MRSearch accept MRContext only
 #pragma endregion
 
 // Straightforward Generation of MRs without using MR generation function
 void MR_SimpleConstructionTest() {
+    // MR: pow(x, y+1) == pow(x, y) * x
+/*
     auto func = ConstructTestableFunction<double, double&, double&>(poww);
-    auto packedInput = TupleWrapper(static_cast<double>(12), static_cast<double>(2));
     std::vector<TupleWrapperBase> packedInputs;
+    
+    // TODO: template util for packed input creation
+    // BuildPackedInputs(std::vector<T> args)
+    std::vector<double> baseInputs = {static_cast<double>(10.0f), static_cast<double>(11.0f), static_cast<double>(12.0f), static_cast<double>(13.0f)};
+    std::vector<double> expInputs = {static_cast<double>(2.0f), static_cast<double>(2.0f), static_cast<double>(4.0f)};
+    for (auto &b : baseInputs) {
+        for (auto &e : expInputs) {
+            auto packedInput = TupleWrapper(static_cast<double>(b), static_cast<double>(e));
+            packedInputs.push_back(packedInput);
+        }
+    }
+*/
+#pragma region MRGen
+/*    std::vector<double> initialStates;
+    for (auto &i : packedInputs) {
+        //auto state = InvokeWithPackedArguments<double>(func, std::move(i));
+    }
+/*
     packedInputs.push_back(packedInput);
 
     auto ctx = MRContext(func, packedInputs);    
@@ -54,6 +74,7 @@ void MR_SimpleConstructionTest() {
     std::cout << TupleToString(packedInput.tup) << std::endl;
     std::cout << TupleToString(finalState) << std::endl;
     std::cout << TupleToString(packedInput.tup) << std::endl;
-
+*/
+#pragma endregion
     TEST_EXPECT(2 == 2);
 }

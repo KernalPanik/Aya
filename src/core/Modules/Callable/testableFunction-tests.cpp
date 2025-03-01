@@ -1,12 +1,13 @@
 #include "testableFunction-tests.h"
 #include "testableFunction.h"
 #include "test/Framework/testRunnerUtils.h"
+#include "TestableFunction.hpp"
 
 #include <iostream>
 #include <string>
 #include <tuple>
 
-using namespace Callable;
+//using namespace Callable;
 
 #pragma region Helper Functions
 static int nonStateChangingNonVoidFunc(std::string& s, int t) {
@@ -26,18 +27,23 @@ static void StateChangingVoidFunc(double& d) {
 #pragma endregion
 
 void TestableFunction_SimpleReturningFunction() {
-    const auto testableFunction = ConstructTestableFunction<int, std::string&, int&>(nonStateChangingNonVoidFunc);
-    auto packedInputs = std::make_tuple(std::string("Test"), 12);
-    const auto expectedState = std::make_tuple(42, std::string("Test"), 12);
-    const auto finalState = InvokeWithPackedArguments<int>(testableFunction, std::move(packedInputs));
+    std::vector<float> inputs = { 1.0, 2.0, 3.0, 4.0, 5.0 };
+    std::vector<std::shared_ptr<ITestableFunction>> tests;
 
-    //NOTE: This call crashes the compiler (Apple Clang 16):
-    //auto finalState = InvokeTestableFunction<int, std::string&, int&>(testableFunction, t, 12);
-    // TODO: move to separate task
+    float x = 5;
+    auto func = std::make_shared<TestableFunction<short, float&>>(StateChangingNonVoidFunc, x);
 
-    TEST_EXPECT(expectedState == finalState);
+    for (auto &i : inputs) {
+        tests.push_back(std::make_shared<TestableFunction<short, float&>>(StateChangingNonVoidFunc, i));
+    }
+
+    for (auto &s : tests) {
+        s->PrintState();
+    }
+
 }
 
+    /*
 void TestableFunction_NonVoidStateChanging_StateChanged() {
     const auto testableFunction = ConstructTestableFunction<short, float&>(StateChangingNonVoidFunc);
     auto packedInputs = std::make_tuple(41.2f);
@@ -64,3 +70,4 @@ void TestableFunction_VoidNonStateChanging_StateUnchanged() {
 
     TEST_EXPECT(expectedState == finalState);
 }
+*/

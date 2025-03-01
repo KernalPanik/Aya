@@ -1,31 +1,42 @@
 #pragma once
 
-#include "src/Common/tuple-utils.h"
-
 #include <any>
 #include <functional>
 #include <iostream>
 #include <tuple>
 
+#include "src/Common/tuple-utils.h"
+
 namespace Callable {
     #pragma region Testable Function Internals
-    // TODO: Tuple Wrappers to a shared location after MR context is designed
-    struct TupleWrapperBase {
-        virtual ~TupleWrapperBase() = default;
-    };
-
-    template <typename... Args>
-    struct TupleWrapper final : TupleWrapperBase {
-        std::tuple<Args...> tup;
-        explicit TupleWrapper(Args&&... args) : tup(std::forward<Args>(args)...) {}
-    };
-
+   /*
     // returning shared_ptr looks nice on paper, however, I wonder how will this look like in a context of C# interface.
     // For now, I'll take a risk and use smart pointers as much as possible, providing raw pointers only at the C++ to C# level.
     class TestableFunctionBase {
     public:
         virtual ~TestableFunctionBase() = default;
         virtual std::shared_ptr<void> Invoke(TupleWrapperBase* args) = 0;
+    };
+
+    struct TupleWrapperBase {
+        virtual ~TupleWrapperBase() = default;
+        virtual void ApplyToFunc(const std::shared_ptr<TestableFunctionBase>& func) = 0;
+    };
+
+    template <typename... Args>
+    struct TupleWrapper final : TupleWrapperBase {
+        std::tuple<Args...> tup;
+        explicit TupleWrapper(Args&&... args) : tup(std::forward<Args>(args)...) {}
+
+        void ApplyToFunc(const std::shared_ptr<TestableFunctionBase>& func) override {
+            auto v = std::apply(
+                [&](auto&&... args) {
+                    return TestableFunctionInvoker<T>(func, std::forward<decltype(args)>(args)...);
+                },
+                tup);
+
+            return TupleDecay(*v);
+        }
     };
 
     template<typename T, class... Args>
@@ -63,9 +74,12 @@ namespace Callable {
     auto TestableFunctionInvoker(const std::shared_ptr<TestableFunctionBase>& func, Args&&... args) {
         return InvokeTestableFunction<T>(func, std::forward<decltype(args)>(args)...);
     }
+    */
     #pragma endregion
 
     #pragma region Testable Function Interfaces
+  /*
+  
     template<typename T,
     class... Args,
     typename = std::enable_if_t<!std::is_void_v<T>>>
@@ -95,7 +109,7 @@ namespace Callable {
 
         throw std::logic_error("Expected some return from non void function!\n");
     }
-
+*/
     /*
         Main function to construct an interface to a TestableFunction.
         Usage:
@@ -104,12 +118,12 @@ namespace Callable {
             - Following arguments are function arguments passed as references, even if original function does not need a reference here.
         Invoke the testableFunction using InvokeWithPackedArguments (Preferred way). Or use direct calls to InvokeTestableFunction()
     */
-    template <typename T, typename... Args, typename Callable>
+  /*  template <typename T, typename... Args, typename Callable>
     std::shared_ptr<TestableFunctionBase> ConstructTestableFunction(Callable&& f) {
         return std::make_shared<TestableFunction<T, Args&&...>>(
             std::function<T(Args&&...)>(std::forward<Callable>(f)));
     }
-
+*/
     /*
         Main function to invoke a TestableFunction
         Expects a tuple of arguments, not a vararg.
@@ -122,6 +136,12 @@ namespace Callable {
 
         Returns decayed (only values) tuple describing final function state
     */
+
+    //TODO: make invoker call apply function defined in TupleWrapper
+    /*
+        The Apply function must take the instance of an invoker with a type, and apply tuple to it.
+     */
+ /*
     template<typename T, typename... Args>
     auto InvokeWithPackedArguments(const std::shared_ptr<TestableFunctionBase>& func, std::tuple<Args...>&& tupleOfArgs) {
         auto v = std::apply(
@@ -132,6 +152,6 @@ namespace Callable {
 
         return TupleDecay(*v);
     }
-
+*/
     #pragma endregion
 }

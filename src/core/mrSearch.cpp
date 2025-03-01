@@ -4,9 +4,9 @@
 
 #include <cmath>
 
+/*
 void SearchForMRs(const TestableFunctionBase& testableFunc, MetamorphicRelation* mrs, size_t& mrCount) {
-    
-
     mrCount = 0;
     mrs = nullptr;
 }
+*/

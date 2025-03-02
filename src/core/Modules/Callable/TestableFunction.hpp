@@ -28,7 +28,7 @@ public:
         int,
         T>;
   
-    explicit TestableFunction(std::function<T(Args...)> f, Args&&... args)
+    explicit TestableFunction(std::function<T(Args...)> f, Args... args)
         : m_Func(std::move(f)), m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
 
     void Invoke() override {
@@ -55,7 +55,7 @@ public:
     }
 
     bool Equals(std::string other) override {
-        return ToString().compare(other);
+        return ToString().compare(other) == 0;
     }
 
 private:

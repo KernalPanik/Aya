@@ -15,7 +15,6 @@ static int nonStateChangingNonVoidFunc(std::string& s, int t) {
 }
 
 static short StateChangingNonVoidFunc(float& t) {
-    std::cout << "Blerp!" << std::endl;
     t += 0.8f;
     return 42;
 }

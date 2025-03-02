@@ -8,7 +8,7 @@
 #include "../src/common/util-tests.h"
 #include "../src/core/metamorphicRelation-tests.h"
 #include "../src/Core/Modules/Callable/transformer-tests.h"
-#include "../src/core/Modules/Callable/testableFunction-tests.h"
+#include "../src/core/Modules/Callable/TestContextTests.hpp"
 // TEST HEADERS END
 
 //NOTE: Pass '1' to AyaTest to stop at first assert failure

@@ -18,7 +18,7 @@ add_executable(AyaTest
         framework/testRunner.cpp
         ../src/common/util.cpp
         ../src/common/util-tests.cpp
-        ../src/core/Modules/Callable/testableFunction-tests.cpp
+        ../src/core/Modules/Callable/TestContextTests.cpp
         ../src/core/metamorphicRelation-tests.cpp
         ../src/Core/Modules/Callable/transformer-tests.cpp
         ../src/core/mrSearch.cpp)

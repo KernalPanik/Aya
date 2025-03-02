@@ -1,12 +1,13 @@
-#include "testableFunction-tests.h"
-#include "testableFunction.h"
+#include "TestContextTests.hpp"
+#include "TestContext.hpp"
 #include "test/Framework/testRunnerUtils.h"
-#include "TestableFunction.hpp"
 #include "src/Common/tuple-utils.h"
 
 #include <iostream>
 #include <string>
 #include <tuple>
+
+using namespace Callable;
 
 #pragma region Helper Functions
 static int nonStateChangingNonVoidFunc(std::string& s, int t) {
@@ -38,13 +39,13 @@ void TestableFunction_SimpleReturningFunction() {
         std::make_tuple(42, 6.0f), 
     };
 
-    std::vector<std::shared_ptr<ITestableFunction>> tests;
+    std::vector<std::shared_ptr<ITestContext>> tests;
     for (auto &i : inputs) {
-        tests.push_back(std::make_shared<TestableFunction<short, float&>>(StateChangingNonVoidFunc, i));
+        tests.push_back(std::make_shared<TestContext<short, float&>>(StateChangingNonVoidFunc, i));
     }
 
     for (auto &s : tests) {
-        s->Invoke();
+        s->TestInvoke();
     }
 
     for (size_t i = 0; i < 5; i++) {
@@ -57,9 +58,9 @@ void TestableFunction_SimpleReturningFunction() {
 void TestableFunction_NonVoidStateChanging_StateChanged() {
     auto packedInput = std::make_tuple(std::string("test2"), 32);
     auto expectedState = std::make_tuple(42, std::string("test2"), 32);
-    std::shared_ptr<ITestableFunction> test = std::make_shared<TestableFunction<int, std::string&, int>>(nonStateChangingNonVoidFunc, std::get<0>(packedInput), std::get<1>(packedInput));
+    std::shared_ptr<ITestContext> test = std::make_shared<TestContext<int, std::string&, int>>(nonStateChangingNonVoidFunc, std::get<0>(packedInput), std::get<1>(packedInput));
     
-    test->Invoke();
+    test->TestInvoke();
 
     TEST_EXPECT(test->Equals(TupleToString(expectedState)));
 }
@@ -68,9 +69,9 @@ void TestableFunction_VoidStateChanging_StateChanged() {
     double x = 10.0f;
     auto packedInput = std::make_tuple(x);
     auto expectedState = std::make_tuple((double)34.0f);
-    const auto test = std::make_shared<TestableFunction<void, double&>>(StateChangingVoidFunc, std::get<0>(packedInput));
+    const auto test = std::make_shared<TestContext<void, double&>>(StateChangingVoidFunc, std::get<0>(packedInput));
 
-    test->Invoke();
+    test->TestInvoke();
     TEST_EXPECT(test->Equals(TupleToString(expectedState)));
 }
 
@@ -78,9 +79,9 @@ void TestableFunction_VoidNonStateChanging_StateUnchanged() {
     int x = 10;
     auto packedInput = std::make_tuple(x);
     auto expectedState = std::make_tuple(x);
-    const auto test = std::make_shared<TestableFunction<void, int>>(nonStateChangingVoidFunc, std::get<0>(packedInput));
+    const auto test = std::make_shared<TestContext<void, int>>(nonStateChangingVoidFunc, std::get<0>(packedInput));
 
-    test->Invoke();
+    test->TestInvoke();
     TEST_EXPECT(test->Equals(TupleToString(expectedState)));
 }
 #pragma endregion

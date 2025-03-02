@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <iostream>
+#include <string>
 
 using namespace Callable;
 
@@ -13,7 +14,9 @@ public:
     virtual ~ITestableFunction() = default;
     virtual void Invoke() = 0;
     virtual void PrintState() = 0;
-    virtual bool CompareStates(std::shared_ptr<ITestableFunction> other) = 0;
+    virtual std::string ToString() = 0;
+    virtual bool Equals(std::shared_ptr<ITestableFunction> other) = 0;
+    virtual bool Equals(std::string other) = 0;
 };
 
 //NOTE: maybe rename it to context after all?
@@ -29,26 +32,30 @@ public:
         : m_Func(std::move(f)), m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
 
     void Invoke() override {
-        std::cout << "Invoking the function" << std::endl;
         InvokeInternal(std::index_sequence_for<Args...>{});
     }
 
     void PrintState() override {
-        if constexpr (std::is_void_v<T>) {
-            std::cout << TupleToString(m_ArgState) << std::endl;
-        } else {
-            if (m_ReturnedValue != nullptr) {
-                std::tuple<T, std::decay_t<Args>...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
-                std::cout << TupleToString(finalState) << std::endl;
-            } else {
-                std::cout << TupleToString(m_ArgState) << std::endl;
-            }
-        }
+        std::cout << ToString() << std::endl;
     }
 
-    bool CompareStates(std::shared_ptr<ITestableFunction> other) override {
-      //TODO: Need to somehow extract the tuple values -- getAtIndex()?
-      return false;
+    std::string ToString() override {
+        if constexpr (!std::is_void_v<T>) {
+            if (m_ReturnedValue != nullptr) {
+                std::tuple<T, std::decay_t<Args>...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
+                return TupleToString(finalState);
+            }
+        }
+
+        return TupleToString(m_ArgState);
+    }
+
+    bool Equals(std::shared_ptr<ITestableFunction> other) override {
+        return ToString().compare(other->ToString());
+    }
+
+    bool Equals(std::string other) override {
+        return ToString().compare(other);
     }
 
 private:

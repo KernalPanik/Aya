@@ -15,6 +15,7 @@ static int nonStateChangingNonVoidFunc(std::string& s, int t) {
 }
 
 static short StateChangingNonVoidFunc(float& t) {
+    std::cout << "Blerp!" << std::endl;
     t += 0.8f;
     return 42;
 }
@@ -38,9 +39,16 @@ void TestableFunction_SimpleReturningFunction() {
     }
 
     for (auto &s : tests) {
-        s->PrintState();
+        s->Invoke();
     }
 
+    for (auto &i : tests) {
+        i->PrintState();
+    }
+
+    for (auto &inp : inputs) {
+        std::cout << inp << std::endl;
+    }
 }
 
     /*

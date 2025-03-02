@@ -26,7 +26,7 @@ public:
         T>;
   
     explicit TestableFunction(std::function<T(Args...)> f, Args&&... args)
-        : m_Func(std::move(f)), m_ArgState(args...) {}
+        : m_Func(std::move(f)), m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
 
     void Invoke() override {
         std::cout << "Invoking the function" << std::endl;
@@ -38,7 +38,7 @@ public:
             std::cout << TupleToString(m_ArgState) << std::endl;
         } else {
             if (m_ReturnedValue != nullptr) {
-                std::tuple<T, Args...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
+                std::tuple<T, std::decay_t<Args>...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
                 std::cout << TupleToString(finalState) << std::endl;
             } else {
                 std::cout << TupleToString(m_ArgState) << std::endl;
@@ -52,8 +52,8 @@ public:
     }
 
 private:
-    std::function<T(Args&&...)> m_Func;
-    std::tuple<Args...> m_ArgState;
+    std::function<T(Args...)> m_Func;
+    std::tuple<std::decay_t<Args>...> m_ArgState;
     std::shared_ptr<ReturnType> m_ReturnedValue;
 
     template <std::size_t... I>

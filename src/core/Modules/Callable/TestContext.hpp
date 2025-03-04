@@ -15,6 +15,7 @@ namespace Callable {
         virtual std::string ToString() = 0;
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
+        virtual bool ValidateTransformChains(std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform) = 0; // Args TBD
     };
 
     template <typename T, typename... Args>
@@ -26,7 +27,9 @@ namespace Callable {
             T>;
 
         explicit TestContext(std::function<T(Args...)> f, Args... args)
-            : m_Func(std::move(f)), m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
+            : m_Func(std::move(f)),
+            m_InitialArgState(static_cast<std::decay_t<Args>>(args)...),
+            m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
 
         void TestInvoke() override {
             InvokeInternal(std::index_sequence_for<Args...>{});
@@ -55,8 +58,21 @@ namespace Callable {
             return ToString().compare(other) == 0;
         }
 
+        bool ValidateTransformChains(std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform) override {
+            auto tmpTup = m_InitialArgState;
+
+            size_t index = inputTransform->first;
+            std::cout << TupleToString(tmpTup) << std::endl;
+            std::cout << "Gonna apply transform to element at index " << index << std::endl;
+            inputTransform->second->Apply(&std::get<0>(tmpTup));
+            std::cout << TupleToString(tmpTup) << std::endl;
+
+            return false;
+        }
+
     private:
         std::function<T(Args...)> m_Func;
+        std::tuple<std::decay_t<Args>...> m_InitialArgState;
         std::tuple<std::decay_t<Args>...> m_ArgState;
         std::shared_ptr<ReturnType> m_ReturnedValue;
 

@@ -2,6 +2,8 @@
 
 #include <functional>
 
+//TODO: Convert to proper interface (.hpp)
+
 namespace Callable {
 #pragma region Transformer Internals
     class BaseTransformer {
@@ -62,5 +64,52 @@ namespace Callable {
             transform->Apply(base);
         }
     }
+
+    struct TransformChain {
+        std::vector<std::pair<size_t, std::shared_ptr<BaseTransformer>>> transforms;
+    };
+
+#pragma region TransformPool
+    // Base function and applicable arguments, used to generate a list of transformers.
+    // TODO: case when there is no U
+    template <typename T, typename U>
+    class TransformPool {
+    public:
+        std::function<void(T&, U)> func;
+        std::vector<U> packedArgs;
+
+        TransformPool(std::function<void(T&, U)> f, std::vector<U> vec)
+            : func(f), packedArgs(vec) {}
+
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>>> GetTransformers(size_t index) {
+            auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>>>();
+            
+            for (auto &i : packedArgs) {
+                
+                auto t = ConstructTransformer<T, U>(func, std::decay_t<U>(i));
+                v.push_back(std::make_shared<std::pair<size_t, std::shared_ptr<BaseTransformer>>>(std::make_pair(index, t)));
+            }
+
+            return v;
+        }
+    };
+#pragma endregion
+    template <typename T>
+    std::vector<std::shared_ptr<BaseTransformer>> GetTransformersForType() {
+        auto v = std::vector<std::shared_ptr<BaseTransformer>>();
+        return v;
+    }
+
+    template <typename... Args>
+    std::vector<std::shared_ptr<TransformChain>> ConstructPossibleTransformChains(size_t maxChainLength) {
+        auto v = std::vector<std::shared_ptr<TransformChain>>();
+        /*
+            Iterate over args, get decltype() and look for specialization for a template.
+            Template specialization is provided by the consumer.
+            Produce vector of vectors for all variants, make dot product combination with length limit. include noop transformation for every type.
+        */
+        return v;
+    }
+
 #pragma endregion
 }

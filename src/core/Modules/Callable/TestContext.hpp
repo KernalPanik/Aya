@@ -1,10 +1,12 @@
 #pragma once
 
 #include "src/Common/tuple-utils.h"
+#include "transformer.h"
 
 #include <functional>
 #include <iostream>
 #include <string>
+#include <any>
 
 namespace Callable {
     class ITestContext {
@@ -15,7 +17,9 @@ namespace Callable {
         virtual std::string ToString() = 0;
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
-        virtual bool ValidateTransformChains(std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform) = 0; // Args TBD
+        virtual bool ValidateTransformChains(
+            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform,
+            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> outputTransform)= 0;
     };
 
     template <typename T, typename... Args>
@@ -58,14 +62,24 @@ namespace Callable {
             return ToString().compare(other) == 0;
         }
 
-        bool ValidateTransformChains(std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform) override {
+        bool ValidateTransformChains(
+            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform,
+            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> outputTransform) override {
             auto tmpTup = m_InitialArgState;
 
             size_t index = inputTransform->first;
             std::cout << TupleToString(tmpTup) << std::endl;
             std::cout << "Gonna apply transform to element at index " << index << std::endl;
-            inputTransform->second->Apply(&std::get<0>(tmpTup));
+
+            auto stateVec = TupleVec(tmpTup);
+            inputTransform->second->Apply(stateVec[index]); // TODO: use size_t or int instead of rvalue const
             std::cout << TupleToString(tmpTup) << std::endl;
+
+            // FOR OUTPUT TRANSFORMS:
+            /*
+             *  Try applying given constant transforms
+             *  Construct new transforms with variables: Get args that can be used as transformer arguments...
+             */
 
             return false;
         }
@@ -75,6 +89,10 @@ namespace Callable {
         std::tuple<std::decay_t<Args>...> m_InitialArgState;
         std::tuple<std::decay_t<Args>...> m_ArgState;
         std::shared_ptr<ReturnType> m_ReturnedValue;
+
+        size_t m_TrackedOutputElement;
+        std::vector<std::shared_ptr<BaseTransformer>> m_OutputTransformFunctions;
+       // std::vector<std::any> m_OutputTransformConstants;
 
         template <std::size_t... I>
         void InvokeInternal(std::index_sequence<I...>) {

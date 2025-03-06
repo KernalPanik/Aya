@@ -88,12 +88,15 @@ void MR_SimpleConstructionTest() {
     std::vector<double> transformArgsForDiv = {1.0f, 2.0f, -1.0f};
     std::vector<double> transformArgsGeneric = {1.0f, 2.0f, -1.0f, 0.0f, -2.0f};
 
+    // TODO: TransformPool abstraction
     auto DivPool = TransformPool<double, double>(Div, transformArgsForDiv);
     auto divTransforms = DivPool.GetTransformers(0);
+    auto AddPool = TransformPool<double, double>(Add, transformArgsForDiv);
+    auto addTransforms = AddPool.GetTransformers(1);
 
     for (auto &ctx : contexts) {
-        for (auto &t : divTransforms) {
-            ctx->ValidateTransformChains(t);
+        for (auto &t : addTransforms) {
+            ctx->ValidateTransformChains(t, nullptr);
         }
         std::cout << std::endl;
     }

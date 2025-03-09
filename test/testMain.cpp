@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 
     // Cartesian Iterator Tests
     tr.RunTest(CartesianIterator_IteratesProperly, "CartesianIterator_IteratesProperly");
+    tr.RunTest(CartesianIterator_ReachesEnd, "CartesianIterator_ReachesEnd");
 
     // Testable function tests
     /*tr.RunTest(TestableFunction_SimpleReturningFunction, "TestableFunction_SimpleReturningFunction");

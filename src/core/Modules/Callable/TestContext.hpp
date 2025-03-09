@@ -8,6 +8,7 @@
 #include <string>
 #include <any>
 
+// TODO: 'Callable' is no longer a viable namespace for TestContext. Effectively, it is MR context from Aya 1 now. Move it to MRGen namespace?
 namespace Callable {
     class ITestContext {
     public:
@@ -17,9 +18,7 @@ namespace Callable {
         virtual std::string ToString() = 0;
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
-        virtual bool ValidateTransformChains(
-            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform,
-            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> outputTransform)= 0;
+        virtual bool ValidateTransformChains(std::vector<std::any> inputs) = 0;
     };
 
     template <typename T, typename... Args>
@@ -27,16 +26,19 @@ namespace Callable {
     public:
         using ReturnType = std::conditional_t<
             std::is_void_v<T>,
-            int,
+            std::unique_ptr<int>,
             T>;
 
-        explicit TestContext(std::function<T(Args...)> f, Args... args)
-            : m_Func(std::move(f)),
-            m_InitialArgState(static_cast<std::decay_t<Args>>(args)...),
-            m_ArgState(static_cast<std::decay_t<Args>>(args)...) {}
+        // TODO: Make vector of transform chains definition shorter, probably switch to smaller sub-types with 'using'
+        explicit TestContext(std::function<T(Args...)> f,
+            const std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>& inputTransformChain,
+            const std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>& outputTransformChain)
+            :   m_Func(std::move(f)),
+                m_InputTransforms(inputTransformChain),
+                m_OutputTransforms(outputTransformChain) {}
 
         void TestInvoke() override {
-            InvokeInternal(std::index_sequence_for<Args...>{});
+            //InvokeInternal(std::index_sequence_for<Args...>{});
         }
 
         void PrintState() override {
@@ -44,14 +46,16 @@ namespace Callable {
         }
 
         std::string ToString() override {
-            if constexpr (!std::is_void_v<T>) {
+            /*if constexpr (!std::is_void_v<T>) {
                 if (m_ReturnedValue != nullptr) {
                     std::tuple<T, std::decay_t<Args>...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
                     return TupleToString(finalState);
                 }
             }
 
-            return TupleToString(m_ArgState);
+            return TupleToString(m_ArgState);*/
+
+            return std::string("TEST");
         }
 
         bool Equals(const std::shared_ptr<ITestContext> &other) override {
@@ -62,44 +66,56 @@ namespace Callable {
             return ToString().compare(other) == 0;
         }
 
-        bool ValidateTransformChains(
-            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> inputTransform,
-            std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>> outputTransform) override {
-            auto tmpTup = m_InitialArgState;
+        /*  USAGE SCENARIO:
+         * - initialize a chain of possible input transformers
+         * - initialize a chain of possible output transformers
+         * - Iterate over combinations of i/o transformers
+         * - for each validation, generate additional VariableTransformers operating on given variables instead of constants
+         * - return true if there is at least one MR, fill the MR vector, allow it to be retrieved from the context.
+         */
+        // TODO: Revert back to the idea of having a ctx with one input and output TC, and validate them against given input (still pass inputs as vectors of any)
+        bool ValidateTransformChains(std::vector<std::any> inputs) override {
+            for (auto& input: inputs) {
 
-            size_t index = inputTransform->first;
-            std::cout << TupleToString(tmpTup) << std::endl;
-            std::cout << "Gonna apply transform to element at index " << index << std::endl;
-
-            auto stateVec = TupleVec(tmpTup);
-            inputTransform->second->Apply(stateVec[index]); // TODO: use size_t or int instead of rvalue const
-            std::cout << TupleToString(tmpTup) << std::endl;
-
-            // FOR OUTPUT TRANSFORMS:
-            /*
-             *  Try applying given constant transforms
-             *  Construct new transforms with variables: Get args that can be used as transformer arguments...
-             */
-
+            }
             return false;
         }
 
     private:
         std::function<T(Args...)> m_Func;
-        std::tuple<std::decay_t<Args>...> m_InitialArgState;
+        std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> m_InputTransforms;
+        std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> m_OutputTransforms;
+
+        /*std::tuple<std::decay_t<Args>...> m_InitialArgState;
         std::tuple<std::decay_t<Args>...> m_ArgState;
-        std::shared_ptr<ReturnType> m_ReturnedValue;
 
-        size_t m_TrackedOutputElement;
-        std::vector<std::shared_ptr<BaseTransformer>> m_OutputTransformFunctions;
-       // std::vector<std::any> m_OutputTransformConstants;
+        std::shared_ptr<ReturnType> m_InitialReturnedValue;
+        std::unique_ptr<ReturnType> m_ReturnedValue;
 
+        // Used to expose tested function to a consumer
         template <std::size_t... I>
-        void InvokeInternal(std::index_sequence<I...>) {
+         void InvokeInternal(std::index_sequence<I...>) {
             if constexpr (std::is_void_v<T>) {
                 m_Func(std::forward<Args>(std::get<I>(m_ArgState))...);
             } else {
-                m_ReturnedValue = std::make_shared<ReturnType>(m_Func(std::forward<Args>(std::get<I>(m_ArgState))...));
+                m_ReturnedValue = std::make_unique<ReturnType>(m_Func(std::forward<Args>(std::get<I>(m_ArgState))...));
+            }
+        }
+
+        std::tuple<ReturnType, std::decay_t<Args>...> InvokeAndGetState() {
+            if constexpr (std::is_void_v<T>) {
+                m_ReturnedValue = nullptr;
+                m_Func(std::forward<Args>(m_ArgState)...);
+                return std::tuple_cat(std::make_tuple(nullptr), m_ArgState);
+            } else {
+                m_ReturnedValue = std::make_unique<ReturnType>(m_Func(std::forward<Args>(m_ArgState)...));
+                return std::tuple_cat(std::make_tuple(m_ReturnedValue), m_ArgState);
+            }
+        }*/
+
+        void reportMessage(std::string msg, bool verbose) {
+            if (verbose) {
+                std::cout << msg << std::endl;
             }
         }
     };

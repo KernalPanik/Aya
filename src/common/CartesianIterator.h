@@ -12,9 +12,12 @@ public:
     // Increment the iterator counter
     void next();
     // Get current index position
-    std::vector<size_t> getPos();
+    const std::vector<size_t>& getPos();
+
+    bool isDone() const;
 
 private:
     std::vector<size_t> m_Indices;
     std::vector<size_t> m_Lengths;
+    bool m_Done;
 };

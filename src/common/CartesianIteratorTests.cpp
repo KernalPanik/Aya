@@ -16,13 +16,16 @@ void CartesianIterator_IteratesProperly() {
     std::vector<size_t> arraySizes = {4, 2, 3};
     auto ct = CartesianIterator(arraySizes);
 
-    printVec(ct.getPos());
-    ct.next();
-    printVec(ct.getPos());
-    ct.next();
-    printVec(ct.getPos());
-    ct.next();
-    printVec(ct.getPos());
+    for (size_t i = 0; i < 3; i++) {
+        ct.next();
+    }
+    const std::vector<size_t> testVec = {0, 1, 0};
+    TEST_EXPECT(ct.getPos() == testVec);
 
-    TEST_EXPECT(2 == 2);
+    for (size_t i = 0; i < 3; i++) {
+        ct.next();
+    }
+
+    const std::vector<size_t> testVec1 = {1, 0, 0};
+    TEST_EXPECT(ct.getPos() == testVec1);
 }

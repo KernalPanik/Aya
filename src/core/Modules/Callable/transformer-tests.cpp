@@ -55,7 +55,7 @@ void TransformerTests_MutableStruct() {
 void TransformerTests_MultipleTransformers() {
     float testedValue = 100.0f;
 
-    std::vector<std::shared_ptr<BaseTransformer>> transformers;
+    std::vector<std::shared_ptr<ITransformer>> transformers;
     transformers.push_back(ConstructTransformer<float>(Increment));
     transformers.push_back(ConstructTransformer<float, float>(AddVal, 10.0f));
 

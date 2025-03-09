@@ -6,15 +6,15 @@
 
 namespace Callable {
 #pragma region Transformer Internals
-    class BaseTransformer {
+    class ITransformer {
     public:
-        virtual ~BaseTransformer() = default;
+        virtual ~ITransformer() = default;
         virtual void Apply(void* data) = 0;
     };
 
     // Instance of a transfomer, applying a constant value
     template<typename T, class... Args>
-    class Transformer final : public BaseTransformer {
+    class Transformer final : public ITransformer {
     public:
         explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
             : func(f), args(std::make_tuple(std::forward<Args>(args)...)) {}
@@ -43,7 +43,7 @@ namespace Callable {
     // State is a tuple (result, x, y, ..., z)
     // Aim: Apply a transform on a specific index by transforming it with original state value at other index
     template <typename T, typename... Args>
-    class VariableTransformer final : public BaseTransformer {
+    class VariableTransformer final : public ITransformer {
     public:
         void Apply(void* data) override {
             if (data == nullptr) {
@@ -71,7 +71,7 @@ namespace Callable {
         transformer->Apply(x);
     */
     template<typename T, class... Args, typename Callable>
-    std::shared_ptr<BaseTransformer> ConstructTransformer(Callable&& f, Args&&... args) {
+    std::shared_ptr<ITransformer> ConstructTransformer(Callable&& f, Args&&... args) {
         return std::make_shared<Transformer<T, Args...>>(std::forward<Callable>(f), std::forward<Args>(args)...);
     }
 
@@ -80,51 +80,64 @@ namespace Callable {
     // For codegen testing, or testing of functions where we only care about result value or a specific element in a final state, output transformation is enough to be the same as input
     // for elaborate state tracking, context-runtime transform search might be needed. Lets' consider it out of scope of "masters" version. VariableTransformer can be put as a 'prototype work'
     template<typename T, class... Args, typename Callable>
-    std::shared_ptr<BaseTransformer> ConstructVariableTransformer(Callable&& f, Args&&... args) {
+    std::shared_ptr<ITransformer> ConstructVariableTransformer(Callable&& f, Args&&... args) {
         return std::make_shared<VariableTransformer<T, Args...>>(std::forward<Callable>(f), std::forward<Args>(args)...);
     }
 
     /*
         Transformer Callables can be added to a vector and applied to a variable in bulk.
     */
-    inline void ApplyTransformChain(void* base, const std::vector<std::shared_ptr<BaseTransformer>>& transformChain) {
+    inline void ApplyTransformChain(void* base, const std::vector<std::shared_ptr<ITransformer>>& transformChain) {
         for (auto &transform : transformChain) {
             transform->Apply(base);
         }
     }
 
     struct TransformChain {
-        std::vector<std::pair<size_t, std::shared_ptr<BaseTransformer>>> transforms;
+        std::vector<std::pair<size_t, std::shared_ptr<ITransformer>>> transforms;
     };
 
 #pragma region TransformPool
-    // Base function and applicable arguments, used to generate a list of transformers.
+    // "Factory" class for transform chains -- vectors of ITransformer instances
+    // Can get vector of unspecified transformers, and transformers mapped to a certain element of an arbitrary state
     // TODO: case when there is no U
     template <typename T, typename U>
-    class TransformPool {
+    class TransformBuilder {
     public:
         std::function<void(T&, U)> func;
         std::vector<U> packedArgs;
 
-        TransformPool(std::function<void(T&, U)> f, std::vector<U> vec)
+        TransformBuilder(std::function<void(T&, U)> f, std::vector<U> vec)
             : func(f), packedArgs(vec) {}
 
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>>> GetTransformers(size_t index) {
-            auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<BaseTransformer>>>>();
+        std::vector<std::shared_ptr<ITransformer>> GetTransformers() {
+            auto v = std::vector<std::shared_ptr<ITransformer>>();
+
+            for (auto &i : packedArgs) {
+                auto t = ConstructTransformer<T, U>(func, std::decay_t<U>(i));
+                v.push_back(t);
+            }
+
+            return v;
+        }
+
+        // Produce a vector of transformers that are to be applied on a variable at 'index' in the given state vector
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(size_t index) {
+            auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
             
             for (auto &i : packedArgs) {
-                
                 auto t = ConstructTransformer<T, U>(func, std::decay_t<U>(i));
-                v.push_back(std::make_shared<std::pair<size_t, std::shared_ptr<BaseTransformer>>>(std::make_pair(index, t)));
+                v.push_back(std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, t)));
             }
 
             return v;
         }
     };
+
 #pragma endregion
     template <typename T>
-    std::vector<std::shared_ptr<BaseTransformer>> GetTransformersForType() {
-        auto v = std::vector<std::shared_ptr<BaseTransformer>>();
+    std::vector<std::shared_ptr<ITransformer>> GetTransformersForType() {
+        auto v = std::vector<std::shared_ptr<ITransformer>>();
         return v;
     }
 

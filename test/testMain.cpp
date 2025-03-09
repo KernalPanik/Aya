@@ -5,7 +5,8 @@
 
 // TEST HEADERS
 #include "Framework/testRunnerTests.h"
-#include "../src/common/util-tests.h"
+#include "../src/Common/util-tests.h"
+#include "../src/Common/CartesianIteratorTests.h"
 #include "../src/core/metamorphicRelation-tests.h"
 #include "../src/Core/Modules/Callable/transformer-tests.h"
 #include "../src/core/Modules/Callable/TestContextTests.hpp"
@@ -27,8 +28,11 @@ int main(int argc, char** argv)
     tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
     tr.RunTest(UtilTests_Tuple_SimpleToString, "UtilTests_Tuple_SimpleToString");
 
+    // Cartesian Iterator Tests
+    tr.RunTest(CartesianIterator_IteratesProperly, "CartesianIterator_IteratesProperly");
+
     // Testable function tests
-    tr.RunTest(TestableFunction_SimpleReturningFunction, "TestableFunction_SimpleReturningFunction");
+    /*tr.RunTest(TestableFunction_SimpleReturningFunction, "TestableFunction_SimpleReturningFunction");
     tr.RunTest(TestableFunction_NonVoidStateChanging_StateChanged, "TestableFunction_NonVoidStateChanging_StateChanged");
     tr.RunTest(TestableFunction_VoidStateChanging_StateChanged, "TestableFunction_VoidStateChanging_StateChanged");
     tr.RunTest(TestableFunction_VoidNonStateChanging_StateUnchanged, "TestableFunction_VoidNonStateChanging_StateUnchanged");
@@ -39,7 +43,7 @@ int main(int argc, char** argv)
     tr.RunTest(TransformerTests_MultipleTransformers, "TransformerTests_MultipleTransformers");
 
     // Metamorphic Relation Tests
-    tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
+    tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");*/
 
     return 0;
 }

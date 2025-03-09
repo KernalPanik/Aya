@@ -5,6 +5,7 @@
 #include "Modules/Callable/transformer.h"
 
 #include <iostream>
+#include <map>
 #include <cmath>
 #include <tuple>
 #include <cxxabi.h>
@@ -44,35 +45,101 @@ void Div(double& b, double val) {
 
 #pragma endregion
 
-#pragma region tmpMRContext
-
-/*
-struct MRContext {
-    std::shared_ptr<TestableFunctionBase> func;
-    std::vector<TupleWrapperBase> inputs;
-
-    MRContext(std::shared_ptr<TestableFunctionBase> testable, std::vector<TupleWrapperBase> initialInputs) {
-        this->func = std::move(testable);
-        this->inputs = std::move(initialInputs);
-    }
-};
-*/
-//TODO: MRContext builder/constructor
-//TODO: Make MRSearch accept MRContext only
-#pragma endregion
 
 // Straightforward Generation of MRs without using MR generation function
 void MR_SimpleConstructionTest() {
-    // MR: pow(x, y+1) == pow(x, y) * x
-    // TODO: template util for packed input creation
-    // BuildPackedInputs(std::vector<T> args)
+    // MR: pow(x, y + 1) == pow(x, y) * x
 
-    std::vector<std::shared_ptr<ITestContext>> contexts;
-    std::vector baseInputs = {static_cast<double>(10.0f), static_cast<double>(11.0f), static_cast<double>(12.0f), static_cast<double>(13.0f)};
-    std::vector expInputs = {static_cast<double>(2.0f), static_cast<double>(3.0f), static_cast<double>(4.0f)};
+    // Tracked variable is the output. In final arg state is the element at index 0
+    // Producing transformers for the output:
+
+    const size_t outputTransformChainLength = 1;
+    const size_t inputTransformChainLength = 3;
+    const size_t argCount = 2;
+    std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> outputTransformerChain;
+    std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> inputTransformerChain;
+
+#pragma region Double Transformers
+    std::vector<std::vector<double>> transformerArgumentPool;
+    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add};
+
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0, -2.0}); // for div function
+    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+
+    std::vector<std::shared_ptr<ITransformer>> doubleTransformers;
+    for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
+        auto t = TransformBuilder(funcs[i], transformerArgumentPool[i]).GetTransformers();
+        doubleTransformers.insert(doubleTransformers.end(), t.begin(), t.end());
+    }
+#pragma endregion
+
+    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> inputTransformerPool;
+    inputTransformerPool.insert({0, doubleTransformers});
+    inputTransformerPool.insert({1, doubleTransformers});
+
+    size_t maxInputTransformComboCount = 1;
+    std::vector<size_t> transformerCounts;
+    for (auto &[fst, snd] : inputTransformerPool) {
+        maxInputTransformComboCount *= snd.size();
+        transformerCounts.emplace_back(snd.size());
+    }
+    maxInputTransformComboCount = pow(maxInputTransformComboCount, inputTransformChainLength);
+
+    std::cout << "Will produce " << maxInputTransformComboCount << " combinations of " << inputTransformChainLength << std::endl;
+
+    for (auto &tc : transformerCounts) {
+        std::cout << "Transformer " << tc << std::endl;
+    }
+
+    // Brute-force strategy will require generating 47045881 input combinations of length 3 with given data....
+
+    // TODO: use cartesian iterator get new combination of ITransformers, Create new Context, and test this context against sample values.
+    std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
+    for (size_t i = 0; i < inputTransformChainLength; i++) {
+
+    }
+
+    /*std::vector<std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>> outputTransformers;
+    const std::vector outputTransformerArgs = {1.0, 2.0, -1.0, -2.0};
+
+    for (const auto& func : funcs) {
+        auto funcPool = TransformBuilder(func, outputTransformerArgs).MapTransformersToStateIndex(0);
+    }
+
+    std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformers;
+    std::vector<std::vector<double>> inputTransformArgPool;
+    inputTransformArgPool.push_back({1.0, 2.0, -1.0, -2.0});
+    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+
+    std::vector<ITestContext> contexts;
+
+    for (size_t i = 0; i < inputTransformArgPool.size(); i++) {
+        for (size_t index = 0; index < 2; index++) {
+            auto funcPool = TransformBuilder(funcs[i], inputTransformArgPool[i]).MapTransformersToStateIndex(index);
+            inputTransformers.insert(inputTransformers.end(), funcPool.begin(), funcPool.end());
+            auto ctx = TestContext<double, double, double>(poww, inputTransformers, outputTransformers);
+            contexts.push_back(ctx);
+        }
+    }
+    std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
+    std::vector expInputs = {2.0, 3.0, 4.0};
+*/
+    //TODO: helper func to concat function args into vectors of std::any
+
+    /*auto outputDivPool = TransformBuilder<double, double>(Div, outputTransformerArgs).MapTransformersToStateIndex(targetOutputIndex);
+    auto outputMulPool = TransformBuilder<double, double>(Mul, outputTransformerArgs).MapTransformersToStateIndex(targetOutputIndex);
+
+    outputTransformers.insert(outputTransformers.end(), outputDivPool.begin(), outputDivPool.end());
+
+    std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
+    std::vector expInputs = {2.0, 3.0, 4.0};
     for (auto &b : baseInputs) {
         for (auto &e : expInputs) {
-            contexts.push_back(std::make_shared<TestContext<double, double, double>>(poww, b, e));
+            contexts.push_back(std::make_shared<TestContext<double, double, double>>(poww, b, e, 0, outputTransformers));
         }
     }
 
@@ -81,31 +148,30 @@ void MR_SimpleConstructionTest() {
         ctx->TestInvoke();
         ctx->PrintState();
         std::cout << std::endl;
-    }
+    }*/
 
 #pragma region TransformerPrep
 
-    std::vector<double> transformArgsForDiv = {1.0f, 2.0f, -1.0f};
-    std::vector<double> transformArgsGeneric = {1.0f, 2.0f, -1.0f, 0.0f, -2.0f};
+    /*const std::vector<double> transformArgsForDiv = {1.0f, 2.0f, -1.0f};
 
     // TODO: TransformPool abstraction
-    auto DivPool = TransformPool<double, double>(Div, transformArgsForDiv);
-    auto divTransforms = DivPool.GetTransformers(0);
-    auto AddPool = TransformPool<double, double>(Add, transformArgsForDiv);
-    auto addTransforms = AddPool.GetTransformers(1);
+    auto DivPool = TransformBuilder<double, double>(Div, transformArgsForDiv);
+    auto divTransforms = DivPool.MapTransformersToStateIndex(0);
+    auto AddPool = TransformBuilder<double, double>(Add, transformArgsForDiv);
+    auto addTransforms = AddPool.MapTransformersToStateIndex(1);
 
     for (auto &ctx : contexts) {
         for (auto &t : addTransforms) {
-            ctx->ValidateTransformChains(t, nullptr);
+            auto x = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
+            x.push_back(t);
+            ctx->ValidateTransformChains(x);
         }
         std::cout << std::endl;
-    }
+    }*/
 
 #pragma endregion
 
 #pragma region MRGen
-
-
 
 #pragma endregion
     TEST_EXPECT(2 == 2);

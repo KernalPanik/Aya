@@ -8,7 +8,7 @@ void CartesianIterator::next() {
         return;
     }
 
-    for (size_t i = m_Lengths.size() - 1; i != static_cast<size_t>(-1); --i) {
+    for (size_t i = m_Lengths.size() - 1; i != static_cast<size_t>(-1); i--) {
         if (++m_Indices[i] < m_Lengths[i]) {
             return;
         }
@@ -31,4 +31,8 @@ bool CartesianIterator::isDone() const {
     return m_Done;
 }
 
+void CartesianIterator::reset() {
+    m_Done = false;
+    m_Indices = std::vector<size_t>(m_Lengths.size(), 0);
+}
 

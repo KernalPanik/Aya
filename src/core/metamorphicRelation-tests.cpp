@@ -1,6 +1,7 @@
 #include "metamorphicRelation-tests.h"
 #include "../../test/Framework/testRunnerUtils.h"
 #include "src/Common/tuple-utils.h"
+#include "src/Common/CartesianIterator.h"
 #include "mrSearch.h"
 #include "Modules/Callable/transformer.h"
 
@@ -9,6 +10,7 @@
 #include <cmath>
 #include <tuple>
 #include <cxxabi.h>
+#include <src/Common/CompositeCartesianIterator.h>
 
 using namespace Callable;
 
@@ -39,6 +41,8 @@ void Div(double& b, double val) {
     b /= val;
 }
 
+void Noop(double& b, double val) {}
+
 #pragma endregion
 
 #pragma region transformers
@@ -61,12 +65,13 @@ void MR_SimpleConstructionTest() {
 
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
-    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add};
+    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
 
     transformerArgumentPool.push_back({1.0, 2.0, -1.0, -2.0}); // for div function
     transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
     transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
     transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
+    transformerArgumentPool.push_back({0.0});
 
     std::vector<std::shared_ptr<ITransformer>> doubleTransformers;
     for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
@@ -93,13 +98,37 @@ void MR_SimpleConstructionTest() {
         std::cout << "Transformer " << tc << std::endl;
     }
 
-    // Brute-force strategy will require generating 47045881 input combinations of length 3 with given data....
-
-    // TODO: use cartesian iterator get new combination of ITransformers, Create new Context, and test this context against sample values.
     std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
-    for (size_t i = 0; i < inputTransformChainLength; i++) {
+    std::vector<std::vector<size_t>> transformerCombination;
 
+    //TODO: generate a warning when there is more than a million iterations to go through, suggest lowering potential transformer counts.
+    std::vector transformerIterators(2, CartesianIterator(transformerCounts));
+
+    //TODO: composite cartesian iterator class for multiple transformers
+    // It takes 70 seconds to iterate over 64 000 000 composite iterations
+    auto compositeIterator = CompositeCartesianIterator(transformerIterators);
+    while (!compositeIterator.isDone()) {
+        auto pos = compositeIterator.getPos(); // TODO: flatten the vector of vectors into just vector
+        for (auto &v : pos) {
+            for (auto &p : v) {
+                std::cout << p << " ";
+            }
+        }
+        std::cout << std::endl;
+        compositeIterator.next();
     }
+    /*
+    for (size_t i = 0; i < inputTransformChainLength; i++) {
+        auto iter = CartesianIterator(transformerCounts);
+        while (!iter.isDone()) {
+            auto pos = iter.getPos();
+            for (const auto &p : pos) {
+                //std::cout << p << " ";
+            }
+            //std::cout << std::endl;
+            iter.next();
+        }
+    }*/
 
     /*std::vector<std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>> outputTransformers;
     const std::vector outputTransformerArgs = {1.0, 2.0, -1.0, -2.0};

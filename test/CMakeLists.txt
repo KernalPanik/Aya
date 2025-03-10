@@ -19,6 +19,7 @@ add_executable(AyaTest
         ../src/Common/util.cpp
         ../src/Common/util-tests.cpp
         ../src/Common/CartesianIterator.cpp
+        ../src/Common/CompositeCartesianIterator.cpp
         ../src/Common/CartesianIteratorTests.cpp
         ../src/core/Modules/Callable/TestContextTests.cpp
         ../src/core/metamorphicRelation-tests.cpp

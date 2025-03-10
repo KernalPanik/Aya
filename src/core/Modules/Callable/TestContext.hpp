@@ -87,9 +87,24 @@ namespace Callable {
             std::cout << "Applying Input Transforms... " << std::endl;
             auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
             std::cout << "Follow Up Inputs " << std::endl;
-            std::cout << TupleToString(followUpInputs) << std::endl;
+            PrintInputVec(followUpInputs, std::index_sequence_for<Args...>{});
 
-            return false;
+            std::cout << "FollowUp Output State " << std::endl;
+            auto followUpStatus = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
+            std::cout << GetStateString(followUpStatus) << std::endl;
+
+            std::cout << "Trying const transform on the output" << std::endl;
+            auto followUpStateVec = MapTupleToVecNonVoid(followUpStatus, std::index_sequence_for<Args...>{});
+            bool match = false;
+
+            auto sampleOutput = TransformOutputs(followUpStateVec, std::index_sequence_for<Args...>{});
+
+            std::cout << "FollowUp StateVec: " << std::endl;
+            PrintOutputVec(followUpStateVec, std::index_sequence_for<Args...>{});
+            std::cout << "Sample StateVec: " << std::endl;
+            PrintOutputVec(sampleOutput, std::index_sequence_for<Args...>{});
+
+            return match;
         }
 
     private:
@@ -115,21 +130,24 @@ namespace Callable {
             return std::make_tuple(std::any_cast<Args>(inputs[I])...);
         }
 
-        void ApplyTransform(std::tuple<Args...> inputs) {
+        template <std::size_t... I>
+        std::vector<std::any> TransformInputs(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            auto inputsCopy(inputs);
 
+            for (const auto &t: m_InputTransforms) {
+                t->second->Apply(inputsCopy[t->first]);
+            }
+            return inputsCopy;
         }
 
         template <std::size_t... I>
-        std::tuple<Args...> TransformInputs(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
-            auto inputsCopy(inputs);
-            auto tup1 = std::make_tuple(std::any_cast<Args>(inputsCopy[I])...);
+        std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs, std::index_sequence<I...>) {
+            auto outputsCopy(outputs);
 
-            for (const auto &t: m_InputTransforms) {
-                std::cout << "Applying transform to input at " << t->first << std::endl;
-                t->second->Apply(inputsCopy[t->first]);
+            for (const auto &t: m_OutputTransforms) {
+                t->second->Apply(outputsCopy[t->first]);
             }
-            auto tup = std::make_tuple(std::any_cast<Args>(inputsCopy[I])...);
-            return tup;
+            return outputsCopy;
         }
 
         auto TransformOutputState(std::tuple<ReturnType, Args...> state) {
@@ -140,31 +158,40 @@ namespace Callable {
             return TupleToString(state);
         }
 
-        /*std::tuple<std::decay_t<Args>...> m_InitialArgState;
-        std::tuple<std::decay_t<Args>...> m_ArgState;
-
-        std::shared_ptr<ReturnType> m_InitialReturnedValue;
-        std::unique_ptr<ReturnType> m_ReturnedValue;
-
-        // Used to expose tested function to a consumer
-        template <std::size_t... I>
-         void InvokeInternal(std::index_sequence<I...>) {
-            if constexpr (std::is_void_v<T>) {
-                m_Func(std::forward<Args>(std::get<I>(m_ArgState))...);
-            } else {
-                m_ReturnedValue = std::make_unique<ReturnType>(m_Func(std::forward<Args>(std::get<I>(m_ArgState))...));
-            }
+        template <size_t... I>
+        std::vector<std::any> MapTupleToVecNonVoid(std::tuple<ReturnType, Args...> tup, std::index_sequence<I...>) {
+            std::vector<std::any> result;
+            result.push_back(std::any_cast<ReturnType>(std::get<0>(tup)));
+            (result.push_back(std::get<I + 1>(tup)), ...);
+            return result;
         }
 
-        std::tuple<ReturnType, std::decay_t<Args>...> InvokeAndGetState() {
-            if constexpr (std::is_void_v<T>) {
-                m_ReturnedValue = nullptr;
-                m_Func(std::forward<Args>(m_ArgState)...);
-                return std::tuple_cat(std::make_tuple(nullptr), m_ArgState);
+        template <size_t... I>
+        std::vector<std::any> MapTupleToVecVoid(std::tuple<Args...> tup, std::index_sequence<I...>) {
+            std::vector<std::any> result;
+            (result.push_back(std::get<I + 1>(tup)), ...);
+
+            return result;
+        }
+
+        template <std::size_t... I>
+        void PrintInputVec(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            auto tup = std::make_tuple(std::any_cast<Args>(inputs[I])...);
+            std::cout << TupleToString(tup) << std::endl;
+        }
+
+        template <std::size_t... I>
+        void PrintOutputVec(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            if constexpr (!std::is_void_v<T>) {
+                auto r = std::make_tuple(std::any_cast<ReturnType>(inputs[0]));
+                auto tup = std::make_tuple(std::any_cast<Args>(inputs[I+1])...);
+
+                auto finalTup = std::tuple_cat(r, tup);
+                std::cout << TupleToString(finalTup) << std::endl;
             } else {
-                m_ReturnedValue = std::make_unique<ReturnType>(m_Func(std::forward<Args>(m_ArgState)...));
-                return std::tuple_cat(std::make_tuple(m_ReturnedValue), m_ArgState);
+                auto tup = std::make_tuple(std::any_cast<Args>(inputs[I])...);
+                std::cout << TupleToString(tup) << std::endl;
             }
-        }*/
+        }
     };
 }

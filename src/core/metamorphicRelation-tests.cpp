@@ -27,9 +27,7 @@ double poww(double x, double y) {
 }
 
 void Add(double& b, double val) {
-    std::cout << "ADD" << val << " to " << b << std::endl;
     b += val;
-    std::cout << "AFTER ADD; b is " << b << std::endl;
 }
 
 void Mul(double& b, double val) {
@@ -62,6 +60,7 @@ void MR_SimpleConstructionTest() {
 
     const size_t outputTransformChainLength = 1;
     const size_t inputTransformChainLength = 1;
+    const size_t targetOutputStateIndex = 0;
     const size_t argCount = 2;
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
@@ -111,16 +110,13 @@ void MR_SimpleConstructionTest() {
     auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
     std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
     while (!outputIterator.isDone()) {
-        size_t index = 0;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
         auto pos = outputIterator.getPos();
         for (auto &p : pos) {
             for (auto &i : p) {
-                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
+                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(targetOutputStateIndex, outputTransformerPool[targetOutputStateIndex][i]));
                 outputTransformerChain.push_back(pair);
-                index++;
             }
-            index = 0;
         }
         outputTransformerChains.push_back(outputTransformerChain);
         outputTransformerChain.clear();

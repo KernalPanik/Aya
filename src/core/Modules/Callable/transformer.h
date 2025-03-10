@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <any>
 
 //TODO: Convert to proper interface (.hpp)
 
@@ -10,6 +11,7 @@ namespace Callable {
     public:
         virtual ~ITransformer() = default;
         virtual void Apply(void* data) = 0;
+        virtual void Apply(std::any& data) = 0;
     };
 
     // Instance of a transfomer, applying a constant value
@@ -27,6 +29,12 @@ namespace Callable {
             auto baseValue = *static_cast<T*>(data);
             ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
             memcpy(data, &baseValue, sizeof(baseValue));
+        }
+
+        void Apply(std::any& data) override {
+            auto baseValue = std::any_cast<T>(data);
+            ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            data = baseValue;
         }
 
     private:

@@ -31,8 +31,8 @@ namespace Callable {
 
         // TODO: Make vector of transform chains definition shorter, probably switch to smaller sub-types with 'using'
         explicit TestContext(std::function<T(Args...)> f,
-            const std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>& inputTransformChain,
-            const std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>& outputTransformChain)
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& inputTransformChain,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& outputTransformChain)
             :   m_Func(std::move(f)),
                 m_InputTransforms(inputTransformChain),
                 m_OutputTransforms(outputTransformChain) {}
@@ -83,8 +83,8 @@ namespace Callable {
 
     private:
         std::function<T(Args...)> m_Func;
-        std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> m_InputTransforms;
-        std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> m_OutputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_InputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_OutputTransforms;
 
         /*std::tuple<std::decay_t<Args>...> m_InitialArgState;
         std::tuple<std::decay_t<Args>...> m_ArgState;

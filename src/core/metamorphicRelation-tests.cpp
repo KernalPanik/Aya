@@ -4,6 +4,7 @@
 #include "src/Common/CartesianIterator.h"
 #include "mrSearch.h"
 #include "Modules/Callable/transformer.h"
+#include "src/Common/util.hpp"
 
 #include <iostream>
 #include <map>
@@ -48,7 +49,7 @@ void Noop(double& b, double val) {}
 #pragma region transformers
 
 #pragma endregion
-
+//TODO: generate a warning when there is more than a million iterations to go through, suggest lowering potential transformer counts.
 
 // Straightforward Generation of MRs without using MR generation function
 void MR_SimpleConstructionTest() {
@@ -58,11 +59,8 @@ void MR_SimpleConstructionTest() {
     // Producing transformers for the output:
 
     const size_t outputTransformChainLength = 1;
-    const size_t inputTransformChainLength = 3;
+    const size_t inputTransformChainLength = 1;
     const size_t argCount = 2;
-    std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> outputTransformerChain;
-    std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>> inputTransformerChain;
-
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
     std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
@@ -80,42 +78,72 @@ void MR_SimpleConstructionTest() {
     }
 #pragma endregion
 
+#pragma region CartesianIterator builders
+    // Map index to possible input Transformers by type
     std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> inputTransformerPool;
     inputTransformerPool.insert({0, doubleTransformers});
     inputTransformerPool.insert({1, doubleTransformers});
 
-    size_t maxInputTransformComboCount = 1;
-    std::vector<size_t> transformerCounts;
+    // Create Cartesian Input Iterator to go through possible combinations
+    std::vector<size_t> inputTransformerCounts;
+    inputTransformerCounts.reserve(inputTransformerPool.size());
     for (auto &[fst, snd] : inputTransformerPool) {
-        maxInputTransformComboCount *= snd.size();
-        transformerCounts.emplace_back(snd.size());
+        inputTransformerCounts.emplace_back(snd.size());
     }
-    maxInputTransformComboCount = pow(maxInputTransformComboCount, inputTransformChainLength);
+    const std::vector inputTransformerIterators(inputTransformChainLength, CartesianIterator(inputTransformerCounts));
 
-    std::cout << "Will produce " << maxInputTransformComboCount << " combinations of " << inputTransformChainLength << std::endl;
-
-    for (auto &tc : transformerCounts) {
-        std::cout << "Transformer " << tc << std::endl;
+    // TODO: Move to separate func:
+    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> outputTransformerPool;
+    outputTransformerPool.insert({0, doubleTransformers});
+    std::vector<size_t> outputTransformerCounts;
+    outputTransformerCounts.reserve(outputTransformerCounts.size());
+    for (auto &[fst, snd] : outputTransformerPool) {
+        outputTransformerCounts.emplace_back(snd.size());
     }
+    const std::vector outputTransformerIterators(outputTransformChainLength, CartesianIterator(outputTransformerCounts));
+#pragma endregion
 
     std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
-    std::vector<std::vector<size_t>> transformerCombination;
 
-    //TODO: generate a warning when there is more than a million iterations to go through, suggest lowering potential transformer counts.
-    std::vector transformerIterators(2, CartesianIterator(transformerCounts));
+    auto compositeInputIterator = CompositeCartesianIterator(inputTransformerIterators);
+    while (!compositeInputIterator.isDone()) {
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformerChain;
 
-    //TODO: composite cartesian iterator class for multiple transformers
-    // It takes 70 seconds to iterate over 64 000 000 composite iterations
-    auto compositeIterator = CompositeCartesianIterator(transformerIterators);
-    while (!compositeIterator.isDone()) {
-        auto pos = compositeIterator.getPos(); // TODO: flatten the vector of vectors into just vector
-        for (auto &v : pos) {
-            for (auto &p : v) {
-                std::cout << p << " ";
+        auto pos = compositeInputIterator.getPos();
+        size_t index = 0;
+        for (auto &p : pos) {
+            for (auto &i : p) {
+                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
+                inputTransformerChain.push_back(pair);
+                index++;
             }
+            index = 0;
         }
-        std::cout << std::endl;
-        compositeIterator.next();
+
+        // Map Output transformers here
+        auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
+        while (!outputIterator.isDone()) {
+            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
+            auto opos = outputIterator.getPos();
+            index = 0;
+            for (auto &p : opos) {
+                for (auto &i : p) {
+                    auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
+                    outputTransformerChain.push_back(pair);
+                    index++;
+                }
+                index = 0;
+            }
+
+            // build test context and validate it
+
+
+
+
+            outputIterator.next();
+        }
+
+        compositeInputIterator.next();
     }
     /*
     for (size_t i = 0; i < inputTransformChainLength; i++) {

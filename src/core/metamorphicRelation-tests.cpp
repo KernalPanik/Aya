@@ -27,7 +27,9 @@ double poww(double x, double y) {
 }
 
 void Add(double& b, double val) {
+    std::cout << "ADD" << val << " to " << b << std::endl;
     b += val;
+    std::cout << "AFTER ADD; b is " << b << std::endl;
 }
 
 void Mul(double& b, double val) {
@@ -63,13 +65,14 @@ void MR_SimpleConstructionTest() {
     const size_t argCount = 2;
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
-    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
+    //std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
+    std::vector<std::function<void(double&, double)>> funcs = {Add};
 
-    transformerArgumentPool.push_back({1.0, 2.0, -1.0, -2.0}); // for div function
-    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-    transformerArgumentPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-    transformerArgumentPool.push_back({0.0});
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0}); // for div function
+    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    //transformerArgumentPool.push_back({0.0});
 
     std::vector<std::shared_ptr<ITransformer>> doubleTransformers;
     for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
@@ -104,7 +107,26 @@ void MR_SimpleConstructionTest() {
 #pragma endregion
 
     std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
-
+#pragma region output mapping
+    auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
+    std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
+    while (!outputIterator.isDone()) {
+        size_t index = 0;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
+        auto pos = outputIterator.getPos();
+        for (auto &p : pos) {
+            for (auto &i : p) {
+                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
+                outputTransformerChain.push_back(pair);
+                index++;
+            }
+            index = 0;
+        }
+        outputTransformerChains.push_back(outputTransformerChain);
+        outputTransformerChain.clear();
+        outputIterator.next();
+    }
+#pragma endregion
     auto compositeInputIterator = CompositeCartesianIterator(inputTransformerIterators);
     while (!compositeInputIterator.isDone()) {
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformerChain;
@@ -122,35 +144,21 @@ void MR_SimpleConstructionTest() {
         std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
         std::vector expInputs = {2.0, 3.0, 4.0};
         std::vector<std::any> inputs = {baseInputs, expInputs};
-        // Map Output transformers here
-        auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
-        while (!outputIterator.isDone()) {
-            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
-            auto opos = outputIterator.getPos();
-            index = 0;
-            for (auto &p : opos) {
-                for (auto &i : p) {
-                    auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
-                    outputTransformerChain.push_back(pair);
-                    index++;
-                }
-                index = 0;
-            }
 
-            // build test context and validate it
-            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, outputTransformerChain);
-
+        for (auto &otc : outputTransformerChains) {
+            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc);
             for (auto &bi : baseInputs) {
                 for (auto &ei : expInputs) {
+                    std::cout << "Starting Validation Process... " << std::endl;
                     if (ctx.ValidateTransformChains({bi, ei})) {
                         std::cout << "oh cool" << std::endl;
                     }
+                    std::cout << "Validation Process Ended" << std::endl;
+                    std::cout << std::endl;
                 }
             }
-
-            outputIterator.next();
         }
-
+        std::cout << "Composite input next " << std::endl;
         compositeInputIterator.next();
     }
     /*

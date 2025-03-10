@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <any>
+#include <algorithm>
 
 // TODO: 'Callable' is no longer a viable namespace for TestContext. Effectively, it is MR context from Aya 1 now. Move it to MRGen namespace?
 namespace Callable {
@@ -35,7 +36,15 @@ namespace Callable {
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& outputTransformChain)
             :   m_Func(std::move(f)),
                 m_InputTransforms(inputTransformChain),
-                m_OutputTransforms(outputTransformChain) {}
+                m_OutputTransforms(outputTransformChain) {
+            std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
+                return left->first < right->first;
+            });
+
+            std::sort(m_OutputTransforms.begin(), m_OutputTransforms.end(), [](auto &left, auto &right) {
+                return left->first < right->first;
+            });
+        }
 
         void TestInvoke() override {
             //InvokeInternal(std::index_sequence_for<Args...>{});
@@ -66,17 +75,20 @@ namespace Callable {
             return ToString().compare(other) == 0;
         }
 
-        /*  USAGE SCENARIO:
-         * - initialize a chain of possible input transformers
-         * - initialize a chain of possible output transformers
-         * - Iterate over combinations of i/o transformers
-         * - for each validation, generate additional VariableTransformers operating on given variables instead of constants
-         * - return true if there is at least one MR, fill the MR vector, allow it to be retrieved from the context.
-         */
-        // TODO: Revert back to the idea of having a ctx with one input and output TC, and validate them against given input (still pass inputs as vectors of any)
         bool ValidateTransformChains(const std::vector<std::any>& inputs) override {
+            std::cout << "Initial Inputs " << std::endl;
+            auto initialState = GetInputState(inputs, std::index_sequence_for<Args...>{});
+            std::cout << TupleToString(initialState) << std::endl;
+
+            std::cout << "Initial Output State " << std::endl;
             auto status = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
             std::cout << GetStateString(status) << std::endl;
+
+            std::cout << "Applying Input Transforms... " << std::endl;
+            auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
+            std::cout << "Follow Up Inputs " << std::endl;
+            std::cout << TupleToString(followUpInputs) << std::endl;
+
             return false;
         }
 
@@ -96,6 +108,32 @@ namespace Callable {
                 m_Func(std::get<I>(args)...);
                 return args;
             }
+        }
+
+        template<std::size_t... I>
+        std::tuple<Args...> GetInputState(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            return std::make_tuple(std::any_cast<Args>(inputs[I])...);
+        }
+
+        void ApplyTransform(std::tuple<Args...> inputs) {
+
+        }
+
+        template <std::size_t... I>
+        std::tuple<Args...> TransformInputs(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            auto inputsCopy(inputs);
+            auto tup1 = std::make_tuple(std::any_cast<Args>(inputsCopy[I])...);
+
+            for (const auto &t: m_InputTransforms) {
+                std::cout << "Applying transform to input at " << t->first << std::endl;
+                t->second->Apply(inputsCopy[t->first]);
+            }
+            auto tup = std::make_tuple(std::any_cast<Args>(inputsCopy[I])...);
+            return tup;
+        }
+
+        auto TransformOutputState(std::tuple<ReturnType, Args...> state) {
+            // TODO:
         }
 
         std::string GetStateString(std::tuple<ReturnType, Args...> state) {
@@ -128,11 +166,5 @@ namespace Callable {
                 return std::tuple_cat(std::make_tuple(m_ReturnedValue), m_ArgState);
             }
         }*/
-
-        void reportMessage(std::string msg, bool verbose) {
-            if (verbose) {
-                std::cout << msg << std::endl;
-            }
-        }
     };
 }

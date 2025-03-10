@@ -18,7 +18,7 @@ namespace Callable {
         virtual std::string ToString() = 0;
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
-        virtual bool ValidateTransformChains(std::vector<std::any> inputs) = 0;
+        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs) = 0;
     };
 
     template <typename T, typename... Args>
@@ -74,10 +74,9 @@ namespace Callable {
          * - return true if there is at least one MR, fill the MR vector, allow it to be retrieved from the context.
          */
         // TODO: Revert back to the idea of having a ctx with one input and output TC, and validate them against given input (still pass inputs as vectors of any)
-        bool ValidateTransformChains(std::vector<std::any> inputs) override {
-            for (auto& input: inputs) {
-
-            }
+        bool ValidateTransformChains(const std::vector<std::any>& inputs) override {
+            auto status = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
+            std::cout << GetStateString(status) << std::endl;
             return false;
         }
 
@@ -85,6 +84,23 @@ namespace Callable {
         std::function<T(Args...)> m_Func;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_InputTransforms;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_OutputTransforms;
+
+        template<std::size_t... I>
+        auto InvokeInternal(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            if constexpr (!std::is_void_v<T>) {
+                auto args = std::make_tuple(std::any_cast<Args>(inputs[I])...);
+                auto ret = m_Func(std::get<I>(args)...);
+                return std::tuple_cat(std::make_tuple(ret), args);
+            } else {
+                auto args = std::make_tuple(std::any_cast<Args>(inputs[I])...);
+                m_Func(std::get<I>(args)...);
+                return args;
+            }
+        }
+
+        std::string GetStateString(std::tuple<ReturnType, Args...> state) {
+            return TupleToString(state);
+        }
 
         /*std::tuple<std::decay_t<Args>...> m_InitialArgState;
         std::tuple<std::decay_t<Args>...> m_ArgState;

@@ -1,7 +1,8 @@
 #include "util-tests.h"
-#include "util.h"
+#include "util.hpp"
 #include "../../test/Framework/testRunnerUtils.h"
 #include "tuple-utils.h"
+#include "aya-types.h"
 
 #include <stdio.h>
 #include <assert.h>

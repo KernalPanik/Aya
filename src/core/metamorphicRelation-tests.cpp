@@ -119,7 +119,9 @@ void MR_SimpleConstructionTest() {
             }
             index = 0;
         }
-
+        std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
+        std::vector expInputs = {2.0, 3.0, 4.0};
+        std::vector<std::any> inputs = {baseInputs, expInputs};
         // Map Output transformers here
         auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
         while (!outputIterator.isDone()) {
@@ -136,9 +138,15 @@ void MR_SimpleConstructionTest() {
             }
 
             // build test context and validate it
+            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, outputTransformerChain);
 
-
-
+            for (auto &bi : baseInputs) {
+                for (auto &ei : expInputs) {
+                    if (ctx.ValidateTransformChains({bi, ei})) {
+                        std::cout << "oh cool" << std::endl;
+                    }
+                }
+            }
 
             outputIterator.next();
         }
@@ -182,8 +190,6 @@ void MR_SimpleConstructionTest() {
             contexts.push_back(ctx);
         }
     }
-    std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
-    std::vector expInputs = {2.0, 3.0, 4.0};
 */
     //TODO: helper func to concat function args into vectors of std::any
 

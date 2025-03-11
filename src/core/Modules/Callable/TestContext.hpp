@@ -12,6 +12,7 @@
 // TODO: 'Callable' is no longer a viable namespace for TestContext. Effectively, it is MR context from Aya 1 now. Move it to MRGen namespace?
 namespace Callable {
     class ITestContext {
+    // TODO: The idea of this interface has changed significantly. Consider removing ToStrings, Equals etc.
     public:
         virtual ~ITestContext() = default;
         virtual void TestInvoke() = 0;
@@ -19,7 +20,8 @@ namespace Callable {
         virtual std::string ToString() = 0;
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
-        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs) = 0;
+        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex) = 0;
+        virtual size_t GetTotalMatches() const = 0;
     };
 
     template <typename T, typename... Args>
@@ -33,10 +35,14 @@ namespace Callable {
         // TODO: Make vector of transform chains definition shorter, probably switch to smaller sub-types with 'using'
         explicit TestContext(std::function<T(Args...)> f,
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& inputTransformChain,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& outputTransformChain)
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& outputTransformChain,
+            std::vector<std::function<void(T&, T)>> variableOutputTransformingFunctions,
+            const std::vector<size_t>& matchingVariableTransformingIndices)
             :   m_Func(std::move(f)),
                 m_InputTransforms(inputTransformChain),
-                m_OutputTransforms(outputTransformChain) {
+                m_OutputTransforms(outputTransformChain),
+                m_OutputTransformFuncs(variableOutputTransformingFunctions),
+                m_MatchingArgumentIndices(matchingVariableTransformingIndices) {
             std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;
             });
@@ -44,6 +50,8 @@ namespace Callable {
             std::sort(m_OutputTransforms.begin(), m_OutputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;
             });
+
+            m_TotalMatches = 0;
         }
 
         void TestInvoke() override {
@@ -67,6 +75,10 @@ namespace Callable {
             return std::string("TEST");
         }
 
+        size_t GetTotalMatches() const override {
+            return m_TotalMatches;
+        }
+
         bool Equals(const std::shared_ptr<ITestContext> &other) override {
             return ToString().compare(other->ToString());
         }
@@ -75,34 +87,41 @@ namespace Callable {
             return ToString().compare(other) == 0;
         }
 
-        bool ValidateTransformChains(const std::vector<std::any>& inputs) override {
-            std::cout << "Initial Inputs " << std::endl;
-            auto initialState = GetInputState(inputs, std::index_sequence_for<Args...>{});
-            std::cout << TupleToString(initialState) << std::endl;
-
-            std::cout << "Initial Output State " << std::endl;
-            auto status = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
-            std::cout << GetStateString(status) << std::endl;
-
-            std::cout << "Applying Input Transforms... " << std::endl;
-            auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
-            std::cout << "Follow Up Inputs " << std::endl;
-            PrintInputVec(followUpInputs, std::index_sequence_for<Args...>{});
-
-            std::cout << "FollowUp Output State " << std::endl;
-            auto followUpStatus = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
-            std::cout << GetStateString(followUpStatus) << std::endl;
-
-            std::cout << "Trying const transform on the output" << std::endl;
-            auto followUpStateVec = MapTupleToVecNonVoid(followUpStatus, std::index_sequence_for<Args...>{});
+        bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex) override {
             bool match = false;
+            // Create a sequence chain of some sorts?
+            auto initialState = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
+            auto initialStateVector = MapTupleToVecNonVoid(initialState, std::index_sequence_for<Args...>{});
+            auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
+            auto followUpState = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
+            auto followUpStateVec = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
 
-            auto sampleOutput = TransformOutputs(followUpStateVec, std::index_sequence_for<Args...>{});
+            // Samples are the transformed outputs trying to match changes from initial to follow up
+            auto sampleOutput = TransformOutputs(initialStateVector, std::index_sequence_for<Args...>{});
+            auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
 
-            std::cout << "FollowUp StateVec: " << std::endl;
-            PrintOutputVec(followUpStateVec, std::index_sequence_for<Args...>{});
-            std::cout << "Sample StateVec: " << std::endl;
-            PrintOutputVec(sampleOutput, std::index_sequence_for<Args...>{});
+            // TODO: package all possible info into Metamorphic Relation struct
+            if (CompareTuples(sampleOutputTuple, followUpState)) {
+                //std::cout << "WOW MATCHED STATIC TRANSFORM!" << std::endl;
+                auto s1 = TupleToString(sampleOutputTuple);
+                auto s2 = TupleToString(followUpState);
+
+                //std::cout << s1 << " === " << s2 << std::endl;
+                m_TotalMatches++;
+            }
+
+            auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex);
+            for (auto &sample : variableTransformedOutputSamples) {
+                auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
+                if (CompareTuples(sampleTup, followUpState)) {
+                    //std::cout << "WOW MATCHED VARIABLE TRANSFORM!" << std::endl;
+                    auto s1 = TupleToString(sampleTup);
+                    auto s2 = TupleToString(followUpState);
+
+                    //std::cout << s1 << " === " << s2 << std::endl;
+                    m_TotalMatches++;
+                }
+            }
 
             return match;
         }
@@ -111,6 +130,12 @@ namespace Callable {
         std::function<T(Args...)> m_Func;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_InputTransforms;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_OutputTransforms;
+        // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
+        // Maybe specify this type separately, like U.
+        std::vector<std::function<void(T&, T)>> m_OutputTransformFuncs;
+        std::vector<size_t> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'
+
+        size_t m_TotalMatches = 0;
 
         template<std::size_t... I>
         auto InvokeInternal(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
@@ -125,9 +150,44 @@ namespace Callable {
             }
         }
 
+        // Accepts final state, i.e. with an output, if exists.
+        // TODO: Use special type to control outputs, like S or U
+        // TODO: Make it work properly with void return type too, maybe add tests.
+        std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
+            const size_t targetOutputIndex) {
+            auto stateCopy(stateVector);
+            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransforms;
+            size_t offset = 0;
+            if constexpr (!std::is_void_v<T>) {
+                offset++; // operating on arguments. 0'th argument is now first, and so on.
+            }
+
+            std::vector<T> matchingArgs;
+            matchingArgs.reserve(m_MatchingArgumentIndices.size());
+            for (auto &index : m_MatchingArgumentIndices) {
+                matchingArgs.push_back(std::any_cast<T>(stateVector[index+offset]));
+            }
+
+            std::vector<std::vector<std::any>> result;
+            for (auto &func : m_OutputTransformFuncs) {
+                auto transformer = TransformBuilder<T, T>(func, matchingArgs).MapTransformersToStateIndex(targetOutputIndex);
+                auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
+                result.push_back(newState);
+            }
+
+            return result;
+        }
+
         template<std::size_t... I>
         std::tuple<Args...> GetInputState(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
             return std::make_tuple(std::any_cast<Args>(inputs[I])...);
+        }
+
+        template<std::size_t... I>
+        std::tuple<ReturnType, Args...> GetOutputStateTuple(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
+            auto arg = std::make_tuple(std::any_cast<Args>(inputs[I+1])...);
+            auto ret = std::make_tuple(std::any_cast<ReturnType>(inputs[0]));
+            return std::tuple_cat(ret, arg);
         }
 
         template <std::size_t... I>
@@ -150,8 +210,15 @@ namespace Callable {
             return outputsCopy;
         }
 
-        auto TransformOutputState(std::tuple<ReturnType, Args...> state) {
-            // TODO:
+        template <std::size_t... I>
+        std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& transformers, std::index_sequence<I...>) {
+            auto outputsCopy(outputs);
+
+            for (const auto &t: transformers) {
+                t->second->Apply(outputsCopy[t->first]);
+            }
+            return outputsCopy;
         }
 
         std::string GetStateString(std::tuple<ReturnType, Args...> state) {

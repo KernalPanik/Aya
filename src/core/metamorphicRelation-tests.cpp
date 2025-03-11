@@ -5,6 +5,7 @@
 #include "Modules/Transformer/transformer.h"
 #include "Modules/MRGenerator/TestContext.hpp"
 #include "src/Common/util.hpp"
+#include "Modules/MRGenerator/MRBuilder.hpp"
 
 #include <iostream>
 #include <map>
@@ -63,6 +64,7 @@ void MR_SimpleConstructionTest() {
     const size_t targetOutputStateIndex = 0;
     const size_t argCount = 2;
 #pragma region Double Transformers
+    // TODO: See if TransformBuilder class can manage more than just packing individual func to args
     std::vector<std::vector<double>> transformerArgumentPool;
     std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
     std::vector<std::function<void(double&, double)>> funcsForOutput = {Div, Sub, Mul, Add};
@@ -113,56 +115,13 @@ void MR_SimpleConstructionTest() {
 #pragma endregion
 
     std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
-#pragma region output mapping
-    auto outputIterator = CompositeCartesianIterator(outputTransformerIterators);
-    std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
-    while (!outputIterator.isDone()) {
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
-        auto pos = outputIterator.getPos();
-        for (auto &p : pos) {
-            for (auto &i : p) {
-                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(targetOutputStateIndex, outputTransformerPool[targetOutputStateIndex][i]));
-                outputTransformerChain.push_back(pair);
-            }
-        }
-        outputTransformerChains.push_back(outputTransformerChain);
-        outputTransformerChain.clear();
-        outputIterator.next();
-    }
-#pragma endregion
-    auto compositeInputIterator = CompositeCartesianIterator(inputTransformerIterators);
     size_t overallMatchCount = 0;
-    while (!compositeInputIterator.isDone()) {
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformerChain;
-
-        auto pos = compositeInputIterator.getPos();
-        size_t index = 0;
-        for (auto &p : pos) {
-            for (auto &i : p) {
-                auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, inputTransformerPool[index][i]));
-                inputTransformerChain.push_back(pair);
-                index++;
-            }
-            index = 0;
-        }
-        std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
-        std::vector expInputs = {2.0, 3.0, 4.0};
-        std::vector<std::any> inputs = {baseInputs, expInputs};
-        std::vector<size_t> matchingOutputIndices = {0, 1}; // double pow(double double) => 0th and 1st indices match.
-        for (auto &otc : outputTransformerChains) {
-            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc, funcsForOutput, matchingOutputIndices);
-            for (auto &bi : baseInputs) {
-                for (auto &ei : expInputs) {
-                    ctx.ValidateTransformChains({bi, ei}, 0);
-                    if (ctx.GetTotalMatches() != 0) {
-                        overallMatchCount += ctx.GetTotalMatches();
-                    }
-                }
-            }
-        }
-        compositeInputIterator.next();
-    }
-
+    auto mrBuilder = MRBuilder<double, double, double, double>(poww,
+        inputTransformerPool, outputTransformerPool, funcsForOutput, {0, 1}, 0);
+    std::vector<std::vector<std::any>> testedInputs;
+    testedInputs.push_back({10.0, 11.0, 12.0});
+    testedInputs.push_back({2.0, 3.0, 4.0});
+    mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount);
     std::cout << "Found " << overallMatchCount << " possible MRs" << std::endl;
 
 #pragma region TransformerPrep

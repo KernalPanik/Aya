@@ -18,7 +18,7 @@ using namespace Callable;
 /*
 Why wrap pow() in poww()?
 cmath pow() contains many overloads. std::function<> template within TestableFunctionBase cannot deduce which
-overload to use. Although this is a design issue, It's easy to mitigate via slim wrappers like poww.
+overload to use. It's easy to mitigate via slim wrappers like poww, for example.
 */
 
 #pragma region Helper functions
@@ -64,14 +64,14 @@ void MR_SimpleConstructionTest() {
     const size_t argCount = 2;
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
-    //std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
-    std::vector<std::function<void(double&, double)>> funcs = {Add};
+    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
+    //std::vector<std::function<void(double&, double)>> funcs = {Add};
 
     transformerArgumentPool.push_back({1.0, 2.0, -1.0}); // for div function
-    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
-    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
-    //transformerArgumentPool.push_back({1.0, 2.0, -1.0});
-    //transformerArgumentPool.push_back({0.0});
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool.push_back({0.0});
 
     std::vector<std::shared_ptr<ITransformer>> doubleTransformers;
     for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
@@ -124,6 +124,7 @@ void MR_SimpleConstructionTest() {
     }
 #pragma endregion
     auto compositeInputIterator = CompositeCartesianIterator(inputTransformerIterators);
+    size_t overallMatchCount = 0;
     while (!compositeInputIterator.isDone()) {
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformerChain;
 
@@ -140,23 +141,22 @@ void MR_SimpleConstructionTest() {
         std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
         std::vector expInputs = {2.0, 3.0, 4.0};
         std::vector<std::any> inputs = {baseInputs, expInputs};
-
+        std::vector<size_t> matchingOutputIndices = {0, 1}; // double pow(double double) => 0th and 1st indices match.
         for (auto &otc : outputTransformerChains) {
-            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc);
+            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc, funcs, matchingOutputIndices);
             for (auto &bi : baseInputs) {
                 for (auto &ei : expInputs) {
-                    std::cout << "Starting Validation Process... " << std::endl;
-                    if (ctx.ValidateTransformChains({bi, ei})) {
-                        std::cout << "oh cool" << std::endl;
+                    ctx.ValidateTransformChains({bi, ei}, 0);
+                    if (ctx.GetTotalMatches() != 0) {
+                        overallMatchCount += ctx.GetTotalMatches();
                     }
-                    std::cout << "Validation Process Ended" << std::endl;
-                    std::cout << std::endl;
                 }
             }
         }
-        std::cout << "Composite input next " << std::endl;
         compositeInputIterator.next();
     }
+
+    std::cout << "Found " << overallMatchCount << " possible MRs" << std::endl;
     /*
     for (size_t i = 0; i < inputTransformChainLength; i++) {
         auto iter = CartesianIterator(transformerCounts);

@@ -21,8 +21,8 @@ add_executable(AyaTest
         ../src/Common/CartesianIterator.cpp
         ../src/Common/CompositeCartesianIterator.cpp
         ../src/Common/CartesianIteratorTests.cpp
-        ../src/core/Modules/Callable/TestContextTests.cpp
+        ../src/core/Modules/MRGenerator/TestContextTests.cpp
+        ../src/core/Modules/MRGenerator/MRBuilder.cpp
         ../src/core/metamorphicRelation-tests.cpp
-        ../src/Core/Modules/Callable/transformer-tests.cpp
-        ../src/core/mrSearch.cpp)
+        ../src/core/Modules/Transformer/transformer-tests.cpp)
 target_link_libraries(AyaTest m)

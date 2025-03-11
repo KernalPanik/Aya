@@ -2,8 +2,8 @@
 #include "../../test/Framework/testRunnerUtils.h"
 #include "src/Common/tuple-utils.h"
 #include "src/Common/CartesianIterator.h"
-#include "mrSearch.h"
-#include "Modules/Callable/transformer.h"
+#include "Modules/Transformer/transformer.h"
+#include "Modules/MRGenerator/TestContext.hpp"
 #include "src/Common/util.hpp"
 
 #include <iostream>
@@ -65,6 +65,7 @@ void MR_SimpleConstructionTest() {
 #pragma region Double Transformers
     std::vector<std::vector<double>> transformerArgumentPool;
     std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
+    std::vector<std::function<void(double&, double)>> funcsForOutput = {Div, Sub, Mul, Add};
     //std::vector<std::function<void(double&, double)>> funcs = {Add};
 
     transformerArgumentPool.push_back({1.0, 2.0, -1.0}); // for div function
@@ -77,6 +78,12 @@ void MR_SimpleConstructionTest() {
     for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
         auto t = TransformBuilder(funcs[i], transformerArgumentPool[i]).GetTransformers();
         doubleTransformers.insert(doubleTransformers.end(), t.begin(), t.end());
+    }
+
+    std::vector<std::shared_ptr<ITransformer>> doubleTransformersForOutput;
+    for (size_t i = 0; i < transformerArgumentPool.size()-1; i++) {
+        auto t = TransformBuilder(funcs[i], transformerArgumentPool[i]).GetTransformers();
+        doubleTransformersForOutput.insert(doubleTransformersForOutput.end(), t.begin(), t.end());
     }
 #pragma endregion
 
@@ -96,7 +103,7 @@ void MR_SimpleConstructionTest() {
 
     // TODO: Move to separate func:
     std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> outputTransformerPool;
-    outputTransformerPool.insert({0, doubleTransformers});
+    outputTransformerPool.insert({0, doubleTransformersForOutput});
     std::vector<size_t> outputTransformerCounts;
     outputTransformerCounts.reserve(outputTransformerCounts.size());
     for (auto &[fst, snd] : outputTransformerPool) {
@@ -143,7 +150,7 @@ void MR_SimpleConstructionTest() {
         std::vector<std::any> inputs = {baseInputs, expInputs};
         std::vector<size_t> matchingOutputIndices = {0, 1}; // double pow(double double) => 0th and 1st indices match.
         for (auto &otc : outputTransformerChains) {
-            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc, funcs, matchingOutputIndices);
+            auto ctx = TestContext<double, double, double>(poww, inputTransformerChain, otc, funcsForOutput, matchingOutputIndices);
             for (auto &bi : baseInputs) {
                 for (auto &ei : expInputs) {
                     ctx.ValidateTransformChains({bi, ei}, 0);
@@ -157,89 +164,10 @@ void MR_SimpleConstructionTest() {
     }
 
     std::cout << "Found " << overallMatchCount << " possible MRs" << std::endl;
-    /*
-    for (size_t i = 0; i < inputTransformChainLength; i++) {
-        auto iter = CartesianIterator(transformerCounts);
-        while (!iter.isDone()) {
-            auto pos = iter.getPos();
-            for (const auto &p : pos) {
-                //std::cout << p << " ";
-            }
-            //std::cout << std::endl;
-            iter.next();
-        }
-    }*/
-
-    /*std::vector<std::shared_ptr<std::pair<size_t, std::vector<std::shared_ptr<ITransformer>>>>> outputTransformers;
-    const std::vector outputTransformerArgs = {1.0, 2.0, -1.0, -2.0};
-
-    for (const auto& func : funcs) {
-        auto funcPool = TransformBuilder(func, outputTransformerArgs).MapTransformersToStateIndex(0);
-    }
-
-    std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformers;
-    std::vector<std::vector<double>> inputTransformArgPool;
-    inputTransformArgPool.push_back({1.0, 2.0, -1.0, -2.0});
-    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-    inputTransformArgPool.push_back({0.0, 1.0, 2.0, -1.0, -2.0});
-
-    std::vector<ITestContext> contexts;
-
-    for (size_t i = 0; i < inputTransformArgPool.size(); i++) {
-        for (size_t index = 0; index < 2; index++) {
-            auto funcPool = TransformBuilder(funcs[i], inputTransformArgPool[i]).MapTransformersToStateIndex(index);
-            inputTransformers.insert(inputTransformers.end(), funcPool.begin(), funcPool.end());
-            auto ctx = TestContext<double, double, double>(poww, inputTransformers, outputTransformers);
-            contexts.push_back(ctx);
-        }
-    }
-*/
-    //TODO: helper func to concat function args into vectors of std::any
-
-    /*auto outputDivPool = TransformBuilder<double, double>(Div, outputTransformerArgs).MapTransformersToStateIndex(targetOutputIndex);
-    auto outputMulPool = TransformBuilder<double, double>(Mul, outputTransformerArgs).MapTransformersToStateIndex(targetOutputIndex);
-
-    outputTransformers.insert(outputTransformers.end(), outputDivPool.begin(), outputDivPool.end());
-
-    std::vector baseInputs = {10.0, 11.0, 12.0, 13.0};
-    std::vector expInputs = {2.0, 3.0, 4.0};
-    for (auto &b : baseInputs) {
-        for (auto &e : expInputs) {
-            contexts.push_back(std::make_shared<TestContext<double, double, double>>(poww, b, e, 0, outputTransformers));
-        }
-    }
-
-    for (auto &ctx : contexts) {
-        ctx->PrintState();
-        ctx->TestInvoke();
-        ctx->PrintState();
-        std::cout << std::endl;
-    }*/
 
 #pragma region TransformerPrep
 
-    /*const std::vector<double> transformArgsForDiv = {1.0f, 2.0f, -1.0f};
-
-    // TODO: TransformPool abstraction
-    auto DivPool = TransformBuilder<double, double>(Div, transformArgsForDiv);
-    auto divTransforms = DivPool.MapTransformersToStateIndex(0);
-    auto AddPool = TransformBuilder<double, double>(Add, transformArgsForDiv);
-    auto addTransforms = AddPool.MapTransformersToStateIndex(1);
-
-    for (auto &ctx : contexts) {
-        for (auto &t : addTransforms) {
-            auto x = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
-            x.push_back(t);
-            ctx->ValidateTransformChains(x);
-        }
-        std::cout << std::endl;
-    }*/
 
 #pragma endregion
-
-#pragma region MRGen
-
-#pragma endregion
-    TEST_EXPECT(2 == 2);
+    TEST_EXPECT(2 == 2); // TODO: After API is settled and MRs are produced, update this check to match MR count for Pow()
 }

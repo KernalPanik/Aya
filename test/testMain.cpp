@@ -8,8 +8,8 @@
 #include "../src/Common/util-tests.h"
 #include "../src/Common/CartesianIteratorTests.h"
 #include "../src/core/metamorphicRelation-tests.h"
-#include "../src/Core/Modules/Callable/transformer-tests.h"
-#include "../src/core/Modules/Callable/TestContextTests.hpp"
+#include "../src/Core/Modules/Transformer/transformer-tests.h"
+#include "../src/core/Modules/MRGenerator/TestContextTests.hpp"
 // TEST HEADERS END
 
 //NOTE: Pass '1' to AyaTest to stop at first assert failure

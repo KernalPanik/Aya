@@ -1,7 +1,7 @@
 #pragma once
 
 #include "src/Common/tuple-utils.h"
-#include "transformer.h"
+#include "src/core/Modules/Transformer/transformer.h"
 
 #include <functional>
 #include <iostream>
@@ -21,6 +21,7 @@ namespace Callable {
         virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
         virtual bool Equals(const std::string& other) = 0;
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex) = 0;
+        [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
     };
 
@@ -101,6 +102,7 @@ namespace Callable {
             auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
 
             // TODO: package all possible info into Metamorphic Relation struct
+            // TODO: remove noop from output transforms
             if (CompareTuples(sampleOutputTuple, followUpState)) {
                 //std::cout << "WOW MATCHED STATIC TRANSFORM!" << std::endl;
                 auto s1 = TupleToString(sampleOutputTuple);
@@ -131,7 +133,7 @@ namespace Callable {
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_InputTransforms;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_OutputTransforms;
         // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
-        // Maybe specify this type separately, like U.
+        // TODO: Maybe specify this type separately, like U.
         std::vector<std::function<void(T&, T)>> m_OutputTransformFuncs;
         std::vector<size_t> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'
 

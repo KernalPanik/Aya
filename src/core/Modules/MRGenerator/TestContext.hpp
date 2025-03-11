@@ -115,12 +115,15 @@ namespace Callable {
             auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex);
             for (auto &sample : variableTransformedOutputSamples) {
                 auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
-                if (CompareTuples(sampleTup, followUpState)) {
-                    //std::cout << "WOW MATCHED VARIABLE TRANSFORM!" << std::endl;
-                    auto s1 = TupleToString(sampleTup);
-                    auto s2 = TupleToString(followUpState);
+                // TODO: pass tracked output variable type for this to be universal
 
-                    //std::cout << s1 << " === " << s2 << std::endl;
+                auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
+
+                auto el1 = state1[targetOutputIndex];
+                auto el2 = sample[targetOutputIndex];
+                if (std::any_cast<T>(el1) == std::any_cast<T>(el2)) { // Compare indices only!!!
+                    auto s11 = TupleToString(sampleTup);
+                    auto s21 = TupleToString(followUpState);
                     m_TotalMatches++;
                 }
             }
@@ -155,6 +158,7 @@ namespace Callable {
         // Accepts final state, i.e. with an output, if exists.
         // TODO: Use special type to control outputs, like S or U
         // TODO: Make it work properly with void return type too, maybe add tests.
+        // Right now, this function will always(!!!!11) apply only one arg
         std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
             const size_t targetOutputIndex) {
             auto stateCopy(stateVector);
@@ -172,9 +176,11 @@ namespace Callable {
 
             std::vector<std::vector<std::any>> result;
             for (auto &func : m_OutputTransformFuncs) {
-                auto transformer = TransformBuilder<T, T>(func, matchingArgs).MapTransformersToStateIndex(targetOutputIndex);
-                auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
-                result.push_back(newState);
+                for (auto &mi : matchingArgs) {
+                    auto transformer = TransformBuilder<T, T>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
+                    auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
+                    result.push_back(newState);
+                }
             }
 
             return result;

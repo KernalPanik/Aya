@@ -106,6 +106,7 @@ namespace Callable {
     };
 
 #pragma region TransformPool
+    // TODO: Move TransformBuilder to separate hpp, and make it public to consumer
     // "Factory" class for transform chains -- vectors of ITransformer instances
     // Can get vector of unspecified transformers, and transformers mapped to a certain element of an arbitrary state
     // TODO: case when there is no U

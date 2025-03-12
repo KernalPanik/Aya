@@ -26,6 +26,10 @@ public:
                 m_OutputTransformFunctions(outputTransformFunctions),
                 m_OutputTransformerIndices(outputTransformerIndices),
                 m_TargetOutputTransformIndex(targetOutputTransformIndex) {
+        if (m_InputTransformerPool.empty() || m_OutputTransformerPool.empty()) {
+            throw std::invalid_argument("Input and output transform pool are not initialized");
+        }
+
         m_InputTransformerCounts.reserve(inputTransformerPool.size());
         for (auto &[index, transformers] : inputTransformerPool) {
             m_InputTransformerCounts.push_back(transformers.size());

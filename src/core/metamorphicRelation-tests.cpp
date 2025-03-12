@@ -91,23 +91,9 @@ void MR_SimpleConstructionTest() {
     inputTransformerPool.insert({0, doubleTransformers});
     inputTransformerPool.insert({1, doubleTransformers});
 
-    // Create Cartesian Input Iterator to go through possible combinations
-    std::vector<size_t> inputTransformerCounts;
-    inputTransformerCounts.reserve(inputTransformerPool.size());
-    for (auto &[fst, snd] : inputTransformerPool) {
-        inputTransformerCounts.emplace_back(snd.size());
-    }
-    const std::vector inputTransformerIterators(inputTransformChainLength, CartesianIterator(inputTransformerCounts));
-
-    // TODO: Move to separate func:
     std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> outputTransformerPool;
     outputTransformerPool.insert({0, doubleTransformersForOutput});
-    std::vector<size_t> outputTransformerCounts;
-    outputTransformerCounts.reserve(outputTransformerCounts.size());
-    for (auto &[fst, snd] : outputTransformerPool) {
-        outputTransformerCounts.emplace_back(snd.size());
-    }
-    const std::vector outputTransformerIterators(outputTransformChainLength, CartesianIterator(outputTransformerCounts));
+
 #pragma endregion
 
     std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs

@@ -38,6 +38,7 @@ namespace Callable {
         }
 
         // Produce a vector of transformers that are to be applied on a variable at 'index' in the given state vector
+        //TODO: make this function return a map instead of vector of pairs
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(size_t index) {
             auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
             auto transformers = GetTransformersInternal(*m_TransformerFunction, *m_PackedArgs);

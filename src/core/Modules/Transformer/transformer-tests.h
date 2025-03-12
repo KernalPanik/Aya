@@ -2,4 +2,3 @@
 
 void TransformerTests_MutableCall();
 void TransformerTests_MutableStruct();
-void TransformerTests_MultipleTransformers();

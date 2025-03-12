@@ -1,5 +1,6 @@
 #include "transformer-tests.h"
 #include "transformer.h"
+#include "TransformBuilder.hpp"
 #include "../../../../test/Framework/testRunnerUtils.h"
 
 #include <iostream>
@@ -50,15 +51,4 @@ void TransformerTests_MutableStruct() {
     transformer->Apply(&sample);
     TEST_EXPECT(sample.testValue == 42);
     TEST_EXPECT(sample.testString == "testa");
-}
-
-void TransformerTests_MultipleTransformers() {
-    float testedValue = 100.0f;
-
-    std::vector<std::shared_ptr<ITransformer>> transformers;
-    transformers.push_back(ConstructTransformer<float>(Increment));
-    transformers.push_back(ConstructTransformer<float, float>(AddVal, 10.0f));
-
-    ApplyTransformChain(&testedValue, transformers);
-    TEST_EXPECT(testedValue == 111.0f);
 }

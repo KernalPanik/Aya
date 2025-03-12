@@ -3,6 +3,7 @@
 #include "src/Common/tuple-utils.h"
 #include "src/Common/CartesianIterator.h"
 #include "Modules/Transformer/transformer.h"
+#include "Modules/Transformer/TransformBuilder.hpp"
 #include "Modules/MRGenerator/TestContext.hpp"
 #include "src/Common/util.hpp"
 #include "Modules/MRGenerator/MRBuilder.hpp"
@@ -47,9 +48,6 @@ void Noop(double& b, double val) {}
 
 #pragma endregion
 
-#pragma region transformers
-
-#pragma endregion
 //TODO: generate a warning when there is more than a million iterations to go through, suggest lowering potential transformer counts.
 
 // Straightforward Generation of MRs without using MR generation function
@@ -66,28 +64,26 @@ void MR_SimpleConstructionTest() {
 #pragma region Double Transformers
     // TODO: See if TransformBuilder class can manage more than just packing individual func to args
     std::vector<std::vector<double>> transformerArgumentPool;
+    std::vector<std::vector<double>> transformerArgumentPool1;
     std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
     std::vector<std::function<void(double&, double)>> funcsForOutput = {Div, Sub, Mul, Add};
     //std::vector<std::function<void(double&, double)>> funcs = {Add};
 
-    transformerArgumentPool.push_back({1.0, 2.0, -1.0}); // for div function
+    transformerArgumentPool.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool.push_back({0.0});
 
-    std::vector<std::shared_ptr<ITransformer>> doubleTransformers;
-    for (size_t i = 0; i < transformerArgumentPool.size(); i++) {
-        auto t = TransformBuilder(funcs[i], transformerArgumentPool[i]).GetTransformers();
-        doubleTransformers.insert(doubleTransformers.end(), t.begin(), t.end());
-    }
+    transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
+    transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
 
-    std::vector<std::shared_ptr<ITransformer>> doubleTransformersForOutput;
-    for (size_t i = 0; i < transformerArgumentPool.size()-1; i++) {
-        auto t = TransformBuilder(funcs[i], transformerArgumentPool[i]).GetTransformers();
-        doubleTransformersForOutput.insert(doubleTransformersForOutput.end(), t.begin(), t.end());
-    }
-#pragma endregion
+    std::vector<std::shared_ptr<ITransformer>> doubleTransformers = TransformBuilder<double, double>().GetTransformers(funcs, transformerArgumentPool);
+    std::vector<std::shared_ptr<ITransformer>> doubleTransformersForOutput = TransformBuilder<double, double>().GetTransformers(funcsForOutput, transformerArgumentPool);
+
+    #pragma endregion
 
 #pragma region CartesianIterator builders
     // Map index to possible input Transformers by type

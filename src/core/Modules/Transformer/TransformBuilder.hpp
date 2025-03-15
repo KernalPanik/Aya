@@ -5,7 +5,7 @@
 // TODO: case when there is no U
 // Make a specialization for cases where U is void. (make U void as default then), and override every function.
 // At this point, perhaps simply create two classes matching the same interface?
-namespace Callable {
+namespace Aya {
     template<typename T, typename... Args, typename Callable>
         std::shared_ptr<ITransformer> ConstructTransformer(Callable&& f, Args&&... args) {
         return std::make_shared<Transformer<T, Args...>>(std::forward<Callable>(f), std::forward<Args>(args)...);

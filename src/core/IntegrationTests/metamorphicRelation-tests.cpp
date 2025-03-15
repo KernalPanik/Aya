@@ -1,21 +1,16 @@
 #include "metamorphicRelation-tests.h"
-#include "../../test/Framework/testRunnerUtils.h"
+#include "../../../test/Framework/testRunnerUtils.h"
 #include "src/Common/tuple-utils.h"
-#include "src/Common/CartesianIterator.h"
-#include "Modules/Transformer/transformer.h"
-#include "Modules/Transformer/TransformBuilder.hpp"
-#include "Modules/MRGenerator/TestContext.hpp"
-#include "src/Common/util.hpp"
-#include "Modules/MRGenerator/MRBuilder.hpp"
+#include "src/core/Modules/Transformer/transformer.h"
+#include "src/core/Modules/Transformer/TransformBuilder.hpp"
+#include "src/core/Modules/MRGenerator/TestContext.hpp"
+#include "src/core/Modules/MRGenerator/MRBuilder.hpp"
 
 #include <iostream>
 #include <map>
 #include <cmath>
-#include <tuple>
-#include <cxxabi.h>
-#include <src/Common/CompositeCartesianIterator.h>
 
-using namespace Callable;
+using namespace Core;
 
 /*
 Why wrap pow() in poww()?
@@ -47,27 +42,14 @@ void Div(double& b, double val) {
 void Noop(double& b, double val) {}
 
 #pragma endregion
-
-//TODO: generate a warning when there is more than a million iterations to go through, suggest lowering potential transformer counts.
-
-// Straightforward Generation of MRs without using MR generation function
 void MR_SimpleConstructionTest() {
     // MR: pow(x, y + 1) == pow(x, y) * x
-
-    // Tracked variable is the output. In final arg state is the element at index 0
-    // Producing transformers for the output:
-
-    const size_t outputTransformChainLength = 1;
-    const size_t inputTransformChainLength = 1;
-    const size_t targetOutputStateIndex = 0;
-    const size_t argCount = 2;
 #pragma region Double Transformers
     // TODO: See if TransformBuilder class can manage more than just packing individual func to args
     std::vector<std::vector<double>> transformerArgumentPool;
     std::vector<std::vector<double>> transformerArgumentPool1;
-    std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
-    std::vector<std::function<void(double&, double)>> funcsForOutput = {Div, Sub, Mul, Add};
-    //std::vector<std::function<void(double&, double)>> funcs = {Add};
+    const std::vector<std::function<void(double&, double)>> funcs = {Div, Sub, Mul, Add, Noop};
+    const std::vector<std::function<void(double&, double)>> funcsForOutput = {Div, Sub, Mul, Add};
 
     transformerArgumentPool.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool.push_back({1.0, 2.0, -1.0});
@@ -80,25 +62,25 @@ void MR_SimpleConstructionTest() {
     transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
     transformerArgumentPool1.push_back({1.0, 2.0, -1.0});
 
-    std::vector<std::shared_ptr<ITransformer>> doubleTransformers = TransformBuilder<double, double>().GetTransformers(funcs, transformerArgumentPool);
-    std::vector<std::shared_ptr<ITransformer>> doubleTransformersForOutput = TransformBuilder<double, double>().GetTransformers(funcsForOutput, transformerArgumentPool);
+    std::vector<std::shared_ptr<Aya::ITransformer>> doubleTransformers = Aya::TransformBuilder<double, double>().GetTransformers(funcs, transformerArgumentPool);
+    std::vector<std::shared_ptr<Aya::ITransformer>> doubleTransformersForOutput = Aya::TransformBuilder<double, double>().GetTransformers(funcsForOutput, transformerArgumentPool);
 
-    #pragma endregion
+#pragma endregion
 
 #pragma region CartesianIterator builders
     // Map index to possible input Transformers by type
-    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> inputTransformerPool;
+    std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> inputTransformerPool;
     inputTransformerPool.insert({0, doubleTransformers});
     inputTransformerPool.insert({1, doubleTransformers});
 
-    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>> outputTransformerPool;
+    std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
     outputTransformerPool.insert({0, doubleTransformersForOutput});
 
 #pragma endregion
 
-    std::vector<std::shared_ptr<ITestContext>> goodContexts; // Validation returned true for them -- potential MRs
+    std::vector<std::shared_ptr<Core::IMRContext>> goodContexts; // Validation returned true for them -- potential MRs
     size_t overallMatchCount = 0;
-    auto mrBuilder = MRBuilder<double, double, double, double>(poww,
+    auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww,
         inputTransformerPool, outputTransformerPool, funcsForOutput, {0, 1}, 0);
     std::vector<std::vector<std::any>> testedInputs;
     testedInputs.push_back({10.0, 11.0, 12.0});

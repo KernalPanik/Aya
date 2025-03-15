@@ -5,7 +5,7 @@
 
 //TODO: Convert to proper interface (.hpp)
 
-namespace Callable {
+namespace Aya {
     class ITransformer {
     public:
         virtual ~ITransformer() = default;

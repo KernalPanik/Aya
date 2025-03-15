@@ -1,34 +1,7 @@
 #include "util.h"
-#include "aya-types.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <stdlib.h>
 #include <vector>
 #include <numeric>
-
-void memswap(ptr a, ptr b, size_t n)
-{
-    size_t chunkCount = n / sizeof(ptr);
-    size_t leftover = n % sizeof(ptr);
-
-    for (size_t i = 0; i < chunkCount; i++)
-    {
-        ptr tmp = 0;
-        memcpy((void*)&tmp, (void*)(a + i * sizeof(ptr)), sizeof(ptr));
-        memcpy((void*)(a + i * sizeof(ptr)), (void*)(b + i * sizeof(ptr)), sizeof(ptr));
-        memcpy((void*)(b + i * sizeof(ptr)), &tmp, sizeof(ptr));
-    }
-
-    for (size_t i = n - leftover; i < n; i++)
-    {
-        char tmp = 0;
-        memcpy((void*)&tmp, (void*)(a + i * sizeof(char)), sizeof(char));
-        memcpy((void*)(a + i * sizeof(char)), (void*)(b + i * sizeof(char)), sizeof(char));
-        memcpy((void*)(b + i * sizeof(char)), &tmp, sizeof(char));
-    }
-}
 
 // https://en.wikipedia.org/wiki/Fisher–Yates_shuffle
 /*

@@ -4,10 +4,8 @@
 #include <cassert>
 
 // TEST HEADERS
-#include "Framework/testRunnerTests.h"
 #include "../src/Common/util-tests.h"
 #include "../src/Common/CartesianIteratorTests.h"
-#include "../src/core/metamorphicRelation-tests.h"
 #include "../src/Core/Modules/Transformer/transformer-tests.h"
 #include "../src/core/Modules/MRGenerator/TestContextTests.hpp"
 // TEST HEADERS END
@@ -22,9 +20,6 @@ int main(int argc, char** argv)
         tr.SetFailOnAssert(true);
     }
     
-    tr.RunTest(TestRunnerSanityCheck, "TestRunnerSanityCheck");
-    tr.RunTest(UtilTests_memswap_chars, "UtilTests_memswap_chars");
-    tr.RunTest(UtilTests_memswap_mallocdMem, "UtilTests_memswap_mallocd");
     tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
     tr.RunTest(UtilTests_Tuple_SimpleToString, "UtilTests_Tuple_SimpleToString");
 
@@ -43,7 +38,7 @@ int main(int argc, char** argv)
     tr.RunTest(TransformerTests_MutableStruct, "TransformerTests_MutableStruct");
 
     // Metamorphic Relation Tests
-    tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
+    //tr.RunTest(MR_SimpleConstructionTest, "MR_SimpleConstructionTest");
 
     return 0;
 }

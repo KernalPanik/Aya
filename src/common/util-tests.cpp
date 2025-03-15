@@ -2,7 +2,6 @@
 #include "util.hpp"
 #include "../../test/Framework/testRunnerUtils.h"
 #include "tuple-utils.h"
-#include "aya-types.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -11,36 +10,6 @@
 #include <vector>
 #include <numeric>
 #include <iostream>
-
-void UtilTests_memswap_chars()
-{
-    char x = 'x';
-    char y = 'y';
-
-    memswap((ptr)&x, (ptr)&y, sizeof(char));
-
-    TEST_EXPECT(x == 'y');
-    TEST_EXPECT(y == 'x');
-}
-
-void UtilTests_memswap_mallocdMem()
-{
-    size_t dataSize = 100;
-
-    char* largeString1 = (char*)malloc(dataSize);
-    char* largeString2 = (char*)malloc(dataSize);
-
-    strcpy(largeString1, "TEST ABC DEF GHI");
-    strcpy(largeString2, "QWEQ KEK LOL");
-
-    memswap((ptr)largeString1, (ptr)largeString2, dataSize);
-
-    TEST_EXPECT(strcmp(largeString1, "QWEQ KEK LOL") == 0);
-    TEST_EXPECT(strcmp(largeString2, "TEST ABC DEF GHI") == 0);
-
-    free(largeString1);
-    free(largeString2);
-}
 
 // Just shuffles numbers randomly. So as long as it doesn't crash, it's fine
 void UtilTests_shuffle_doesnt_produce_garbage() {

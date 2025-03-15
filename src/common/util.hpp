@@ -1,11 +1,7 @@
 #pragma once
 
-#include "aya-types.h"
-
-#include <stdio.h>
 #include <vector>
 
-void memswap(ptr a, ptr b, size_t n);
 void printVersion();
 
 template <typename T>

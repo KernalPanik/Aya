@@ -93,7 +93,7 @@ namespace Aya {
                 }
                 auto funcInputIterator = CartesianIterator(functionInputLengths);
                 for (auto &otc : outputTransformerChains) {
-                    auto ctx = Core::MRContext<T, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformerIndices);
+                    auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformerIndices);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();
                         std::vector<std::any> formedInputs;

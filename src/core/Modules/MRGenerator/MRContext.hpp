@@ -1,7 +1,7 @@
 #pragma once
 
 #include "src/Common/tuple-utils.h"
-#include "src/core/Modules/Transformer/transformer.h"
+#include "src/core/Modules/Transformer/transformer.hpp"
 #include "src/core/Modules/Transformer/TransformBuilder.hpp"
 
 #include <functional>
@@ -10,10 +10,8 @@
 #include <any>
 #include <algorithm>
 
-// TODO: 'Callable' is no longer a viable namespace for TestContext. Effectively, it is MR context from Aya 1 now. Move it to MRGen namespace?
 namespace Core {
     class IMRContext {
-    // TODO: The idea of this interface has changed significantly. Consider removing ToStrings, Equals etc.
     public:
         virtual ~IMRContext() = default;
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex) = 0;

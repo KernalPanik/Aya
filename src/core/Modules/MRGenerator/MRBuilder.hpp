@@ -1,8 +1,7 @@
-// This header is expected to be the main entry point for Aya MR builder. Users typically would include it to generate MRs,
-// And TransformBuilder.hpp to generate Transforms to be passed to MR Builder
 #pragma once
-#include "src/core/Modules/Transformer/transformer.h"
+#include "src/core/Modules/Transformer/transformer.hpp"
 #include "src/Common/CompositeCartesianIterator.h"
+#include "src/core/Modules/MRGenerator/MRContext.hpp"
 
 #include <vector>
 #include <any>
@@ -10,8 +9,8 @@
 
 namespace Aya {
     // T -- tested function return type
-    // Args -- tested function args
     // U -- tracked output type
+    // Args -- tested function args
     template <typename T, typename U, typename... Args>
     class MRBuilder {
     public:

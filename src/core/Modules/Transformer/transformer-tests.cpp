@@ -1,13 +1,11 @@
 #include "transformer-tests.h"
-#include "transformer.h"
+#include "transformer.hpp"
 #include "TransformBuilder.hpp"
 #include "../../../../test/Framework/testRunnerUtils.h"
 
 #include <iostream>
 #include <string>
 #include <functional>
-#include <tuple>
-#include <vector>
 
 using namespace Aya;
 

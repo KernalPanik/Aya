@@ -6,7 +6,7 @@
 // https://en.wikipedia.org/wiki/Fisher–Yates_shuffle
 /*
  *  Shuffles an array of ints and takes first N elements
- *  originalstorage -- vector to shuffle
+ *  originalStorage -- vector to shuffle
  *  wantedSize -- shuffled vector size
  */
 // TODO: make it templated, pass T instead of size_t

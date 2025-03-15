@@ -3,17 +3,17 @@
 #include <functional>
 #include <any>
 
-//TODO: Convert to proper interface (.hpp)
-
 namespace Aya {
     class ITransformer {
     public:
         virtual ~ITransformer() = default;
         virtual void Apply(void* data) = 0;
+        // NOTE: not applicable in C# context
         virtual void Apply(std::any& data) = 0;
     };
 
-    // Instance of a transfomer, applying a constant value
+    // TODO: move Transformer outside of Aya namespace.
+    // Consumer should be able generate ITransformer instance using ConstructTransformer builder function
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:

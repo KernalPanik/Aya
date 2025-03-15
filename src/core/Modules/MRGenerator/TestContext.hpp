@@ -2,6 +2,7 @@
 
 #include "src/Common/tuple-utils.h"
 #include "src/core/Modules/Transformer/transformer.h"
+#include "src/core/Modules/Transformer/TransformBuilder.hpp"
 
 #include <functional>
 #include <iostream>
@@ -10,33 +11,27 @@
 #include <algorithm>
 
 // TODO: 'Callable' is no longer a viable namespace for TestContext. Effectively, it is MR context from Aya 1 now. Move it to MRGen namespace?
-namespace Callable {
-    class ITestContext {
+namespace Core {
+    class IMRContext {
     // TODO: The idea of this interface has changed significantly. Consider removing ToStrings, Equals etc.
     public:
-        virtual ~ITestContext() = default;
-        virtual void TestInvoke() = 0;
-        virtual void PrintState() = 0;
-        virtual std::string ToString() = 0;
-        virtual bool Equals(const std::shared_ptr<ITestContext>& other) = 0;
-        virtual bool Equals(const std::string& other) = 0;
+        virtual ~IMRContext() = default;
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
     };
 
     template <typename T, typename... Args>
-    class TestContext final : public ITestContext {
+    class MRContext final : public IMRContext {
     public:
         using ReturnType = std::conditional_t<
             std::is_void_v<T>,
             std::unique_ptr<int>,
             T>;
 
-        // TODO: Make vector of transform chains definition shorter, probably switch to smaller sub-types with 'using'
-        explicit TestContext(std::function<T(Args...)> f,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& inputTransformChain,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& outputTransformChain,
+        explicit MRContext(std::function<T(Args...)> f,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& inputTransformChain,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& outputTransformChain,
             std::vector<std::function<void(T&, T)>> variableOutputTransformingFunctions,
             const std::vector<size_t>& matchingVariableTransformingIndices)
             :   m_Func(std::move(f)),
@@ -55,37 +50,9 @@ namespace Callable {
             m_TotalMatches = 0;
         }
 
-        void TestInvoke() override {
-            //InvokeInternal(std::index_sequence_for<Args...>{});
-        }
-
-        void PrintState() override {
-            std::cout << ToString() << std::endl;
-        }
-
-        std::string ToString() override {
-            /*if constexpr (!std::is_void_v<T>) {
-                if (m_ReturnedValue != nullptr) {
-                    std::tuple<T, std::decay_t<Args>...> finalState = std::tuple_cat(std::make_tuple(*m_ReturnedValue), m_ArgState);
-                    return TupleToString(finalState);
-                }
-            }
-
-            return TupleToString(m_ArgState);*/
-
-            return std::string("TEST");
-        }
-
+        [[nodiscard]]
         size_t GetTotalMatches() const override {
             return m_TotalMatches;
-        }
-
-        bool Equals(const std::shared_ptr<ITestContext> &other) override {
-            return ToString().compare(other->ToString());
-        }
-
-        bool Equals(const std::string& other) override {
-            return ToString().compare(other) == 0;
         }
 
         bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex) override {
@@ -104,11 +71,8 @@ namespace Callable {
             // TODO: package all possible info into Metamorphic Relation struct
             // TODO: remove noop from output transforms
             if (CompareTuples(sampleOutputTuple, followUpState)) {
-                //std::cout << "WOW MATCHED STATIC TRANSFORM!" << std::endl;
                 auto s1 = TupleToString(sampleOutputTuple);
                 auto s2 = TupleToString(followUpState);
-
-                //std::cout << s1 << " === " << s2 << std::endl;
                 m_TotalMatches++;
             }
 
@@ -133,8 +97,8 @@ namespace Callable {
 
     private:
         std::function<T(Args...)> m_Func;
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_InputTransforms;
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> m_OutputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_InputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_OutputTransforms;
         // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
         // TODO: Maybe specify this type separately, like U.
         std::vector<std::function<void(T&, T)>> m_OutputTransformFuncs;
@@ -162,7 +126,7 @@ namespace Callable {
         std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
             const size_t targetOutputIndex) {
             auto stateCopy(stateVector);
-            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransforms;
+            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> outputTransforms;
             size_t offset = 0;
             if constexpr (!std::is_void_v<T>) {
                 offset++; // operating on arguments. 0'th argument is now first, and so on.
@@ -177,7 +141,7 @@ namespace Callable {
             std::vector<std::vector<std::any>> result;
             for (auto &func : m_OutputTransformFuncs) {
                 for (auto &mi : matchingArgs) {
-                    auto transformer = TransformBuilder<T, T>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
+                    auto transformer = Aya::TransformBuilder<T, T>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     result.push_back(newState);
                 }
@@ -220,7 +184,7 @@ namespace Callable {
 
         template <std::size_t... I>
         std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>& transformers, std::index_sequence<I...>) {
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers, std::index_sequence<I...>) {
             auto outputsCopy(outputs);
 
             for (const auto &t: transformers) {

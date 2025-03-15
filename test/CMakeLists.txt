@@ -14,7 +14,6 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR})
 add_executable(AyaTest
         testMain.cpp
-        framework/testRunnerTests.cpp
         framework/testRunner.cpp
         ../src/Common/util.cpp
         ../src/Common/util-tests.cpp
@@ -22,6 +21,6 @@ add_executable(AyaTest
         ../src/Common/CompositeCartesianIterator.cpp
         ../src/Common/CartesianIteratorTests.cpp
         ../src/core/Modules/MRGenerator/TestContextTests.cpp
-        ../src/core/metamorphicRelation-tests.cpp
+        ../src/core/IntegrationTests/metamorphicRelation-tests.cpp
         ../src/core/Modules/Transformer/transformer-tests.cpp)
 target_link_libraries(AyaTest m)

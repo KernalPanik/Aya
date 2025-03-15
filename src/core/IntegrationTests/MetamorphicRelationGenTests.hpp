@@ -61,10 +61,12 @@ namespace MetamorphicRelationGenTests {
         auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, {0, 1}, 0);
         std::vector<std::vector<std::any>> testedInputs;
+        std::vector<Aya::MetamorphicRelation> finalMRs;
         testedInputs.push_back({10.0, 11.0, 12.0});
         testedInputs.push_back({2.0, 3.0, 4.0});
-        mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount);
+        mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
 
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
+        TEST_EXPECT(finalMRs.size() == expectedMatchCount);
     }
 }

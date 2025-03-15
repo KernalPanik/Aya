@@ -3,6 +3,7 @@
 #include "src/Common/tuple-utils.h"
 #include "src/core/Modules/Transformer/transformer.hpp"
 #include "src/core/Modules/Transformer/TransformBuilder.hpp"
+#include "MetamorphicRelation.hpp"
 
 #include <functional>
 #include <iostream>
@@ -14,7 +15,7 @@ namespace Core {
     class IMRContext {
     public:
         virtual ~IMRContext() = default;
-        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex) = 0;
+        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex, std::vector<Aya::MetamorphicRelation>& metamorphicRelations) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
     };
@@ -53,7 +54,8 @@ namespace Core {
             return m_TotalMatches;
         }
 
-        bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex) override {
+        bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex,
+                std::vector<Aya::MetamorphicRelation>& metamorphicRelations) override {
             bool match = false;
             // Create a sequence chain of some sorts?
             auto initialState = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
@@ -71,10 +73,15 @@ namespace Core {
             if (CompareTuples(sampleOutputTuple, followUpState)) {
                 auto s1 = TupleToString(sampleOutputTuple);
                 auto s2 = TupleToString(followUpState);
+                auto mr = Aya::MetamorphicRelation();
+                mr.inputTransformers = m_InputTransforms;
+                mr.outputTransformers = m_OutputTransforms;
+                metamorphicRelations.push_back(mr);
                 m_TotalMatches++;
             }
-
-            auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex);
+            std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
+            auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
+            size_t index = 0;
             for (auto &sample : variableTransformedOutputSamples) {
                 auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
                 auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
@@ -84,8 +91,13 @@ namespace Core {
                 if (std::any_cast<U>(el1) == std::any_cast<U>(el2)) {
                     auto s11 = TupleToString(sampleTup);
                     auto s21 = TupleToString(followUpState);
+                    auto mr = Aya::MetamorphicRelation();
+                    mr.inputTransformers = m_InputTransforms;
+                    mr.outputTransformers = producedOutputTransforms[index];
+                    metamorphicRelations.push_back(mr);
                     m_TotalMatches++;
                 }
+                index++;
             }
 
             return match;
@@ -118,11 +130,10 @@ namespace Core {
         // Accepts final state, i.e. with an output, if exists.
         // TODO: Use special type to control outputs, like S or U
         // TODO: Make it work properly with void return type too, maybe add tests.
-        // Right now, this function will always(!!!!11) apply only one arg
         std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
-            const size_t targetOutputIndex) {
+                const size_t targetOutputIndex,
+                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>>& producedOutputTransformChains) {
             auto stateCopy(stateVector);
-            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> outputTransforms;
             size_t offset = 0;
             if constexpr (!std::is_void_v<T>) {
                 offset++; // operating on arguments. 0'th argument is now first, and so on.
@@ -137,8 +148,10 @@ namespace Core {
             std::vector<std::vector<std::any>> result;
             for (auto &func : m_OutputTransformFuncs) {
                 for (auto &mi : matchingArgs) {
+                    // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
                     auto transformer = Aya::TransformBuilder<T, T>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
+                    producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);
                 }
             }

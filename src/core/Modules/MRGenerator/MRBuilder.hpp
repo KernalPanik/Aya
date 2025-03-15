@@ -42,7 +42,8 @@ namespace Aya {
         }
         ~MRBuilder() = default;
 
-        void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformLength, const size_t outputTransformLength, size_t& potentialMRCount) {
+        void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformLength,
+                const size_t outputTransformLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
             std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
             std::vector inputIteratorsTmp1(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
 
@@ -56,7 +57,6 @@ namespace Aya {
             CompositeCartesianIterator outputIterator(outputIteratorsTmp);
 
             potentialMRCount = 0;
-
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
 #pragma region Output transform chain generation
             while (!outputIterator.isDone()) {
@@ -92,6 +92,8 @@ namespace Aya {
                     index = 0;
                 }
                 auto funcInputIterator = CartesianIterator(functionInputLengths);
+                std::vector<MetamorphicRelation> mrs;
+
                 for (auto &otc : outputTransformerChains) {
                     auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformerIndices);
                     while (!funcInputIterator.isDone()) {
@@ -101,13 +103,15 @@ namespace Aya {
                         for (size_t j = 0; j < funcInputPos.size(); j++) {
                             formedInputs.push_back(testedInputs[j][funcInputPos[j]]);
                         }
-                        ctx.ValidateTransformChains(formedInputs, m_TargetOutputTransformIndex);
+                        ctx.ValidateTransformChains(formedInputs, m_TargetOutputTransformIndex, mrs);
                         funcInputIterator.next();
                         formedInputs.clear();
                     }
                     if (ctx.GetTotalMatches() != 0) {
                         potentialMRCount += ctx.GetTotalMatches();
+                        metamorphicRelations.insert(metamorphicRelations.end(), mrs.begin(), mrs.end());
                     }
+                    mrs.clear();
                 }
                 inputIterator.next();
                 inputTransformerChain.clear();

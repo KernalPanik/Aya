@@ -10,9 +10,10 @@ namespace Aya {
         virtual void Apply(void* data) = 0;
         // NOTE: not applicable in C# context
         virtual void Apply(std::any& data) = 0;
+        virtual size_t GetArgCount() = 0;
     };
 
-    // TODO: move Transformer outside of Aya namespace.
+    // TODO: move Transformer Implementation outside of Aya namespace.
     // Consumer should be able generate ITransformer instance using ConstructTransformer builder function
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
@@ -34,6 +35,10 @@ namespace Aya {
             auto baseValue = std::any_cast<T>(data);
             ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
             data = baseValue;
+        }
+
+        size_t GetArgCount() override {
+            return sizeof...(Args);
         }
 
     private:

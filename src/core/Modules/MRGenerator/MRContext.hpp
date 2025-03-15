@@ -19,7 +19,7 @@ namespace Core {
         virtual size_t GetTotalMatches() const = 0;
     };
 
-    template <typename T, typename... Args>
+    template <typename T, typename U, typename... Args>
     class MRContext final : public IMRContext {
     public:
         using ReturnType = std::conditional_t<
@@ -77,13 +77,11 @@ namespace Core {
             auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex);
             for (auto &sample : variableTransformedOutputSamples) {
                 auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
-                // TODO: pass tracked output variable type for this to be universal
-
                 auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
 
                 auto el1 = state1[targetOutputIndex];
                 auto el2 = sample[targetOutputIndex];
-                if (std::any_cast<T>(el1) == std::any_cast<T>(el2)) { // Compare indices only!!!
+                if (std::any_cast<U>(el1) == std::any_cast<U>(el2)) {
                     auto s11 = TupleToString(sampleTup);
                     auto s21 = TupleToString(followUpState);
                     m_TotalMatches++;

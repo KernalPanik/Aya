@@ -18,6 +18,7 @@ namespace Core {
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex, std::vector<Aya::MetamorphicRelation>& metamorphicRelations) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
+        virtual void OverrideComparerMethod(std::any func) = 0;
     };
 
     template <typename T, typename U, typename... Args>
@@ -54,6 +55,12 @@ namespace Core {
             return m_TotalMatches;
         }
 
+        // Might be crap for C# interface...
+        // If so, pass raw function pointer, and convert it to std::function
+        void OverrideComparerMethod(std::any func) override {
+            m_Comparer = std::make_unique<std::function<bool(U, U)>>(std::any_cast<std::function<bool(U, U)>>(func));
+        }
+
         bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex,
                 std::vector<Aya::MetamorphicRelation>& metamorphicRelations) override {
             bool match = false;
@@ -68,8 +75,7 @@ namespace Core {
             auto sampleOutput = TransformOutputs(initialStateVector, std::index_sequence_for<Args...>{});
             auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
 
-            // TODO: package all possible info into Metamorphic Relation struct
-            // TODO: remove noop from output transforms
+            // TODO: compare individual elements
             if (CompareTuples(sampleOutputTuple, followUpState)) {
                 auto s1 = TupleToString(sampleOutputTuple);
                 auto s2 = TupleToString(followUpState);
@@ -79,6 +85,7 @@ namespace Core {
                 metamorphicRelations.push_back(mr);
                 m_TotalMatches++;
             }
+
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
             auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
             size_t index = 0;
@@ -88,7 +95,14 @@ namespace Core {
 
                 auto el1 = state1[targetOutputIndex];
                 auto el2 = sample[targetOutputIndex];
-                if (std::any_cast<U>(el1) == std::any_cast<U>(el2)) {
+                bool equals = false;
+                if (m_Comparer == nullptr) {
+                    equals = std::any_cast<U>(el1) == std::any_cast<U>(el2);
+                } else {
+                    equals = (*m_Comparer)(std::any_cast<U>(el1), std::any_cast<U>(el2));
+                }
+
+                if (equals) {
                     auto s11 = TupleToString(sampleTup);
                     auto s21 = TupleToString(followUpState);
                     auto mr = Aya::MetamorphicRelation();
@@ -109,8 +123,9 @@ namespace Core {
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_OutputTransforms;
         // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
         // TODO: Maybe specify this type separately, like U.
-        std::vector<std::function<void(T&, T)>> m_OutputTransformFuncs;
+        std::vector<std::function<void(U&, U)>> m_OutputTransformFuncs;
         std::vector<size_t> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'
+        std::unique_ptr<std::function<bool(U, U)>> m_Comparer;
 
         size_t m_TotalMatches = 0;
 

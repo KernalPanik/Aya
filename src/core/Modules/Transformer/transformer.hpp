@@ -8,9 +8,12 @@ namespace Aya {
     public:
         virtual ~ITransformer() = default;
         virtual void Apply(void* data) = 0;
-        // NOTE: not applicable in C# context
+        // NOTE: might not be applicable in C# context
         virtual void Apply(std::any& data) = 0;
         virtual size_t GetArgCount() = 0;
+        virtual void SetRepeat(size_t val) = 0;
+        [[nodiscard]]
+        virtual size_t GetRepeat() = 0;
     };
 
     template<typename T, class... Args>
@@ -25,13 +28,17 @@ namespace Aya {
             }
 
             auto baseValue = *static_cast<T*>(data);
-            ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            for (size_t i = 0; i < m_Repeat; i++) {
+                ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            }
             memcpy(data, &baseValue, sizeof(baseValue));
         }
 
         void Apply(std::any& data) override {
             auto baseValue = std::any_cast<T>(data);
-            ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            for (size_t i = 0; i < m_Repeat; i++) {
+                ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            }
             data = baseValue;
         }
 
@@ -39,9 +46,20 @@ namespace Aya {
             return sizeof...(Args);
         }
 
+        void SetRepeat(const size_t val) override {
+            m_Repeat = val;
+        }
+
+        [[nodiscard]]
+        size_t GetRepeat() override {
+            return m_Repeat;
+        }
+
     private:
         std::function<void(T&, Args...)> func;
         std::tuple<Args...> args;
+
+        size_t m_Repeat = 1;
 
         template<std::size_t... I>
         void ApplyImpl(std::index_sequence<I...>, T& baseValue) {

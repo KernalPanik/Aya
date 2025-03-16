@@ -19,6 +19,7 @@ namespace Core {
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
         virtual void OverrideComparerMethod(std::any func) = 0;
+        virtual void SetImplicitOutputTransforms(bool value) = 0;
     };
 
     template <typename T, typename U, typename... Args>
@@ -48,6 +49,7 @@ namespace Core {
             });
 
             m_TotalMatches = 0;
+            m_BuildImplicitOutputTransforms = false;
         }
 
         [[nodiscard]]
@@ -59,6 +61,10 @@ namespace Core {
         // If so, pass raw function pointer, and convert it to std::function
         void OverrideComparerMethod(std::any func) override {
             m_Comparer = std::make_unique<std::function<bool(U, U)>>(std::any_cast<std::function<bool(U, U)>>(func));
+        }
+
+        void SetImplicitOutputTransforms(const bool value) override {
+            m_BuildImplicitOutputTransforms = value;
         }
 
         bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex,
@@ -81,22 +87,24 @@ namespace Core {
                 match = true;
             }
 
-            std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
-            auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
-            size_t index = 0;
-            for (auto &sample : variableTransformedOutputSamples) {
-                auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
-                auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
+            if (m_BuildImplicitOutputTransforms) {
+                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
+                auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
+                size_t index = 0;
+                for (auto &sample : variableTransformedOutputSamples) {
+                    auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
+                    auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
 
-                auto el1 = state1[targetOutputIndex];
-                auto el2 = sample[targetOutputIndex];
+                    auto el1 = state1[targetOutputIndex];
+                    auto el2 = sample[targetOutputIndex];
 
-                if (CompareTargetElements(std::any_cast<U>(el1), std::any_cast<U>(el2))) {
-                    metamorphicRelations.emplace_back(m_InputTransforms, producedOutputTransforms[index]);
-                    m_TotalMatches++;
+                    if (CompareTargetElements(std::any_cast<U>(el1), std::any_cast<U>(el2))) {
+                        metamorphicRelations.emplace_back(m_InputTransforms, producedOutputTransforms[index]);
+                        m_TotalMatches++;
+                    }
+                    index++;
+                    match = true;
                 }
-                index++;
-                match = true;
             }
 
             return match;
@@ -114,6 +122,7 @@ namespace Core {
 
         size_t m_TotalMatches = 0;
 
+        bool m_BuildImplicitOutputTransforms = false;
 
         template<std::size_t... I>
         auto InvokeInternal(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
@@ -150,7 +159,7 @@ namespace Core {
             for (auto &func : m_OutputTransformFuncs) {
                 for (auto &mi : matchingArgs) {
                     // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
-                    auto transformer = Aya::TransformBuilder<T, T>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
+                    auto transformer = Aya::TransformBuilder<U, U>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);

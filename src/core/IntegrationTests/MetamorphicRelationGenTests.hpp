@@ -17,6 +17,10 @@ inline double poww(double x, double y) {
     return pow(x, y);
 }
 
+inline size_t VecSize(std::vector<int>& v) {
+    return v.size();
+}
+
 namespace MetamorphicRelationGenTests {
     inline void MetamorphicRelationTest_Pow() {
         constexpr size_t expectedMatchCount = 260;
@@ -60,6 +64,7 @@ namespace MetamorphicRelationGenTests {
         // double pow(double, double)
         auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, {0, 1}, 0);
+        mrBuilder.SetEnableImplicitOutputTransforms(true);
         std::vector<std::vector<std::any>> testedInputs;
         std::vector<Aya::MetamorphicRelation> finalMRs;
         testedInputs.push_back({10.0, 11.0, 12.0});
@@ -68,5 +73,18 @@ namespace MetamorphicRelationGenTests {
 
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
         TEST_EXPECT(finalMRs.size() == expectedMatchCount);
+    }
+
+    inline void MetamorphicRelationTest_VectorSize() {
+        // vec<int>.push_back
+#pragma region Data Preparation
+        const std::function inputPushTransformerFunc(push);
+        const std::function inputPopTransformerFunc(pop);
+
+        const std::vector valsToPush = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        const std::vector repeatVals = { 1, 2, 3 };
+#pragma endregion
+
+        TEST_EXPECT(1 == 1);
     }
 }

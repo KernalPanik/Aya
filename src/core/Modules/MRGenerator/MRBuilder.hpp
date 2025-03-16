@@ -39,11 +39,17 @@ namespace Aya {
             for (auto &[index, transformers] : outputTransformerPool) {
                 m_OutputTransformerCounts.push_back(transformers.size());
             }
+
+            m_EnableImplicitOutputTransforms = false;
         }
         ~MRBuilder() = default;
 
         void SetComparer(std::function<void(U, U)> comparer) {
             m_Comparer = comparer;
+        }
+
+        void SetEnableImplicitOutputTransforms(const bool value) {
+            m_EnableImplicitOutputTransforms = value;
         }
 
         void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformLength,
@@ -100,6 +106,7 @@ namespace Aya {
 
                 for (auto &otc : outputTransformerChains) {
                     auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformerIndices);
+                    ctx.SetImplicitOutputTransforms(m_EnableImplicitOutputTransforms);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();
                         std::vector<std::any> formedInputs;
@@ -129,6 +136,7 @@ namespace Aya {
         std::vector<std::function<void(U&, U)>> m_OutputTransformFunctions;
         std::vector<size_t> m_OutputTransformerIndices;
         const size_t m_TargetOutputTransformIndex;
+        bool m_EnableImplicitOutputTransforms;
 
         std::function<bool(U, U)> m_Comparer;
 

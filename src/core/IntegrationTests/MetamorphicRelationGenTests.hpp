@@ -19,7 +19,7 @@ inline double poww(double x, double y) {
 
 namespace MetamorphicRelationGenTests {
     inline void MetamorphicRelationTest_Pow() {
-        constexpr size_t expectedMatchCount = 224;
+        constexpr size_t expectedMatchCount = 260;
         // MR: pow(x, y + 1) == pow(x, y) * x
 #pragma region Data Preparation
         // Prepare an array of transformer functions

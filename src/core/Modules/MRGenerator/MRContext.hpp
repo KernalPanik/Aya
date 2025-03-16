@@ -75,15 +75,10 @@ namespace Core {
             auto sampleOutput = TransformOutputs(initialStateVector, std::index_sequence_for<Args...>{});
             auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
 
-            // TODO: compare individual elements
-            if (CompareTuples(sampleOutputTuple, followUpState)) {
-                auto s1 = TupleToString(sampleOutputTuple);
-                auto s2 = TupleToString(followUpState);
-                auto mr = Aya::MetamorphicRelation();
-                mr.inputTransformers = m_InputTransforms;
-                mr.outputTransformers = m_OutputTransforms;
-                metamorphicRelations.push_back(mr);
+            if (CompareTargetElements(std::any_cast<U>(followUpStateVec[targetOutputIndex]), std::any_cast<U>(sampleOutput[targetOutputIndex]))) {
+                metamorphicRelations.emplace_back(m_InputTransforms, m_OutputTransforms);
                 m_TotalMatches++;
+                match = true;
             }
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
@@ -95,23 +90,13 @@ namespace Core {
 
                 auto el1 = state1[targetOutputIndex];
                 auto el2 = sample[targetOutputIndex];
-                bool equals = false;
-                if (m_Comparer == nullptr) {
-                    equals = std::any_cast<U>(el1) == std::any_cast<U>(el2);
-                } else {
-                    equals = (*m_Comparer)(std::any_cast<U>(el1), std::any_cast<U>(el2));
-                }
 
-                if (equals) {
-                    auto s11 = TupleToString(sampleTup);
-                    auto s21 = TupleToString(followUpState);
-                    auto mr = Aya::MetamorphicRelation();
-                    mr.inputTransformers = m_InputTransforms;
-                    mr.outputTransformers = producedOutputTransforms[index];
-                    metamorphicRelations.push_back(mr);
+                if (CompareTargetElements(std::any_cast<U>(el1), std::any_cast<U>(el2))) {
+                    metamorphicRelations.emplace_back(m_InputTransforms, producedOutputTransforms[index]);
                     m_TotalMatches++;
                 }
                 index++;
+                match = true;
             }
 
             return match;
@@ -128,6 +113,7 @@ namespace Core {
         std::unique_ptr<std::function<bool(U, U)>> m_Comparer;
 
         size_t m_TotalMatches = 0;
+
 
         template<std::size_t... I>
         auto InvokeInternal(const std::vector<std::any>& inputs, std::index_sequence<I...>) {
@@ -255,6 +241,14 @@ namespace Core {
                 auto tup = std::make_tuple(std::any_cast<Args>(inputs[I])...);
                 std::cout << TupleToString(tup) << std::endl;
             }
+        }
+
+        bool CompareTargetElements(const U e1, const U e2) {
+            if (m_Comparer != nullptr) {
+                return (*m_Comparer)(e1, e2);
+            }
+
+            return e1 == e2;
         }
     };
 }

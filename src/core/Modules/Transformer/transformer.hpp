@@ -13,8 +13,6 @@ namespace Aya {
         virtual size_t GetArgCount() = 0;
     };
 
-    // TODO: move Transformer Implementation outside of Aya namespace.
-    // Consumer should be able generate ITransformer instance using ConstructTransformer builder function
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:

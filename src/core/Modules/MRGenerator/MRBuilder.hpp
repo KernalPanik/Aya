@@ -42,6 +42,10 @@ namespace Aya {
         }
         ~MRBuilder() = default;
 
+        void SetComparer(std::function<void(U, U)> comparer) {
+            m_Comparer = comparer;
+        }
+
         void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformLength,
                 const size_t outputTransformLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
             std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
@@ -125,6 +129,8 @@ namespace Aya {
         std::vector<std::function<void(U&, U)>> m_OutputTransformFunctions;
         std::vector<size_t> m_OutputTransformerIndices;
         const size_t m_TargetOutputTransformIndex;
+
+        std::function<bool(U, U)> m_Comparer;
 
         std::vector<size_t> m_InputTransformerCounts;
         std::vector<size_t> m_OutputTransformerCounts;

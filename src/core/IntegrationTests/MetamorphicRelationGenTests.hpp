@@ -17,7 +17,7 @@ inline double poww(double x, double y) {
     return pow(x, y);
 }
 
-inline size_t VecSize(std::vector<int>& v) {
+inline size_t VecSize(std::vector<int> v) {
     return v.size();
 }
 
@@ -76,15 +76,56 @@ namespace MetamorphicRelationGenTests {
     }
 
     inline void MetamorphicRelationTest_VectorSize() {
-        // vec<int>.push_back
 #pragma region Data Preparation
         const std::function inputPushTransformerFunc(push);
         const std::function inputPopTransformerFunc(pop);
 
         const std::vector valsToPush = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        const std::vector repeatVals = { 1, 2, 3 };
+        const std::vector repeatVals = { 0, 1, 2, 3 };
+        std::vector<std::tuple<int, int>> pushArgs;
+        pushArgs.reserve(valsToPush.size() * repeatVals.size());
+        for (auto &val : valsToPush) {
+            for (auto &r : repeatVals) {
+                pushArgs.emplace_back(val, r);
+            }
+        }
+
+        std::vector<std::tuple<int>> popArgs;
+        popArgs.reserve(repeatVals.size());
+        for (auto& r : repeatVals) {
+            popArgs.emplace_back(r);
+        }
+
+        std::vector<std::shared_ptr<Aya::ITransformer>> pushTransformers = Aya::TransformBuilderVararg<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, pushArgs);
+        std::vector<std::shared_ptr<Aya::ITransformer>> popTransformers = Aya::TransformBuilderVararg<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, popArgs);
+
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> inputTransformerPool;
+        inputTransformerPool.insert({0, pushTransformers});
+        inputTransformerPool.insert({0, popTransformers});
+
+        std::vector<std::vector<size_t>> outputTransformArgPool;
+        outputTransformArgPool.push_back({0, 1, 2, 3});
+        outputTransformArgPool.push_back({0, 1, 2, 3});
+        const std::vector<std::function<void(size_t&, size_t)>> outputTransformerFuncs = {VecAdd, VecSub };
+
+        std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformers = Aya::TransformBuilder<size_t, size_t>().GetTransformers(outputTransformerFuncs, outputTransformArgPool);
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
+        outputTransformerPool.insert({0, outputTransformers});
 #pragma endregion
 
-        TEST_EXPECT(1 == 1);
+        size_t overallMatchCount = 0;
+        auto mrBuilder = Aya::MRBuilder<size_t, size_t, std::vector<int>>(VecSize,
+            inputTransformerPool, outputTransformerPool, outputTransformerFuncs, {0}, 0);
+        mrBuilder.SetEnableImplicitOutputTransforms(false);
+        std::vector<std::vector<std::any>> testedInputs;
+        std::vector<Aya::MetamorphicRelation> finalMRs;
+
+        //TODO: With more complex variants of tested inputs, preparing them for MR builder becomes increasingly chaotic
+        // Make SearchForMRs accept Tuples of arguments instead of vector of vectors. This way, arguments will be packaged more neatly.
+
+        testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{1}});
+        testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{5}});
+        mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
+        TEST_EXPECT(overallMatchCount == 10);
     }
 }

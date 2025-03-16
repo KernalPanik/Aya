@@ -22,6 +22,9 @@ namespace Aya {
         explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
             : func(f), args(std::make_tuple(std::forward<Args>(args)...)) {}
 
+        Transformer(std::function<void(T&, Args...)> f, std::tuple<Args...> args)
+            : func(f), args(args) {}
+
         void Apply(void* data) override {
             if (data == nullptr) {
                 throw std::invalid_argument("Cannot transform base that is null.");

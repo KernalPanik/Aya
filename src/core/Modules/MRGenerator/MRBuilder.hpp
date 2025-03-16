@@ -57,6 +57,7 @@ namespace Aya {
             std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
             std::vector inputIteratorsTmp1(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
 
+            //???
             for (auto &itr: inputIteratorsTmp1) {
                 while (!itr.isDone()){ itr.next();}
             }

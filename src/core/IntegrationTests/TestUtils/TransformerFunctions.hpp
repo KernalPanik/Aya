@@ -35,6 +35,15 @@ inline void pop(std::vector<int>& vec, const int repeat) {
     }
 }
 
+inline void VecAdd(size_t& b, size_t val) {
+    b += val;
+}
+
+inline void VecSub(size_t& b, size_t val) {
+    b -= val;
+}
+
+
 inline void VecNoop(std::vector<int>& vec) {}
 inline void VecNoop1(std::vector<int>& vec, const int val) {}
 #pragma endregion

@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 
     // Metamorphic Relation Tests
     tr.RunTest(MetamorphicRelationGenTests::MetamorphicRelationTest_Pow, "MetamorphicRelationTest_Pow");
+    tr.RunTest(MetamorphicRelationGenTests::MetamorphicRelationTest_VectorSize, "MetamorphicRelationTest_VectorSize");
 
     return 0;
 }

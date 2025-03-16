@@ -33,10 +33,6 @@ namespace Aya {
             return v;
         }
 
-        std::vector<std::shared_ptr<ITransformer>> GetTransformers() {
-            return GetTransformersInternal(*m_TransformerFunction, *m_PackedArgs);
-        }
-
         // Produce a vector of transformers that are to be applied on a variable at 'index' in the given state vector
         //TODO: make this function return a map instead of vector of pairs
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(size_t index) {
@@ -59,6 +55,43 @@ namespace Aya {
 
             for (auto &i : args) {
                 auto t = ConstructTransformer<T, U>(func, std::decay_t<U>(i));
+                v.push_back(t);
+            }
+
+            return v;
+        }
+    };
+
+    // If Transformer functions can be properly done with a single arg of known type, refer to TransformBuilder for now.
+    template <typename T, typename... Args>
+    class TransformBuilderVararg {
+    public:
+        explicit TransformBuilderVararg(std::function<void(T&, Args...)> func, Args... args)
+            : m_TransformerFunction(func) {}
+
+        TransformBuilderVararg() : m_TransformerFunction(nullptr) {}
+
+        std::vector<std::shared_ptr<ITransformer>> GetTransformers(std::vector<std::tuple<Args...>> params) {
+            return GetTransformersInternal(params);
+        }
+
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(std::vector<std::tuple<Args...>> params, size_t index) {
+            auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
+            auto transformers = GetTransformersInternal(params);
+
+            for (auto &i : transformers) {
+                v.push_back(std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, std::move(i))));
+            }
+            return v;
+        }
+
+    private:
+        std::unique_ptr<std::function<void(T&, Args...)>> m_TransformerFunction;
+
+        std::vector<std::shared_ptr<ITransformer>> GetTransformersInternal(std::vector<std::tuple<Args...>> params) {
+            std::vector<std::shared_ptr<ITransformer>> v;
+            for (size_t i = 0; i < params.size(); ++i) {
+                auto t = ConstructTransformer<T, Args...>(m_TransformerFunction, params[i]);
                 v.push_back(t);
             }
 

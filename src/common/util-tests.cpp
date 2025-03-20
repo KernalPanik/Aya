@@ -31,3 +31,11 @@ void UtilTests_Tuple_SimpleToString() {
     std::string s = TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
 }
+
+void UtilTests_Vector_Tuplify() {
+    std::vector<std::any> v = {1, 2, 3.0f, 3.0};
+    std::tuple<int, int, float, double> w = std::make_tuple(1, 2, 3.0f, 3.0f);
+    std::tuple<int, int, float, double> received = Tuplify<int, int, float, double>(v);
+
+    TEST_EXPECT(w == received);
+}

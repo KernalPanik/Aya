@@ -31,19 +31,19 @@ namespace MetamorphicRelationGenTests {
         const std::vector<std::function<void(double&, double)>> outputTransformerFuncs = { Div, Mul, Add, Sub};
 
         // Prepare an array of matching argument arrays for each transformer. 1 to 1 matching
-        std::vector<std::vector<double>> inputTransformerArgPool;
-        std::vector<std::vector<double>> outputTransformerArgPool;
+        std::vector<std::vector<std::tuple<double>>> inputTransformerArgPool;
+        std::vector<std::vector<std::tuple<double>>> outputTransformerArgPool;
 
-        inputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        inputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        inputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        inputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        inputTransformerArgPool.push_back({0.0});
+        inputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        inputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        inputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        inputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        inputTransformerArgPool.push_back({{0.0}});
 
-        outputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        outputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        outputTransformerArgPool.push_back({1.0, 2.0, -1.0});
-        outputTransformerArgPool.push_back({1.0, 2.0, -1.0});
+        outputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        outputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        outputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
+        outputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
 
         // Pow Function accepts args with type "double" only, hence we only need to prepare a pool of transformers for this data type.
         std::vector<std::shared_ptr<Aya::ITransformer>> doubleTransformers = Aya::TransformBuilder<double, double>().GetTransformers(inputTransformerFuncs, inputTransformerArgPool);
@@ -96,16 +96,16 @@ namespace MetamorphicRelationGenTests {
             popArgs.emplace_back(r);
         }
 
-        std::vector<std::shared_ptr<Aya::ITransformer>> pushTransformers = Aya::TransformBuilderVararg<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, pushArgs);
-        std::vector<std::shared_ptr<Aya::ITransformer>> popTransformers = Aya::TransformBuilderVararg<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, popArgs);
+        std::vector<std::shared_ptr<Aya::ITransformer>> pushTransformers = Aya::TransformBuilder<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, pushArgs);
+        std::vector<std::shared_ptr<Aya::ITransformer>> popTransformers = Aya::TransformBuilder<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, popArgs);
 
         std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> inputTransformerPool;
         inputTransformerPool.insert({0, pushTransformers});
         inputTransformerPool.insert({0, popTransformers});
 
-        std::vector<std::vector<size_t>> outputTransformArgPool;
-        outputTransformArgPool.push_back({0, 1, 2, 3});
-        outputTransformArgPool.push_back({0, 1, 2, 3});
+        std::vector<std::vector<std::tuple<size_t>>> outputTransformArgPool;
+        outputTransformArgPool.push_back({{0}, {1}, {2}, {3}});
+        outputTransformArgPool.push_back({{0}, {1}, {2}, {3}});
         const std::vector<std::function<void(size_t&, size_t)>> outputTransformerFuncs = {VecAdd, VecSub };
 
         std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformers = Aya::TransformBuilder<size_t, size_t>().GetTransformers(outputTransformerFuncs, outputTransformArgPool);
@@ -119,9 +119,6 @@ namespace MetamorphicRelationGenTests {
         mrBuilder.SetEnableImplicitOutputTransforms(false);
         std::vector<std::vector<std::any>> testedInputs;
         std::vector<Aya::MetamorphicRelation> finalMRs;
-
-        //TODO: With more complex variants of tested inputs, preparing them for MR builder becomes increasingly chaotic
-        // Make SearchForMRs accept Tuples of arguments instead of vector of vectors. This way, arguments will be packaged more neatly.
 
         testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{1}});
         testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{5}});

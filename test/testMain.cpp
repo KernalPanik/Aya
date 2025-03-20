@@ -22,6 +22,7 @@ int main(int argc, char** argv)
     
     tr.RunTest(UtilTests_shuffle_doesnt_produce_garbage, "UtilTests_shuffle_doesnt_produce_garbage");
     tr.RunTest(UtilTests_Tuple_SimpleToString, "UtilTests_Tuple_SimpleToString");
+    tr.RunTest(UtilTests_Vector_Tuplify, "UtilTests_Vector_Tuplify");
 
     // Cartesian Iterator Tests
     tr.RunTest(CartesianIterator_IteratesProperly, "CartesianIterator_IteratesProperly");

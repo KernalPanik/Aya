@@ -1,10 +1,9 @@
 #pragma once
 
+#include <src/common/util.hpp>
+
 #include "transformer.hpp"
 
-// TODO: case when there is no U
-// Make a specialization for cases where U is void. (make U void as default then), and override every function.
-// At this point, perhaps simply create two classes matching the same interface?
 namespace Aya {
     template<typename T, typename... Args, typename Callable>
     std::shared_ptr<ITransformer> ConstructTransformer(Callable&& f, Args&&... args) {
@@ -14,6 +13,17 @@ namespace Aya {
     template<typename T, typename... Args>
     std::shared_ptr<ITransformer> ConstructTransformer(std::function<void(T&, Args...)> f, std::tuple<Args...> args) {
         return std::make_shared<Transformer<T, Args...>>(f, args);
+    }
+
+    /// Convert vector of vectors into vector of tuples using Tuplify().
+    template <typename... Args>
+    std::vector<std::tuple<Args...>> PrepareParamTuples(const std::vector<std::vector<std::any>>& params) {
+        std::vector<std::tuple<Args...>> result;
+        for (const auto& input : params) {
+            result.emplace_back(Tuplify<Args...>(input));
+        }
+
+        return result;
     }
 
     // If Transformer functions can be properly done with a single arg of known type, refer to TransformBuilder for now.

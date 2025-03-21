@@ -15,6 +15,7 @@ namespace Core {
     class IMRContext {
     public:
         virtual ~IMRContext() = default;
+        // std::vector<std::any> is an abstract class friendly way of having a tuple. So MRSearch would accept a vector of vectors, encompassing inputs.
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex, std::vector<Aya::MetamorphicRelation>& metamorphicRelations) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
@@ -159,7 +160,7 @@ namespace Core {
             for (auto &func : m_OutputTransformFuncs) {
                 for (auto &mi : matchingArgs) {
                     // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
-                    auto transformer = Aya::TransformBuilder<U, U>(func, {mi}).MapTransformersToStateIndex(targetOutputIndex);
+                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(func, {mi}, targetOutputIndex);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);

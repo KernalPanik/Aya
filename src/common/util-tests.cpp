@@ -3,10 +3,6 @@
 #include "../../test/Framework/testRunnerUtils.h"
 #include "tuple-utils.h"
 
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
 #include <vector>
 #include <numeric>
 #include <iostream>
@@ -30,4 +26,11 @@ void UtilTests_Tuple_SimpleToString() {
     std::string wantedOutput = std::string("[testString; 20; 42; ]");
     std::string s = TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
+}
+
+void UtilTests_Vector_Tuplify() {
+    std::vector<std::any> v = {1, 2, 3.0f, std::string("3")};
+    const std::tuple<int, int, float, std::string> w = std::make_tuple(1, 2, 3.0f, std::string("3"));
+    const std::tuple<int, int, float, std::string> received = Tuplify<int, int, float, std::string>(v);
+    TEST_EXPECT(w == received);
 }

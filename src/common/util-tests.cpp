@@ -23,7 +23,7 @@ void UtilTests_shuffle_doesnt_produce_garbage() {
 
 void UtilTests_Tuple_SimpleToString() {
     auto t = std::make_tuple("testString", 20.0f, 42);
-    std::string wantedOutput = std::string("[testString; 20; 42; ]");
+    std::string wantedOutput = std::string("testString, 20, 42, ");
     std::string s = TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
 }

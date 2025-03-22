@@ -18,12 +18,14 @@ namespace Aya {
         MRBuilder(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
                     std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& outputTransformerPool,
                     std::vector<std::function<void(T&, T)>> outputTransformFunctions,
+                    std::vector<std::string> outputTransformFunctionNames,
                     const std::vector<size_t>& outputTransformerIndices,
                     const size_t targetOutputTransformIndex)
                         : m_TestedFunction(testedFunction),
                         m_InputTransformerPool(inputTransformerPool),
                         m_OutputTransformerPool(outputTransformerPool),
                         m_OutputTransformFunctions(outputTransformFunctions),
+                        m_OutputTransformFunctionNames(outputTransformFunctionNames),
                         m_OutputTransformerIndices(outputTransformerIndices),
                         m_TargetOutputTransformIndex(targetOutputTransformIndex) {
             if (m_InputTransformerPool.empty() || m_OutputTransformerPool.empty()) {
@@ -56,12 +58,6 @@ namespace Aya {
                 const size_t outputTransformLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
             std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
             std::vector inputIteratorsTmp1(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
-
-            //???
-            for (auto &itr: inputIteratorsTmp1) {
-                while (!itr.isDone()){ itr.next();}
-            }
-
             std::vector outputIteratorsTmp(outputTransformLength, CartesianIterator(m_OutputTransformerCounts));
 
             CompositeCartesianIterator inputIterator(inputIteratorsTmp);
@@ -106,7 +102,7 @@ namespace Aya {
                 std::vector<MetamorphicRelation> mrs;
 
                 for (auto &otc : outputTransformerChains) {
-                    auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformerIndices);
+                    auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformFunctionNames, m_OutputTransformerIndices);
                     ctx.SetImplicitOutputTransforms(m_EnableImplicitOutputTransforms);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();
@@ -135,6 +131,7 @@ namespace Aya {
         std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& m_InputTransformerPool;
         std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& m_OutputTransformerPool;
         std::vector<std::function<void(U&, U)>> m_OutputTransformFunctions;
+        std::vector<std::string> m_OutputTransformFunctionNames;
         std::vector<size_t> m_OutputTransformerIndices;
         const size_t m_TargetOutputTransformIndex;
         bool m_EnableImplicitOutputTransforms;

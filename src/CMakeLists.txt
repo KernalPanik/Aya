@@ -13,5 +13,8 @@ else()
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
-add_library(AyaCore SHARED Common/util.cpp Common/CartesianIterator.cpp Common/CompositeCartesianIterator.cpp)
+add_library(AyaCore SHARED
+        Common/util.cpp
+        Common/CartesianIterator.cpp
+        Common/CompositeCartesianIterator.cpp)
 target_link_libraries(AyaCore m)

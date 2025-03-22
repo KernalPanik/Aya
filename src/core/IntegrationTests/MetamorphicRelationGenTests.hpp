@@ -58,7 +58,6 @@ namespace MetamorphicRelationGenTests {
 
         std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
         outputTransformerPool.insert({0, doubleTransformersForOutput}); // return value
-#pragma endregion
 
         size_t overallMatchCount = 0;
         // MR Builder for a function returning type double, tracked output type double, and two arguments of type double
@@ -102,6 +101,7 @@ namespace MetamorphicRelationGenTests {
             popArgs.emplace_back(r);
         }
 
+        //TODO: GetTransformers accept function names vector to match them to according function pointers.
         std::vector<std::shared_ptr<Aya::ITransformer>> pushTransformers = Aya::TransformBuilder<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, pushArgs);
         std::vector<std::shared_ptr<Aya::ITransformer>> popTransformers = Aya::TransformBuilder<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, popArgs);
 

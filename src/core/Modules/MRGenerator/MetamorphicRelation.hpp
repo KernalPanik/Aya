@@ -14,11 +14,12 @@ namespace Aya {
         std::string ToString() const {
             std::stringstream ss;
             for (size_t i = 0; i < InputTransformers.size(); i++) {
-                ss << InputTransformers[i]->second->ToString() << " ";
+
+                ss << InputTransformers[i]->second->ToString("InitialInput", InputTransformers[i]->first) << " ";
             }
             ss << " => ";
             for (size_t i = 0; i < OutputTransformers.size(); i++) {
-                ss << OutputTransformers[i]->second->ToString() << " ";
+                ss << OutputTransformers[i]->second->ToString("InitialOutput", OutputTransformers[i]->first) << " ";
             }
 
             return ss.str();

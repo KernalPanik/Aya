@@ -16,7 +16,7 @@ namespace Aya {
         [[nodiscard]]
         virtual size_t GetRepeat() = 0;
         [[nodiscard]]
-        virtual std::string ToString() = 0;
+        virtual std::string ToString(const char* targetName, const size_t inputIndex) = 0;
         virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
     };
 
@@ -24,10 +24,10 @@ namespace Aya {
     class Transformer final : public ITransformer {
     public:
         explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
-            : func(f), args(std::make_tuple(std::forward<Args>(args)...)), m_ArgNames(std::vector<std::string>()) {}
+            : func(f), m_FunctionName("TEST1"), args(std::make_tuple(std::forward<Args>(args)...)), m_ArgNames(std::vector<std::string>()) {}
 
         Transformer(std::function<void(T&, Args...)> f, std::tuple<Args...> args)
-            : func(f), args(args), m_ArgNames(std::vector<std::string>()) {}
+            : func(f), m_FunctionName("TEST1"), args(args), m_ArgNames(std::vector<std::string>()) {}
 
         void Apply(void* data) override {
             if (data == nullptr) {
@@ -63,24 +63,26 @@ namespace Aya {
         }
 
         [[nodiscard]]
-        std::string ToString() override {
+        std::string ToString(const char* targetName, const size_t inputIndex) override {
+            std::stringstream ss;
+            ss << m_FunctionName << "( " + std::string(targetName) +  "[" << std::to_string(inputIndex) << "], ";
             if constexpr (sizeof...(Args) > 0) {
                 if (!m_ArgNames.empty()) {
-                    std::stringstream ss;
-                    ss << "[";
                     for (size_t i = 0; i < m_ArgNames.size(); i++) {
                         ss << m_ArgNames[i];
-                        ss << ";";
+                        ss << ", ";
                     }
-                    ss << "]";
-                    return ss.str();
                 }
-
-                return TupleToString(args);
+                else {
+                    ss << TupleToString(args);
+                }
             }
             else {
-                return {""};
+                ss << "";
             }
+            ss << ")";
+
+            return ss.str();
         }
 
         void OverrideArgNames(const std::vector<std::string> newNames) override {
@@ -88,8 +90,9 @@ namespace Aya {
         }
 
     private:
-        std::function<void(T&, Args...)> func;
-        std::tuple<Args...> args;
+        std::function<void(T&, Args...)> func; // TODO: rename
+        std::string m_FunctionName;
+        std::tuple<Args...> args; // TODO: rename
         std::vector<std::string> m_ArgNames;
 
         size_t m_Repeat = 1;

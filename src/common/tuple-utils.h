@@ -44,7 +44,7 @@ struct TupleStringify<Tuple, 1> {
     static void UpdateBaseString(const Tuple& t, std::string& base) {
         std::stringstream s;
         s << std::get<0>(t);
-        s << "; ";
+        s << ", ";
         base += s.str();
     }
 };
@@ -57,9 +57,9 @@ struct TupleStringify<Tuple, 1> {
 */
 template<class... Args>
 std::string TupleToString(std::tuple<Args...>& t) {
-    std::string base("[");
+    std::string base("");
     TupleStringify<decltype(t), sizeof...(Args)>::UpdateBaseString(t, base);
-    base += "]";
+    base += "";
 
     return base;
 }

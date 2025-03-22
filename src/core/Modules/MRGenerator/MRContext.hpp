@@ -158,7 +158,7 @@ namespace Core {
 
             auto argNameOverrides = std::vector<std::string>();
             for (const auto &index : m_MatchingArgumentIndices) {
-                argNameOverrides.push_back("arg" + std::to_string(index));
+                argNameOverrides.push_back("input" + std::to_string(index));
             }
 
             std::vector<std::vector<std::any>> result;

@@ -80,5 +80,5 @@ void TransformerTests_ToString() {
     const auto transformer = ConstructTransformer<TestStruct, int, int, TestStruct>(ModifyStruct1, 1, 2, std::move(sample2));
     transformer->Apply(&sample);
 
-    TEST_EXPECT("[1; 2; TestStruct(40;test); ]" == transformer->ToString());
+    TEST_EXPECT("[1; 2; TestStruct(40;test); ]" == transformer->ToString("input", 0));
 }

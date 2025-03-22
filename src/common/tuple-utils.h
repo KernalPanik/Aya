@@ -12,6 +12,15 @@ Unexplored caveat: std::string() operator overrides for more complex data types
 
 // TODO: Explore making this a template class
 
+template <typename T, typename = void>
+struct can_ostream : std::false_type {};
+
+template <typename T>
+struct can_ostream<T, std::void_t<decltype(std::declval<std::ostream&>() << std::declval<T>())>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool can_ostream_v = can_ostream<T>::value;
+
 // Internal
 template<class Tuple, size_t N>
 struct TupleStringify {
@@ -19,8 +28,13 @@ struct TupleStringify {
         //base += std::get<N-1>(t);
         TupleStringify<Tuple, N-1>::UpdateBaseString(t, base);
 
+        // TODO: SFINAE check for the existence of ToString() function in a type.
+        // If there is no such function, fall back to printing Some_<DATA_TYPE>
         std::stringstream s;
-        s << std::get<N-1>(t);
+
+        if constexpr (can_ostream_v<decltype(std::get<N-1>(t))>) {
+            s << std::get<N-1>(t);
+        }
         s << "; ";
         base += s.str();
     }
@@ -41,6 +55,7 @@ struct TupleStringify<Tuple, 1> {
     Tuple Util API: ToString()
     Input: Tuple
     Output: Tuple Elements as std::string
+    NOTE:
 */
 template<class... Args>
 std::string TupleToString(std::tuple<Args...>& t) {

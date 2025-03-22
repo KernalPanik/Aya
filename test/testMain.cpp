@@ -31,6 +31,8 @@ int main(int argc, char** argv)
     // Transformer tests
     tr.RunTest(TransformerTests_MutableCall, "TransformerTests_MutableCall");
     tr.RunTest(TransformerTests_MutableStruct, "TransformerTests_MutableStruct");
+    tr.RunTest(TransformerTests_CallWithArgs, "TransformerTests_CallWithArgs");
+    tr.RunTest(TransformerTests_ToString, "TransformerTests_ToString");
 
     // Metamorphic Relation Tests
     tr.RunTest(MetamorphicRelationGenTests::MetamorphicRelationTest_Pow, "MetamorphicRelationTest_Pow");

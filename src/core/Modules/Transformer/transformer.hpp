@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <any>
+#include <src/common/tuple-utils.h>
 
 namespace Aya {
     class ITransformer {
@@ -14,6 +15,8 @@ namespace Aya {
         virtual void SetRepeat(size_t val) = 0;
         [[nodiscard]]
         virtual size_t GetRepeat() = 0;
+        [[nodiscard]]
+        virtual std::string ToString() = 0;
     };
 
     template<typename T, class... Args>
@@ -56,6 +59,18 @@ namespace Aya {
         [[nodiscard]]
         size_t GetRepeat() override {
             return m_Repeat;
+        }
+
+        [[nodiscard]]
+        std::string ToString() override {
+            //std::stringstream ss;
+            //ss << TupleToString(args);
+            if constexpr (sizeof...(Args) > 0) {
+                return TupleToString(args);
+            }
+            else {
+                return std::string("");
+            }
         }
 
     private:

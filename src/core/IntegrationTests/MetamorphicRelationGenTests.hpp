@@ -60,7 +60,7 @@ namespace MetamorphicRelationGenTests {
 
         std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
         outputTransformerPool.insert({0, doubleTransformersForOutput}); // return value
-
+#pragma endregion
         size_t overallMatchCount = 0;
         // MR Builder for a function returning type double, tracked output type double, and two arguments of type double
         // double pow(double, double)
@@ -72,11 +72,6 @@ namespace MetamorphicRelationGenTests {
         testedInputs.push_back({10.0, 11.0, 12.0});
         testedInputs.push_back({2.0, 3.0, 4.0});
         mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
-
-
-        for (auto &mr : finalMRs) {
-            std::cout << mr.ToString() << std::endl;
-        }
 
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
         TEST_EXPECT(finalMRs.size() == expectedMatchCount);

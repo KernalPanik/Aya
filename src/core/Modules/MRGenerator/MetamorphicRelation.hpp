@@ -1,3 +1,5 @@
+#include <fstream>
+
 #pragma once
 
 // Hold transform chains for inputs and outputs
@@ -25,4 +27,18 @@ namespace Aya {
             return ss.str();
         }
     };
+
+    inline void DumpMRsToFile(const std::vector<MetamorphicRelation>& MRs, const std::string& path) {
+        std::ofstream outputFile(path);
+        for (size_t i = 0; i < MRs.size(); i++) {
+            outputFile << MRs[i].ToString() << "\n";
+        }
+        outputFile.close();
+    }
+
+    inline void DumpMrsToStdout(const std::vector<MetamorphicRelation>& MRs) {
+        for (size_t i = 0; i < MRs.size(); i++) {
+            std::cout << MRs[i].ToString() << "\n";
+        }
+    }
 }

@@ -58,12 +58,6 @@ namespace Aya {
                 const size_t outputTransformLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
             std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
             std::vector inputIteratorsTmp1(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
-
-            //???
-            for (auto &itr: inputIteratorsTmp1) {
-                while (!itr.isDone()){ itr.next();}
-            }
-
             std::vector outputIteratorsTmp(outputTransformLength, CartesianIterator(m_OutputTransformerCounts));
 
             CompositeCartesianIterator inputIterator(inputIteratorsTmp);

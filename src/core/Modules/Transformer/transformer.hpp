@@ -81,7 +81,12 @@ namespace Aya {
 
         template<std::size_t... I>
         void ApplyImpl(std::index_sequence<I...>, T& baseValue) {
-            func(baseValue, std::forward<Args>(std::get<I>(args))...);
+            std::tuple<Args...> vargs = std::forward_as_tuple(std::get<I>(args)...);
+            //func(baseValue, vargs);
+            auto tup = std::make_tuple(baseValue);
+            auto tups = std::tuple_cat(tup, vargs);
+            std::apply(func, tups);
+            baseValue = static_cast<T>(std::get<0>(tups)); // BaseValue is always combined first with Args, so getting element 0 will yield what we want.
         }
     };
 }

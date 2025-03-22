@@ -28,13 +28,11 @@ struct TupleStringify {
         //base += std::get<N-1>(t);
         TupleStringify<Tuple, N-1>::UpdateBaseString(t, base);
 
-        // TODO: SFINAE check for the existence of ToString() function in a type.
-        // If there is no such function, fall back to printing Some_<DATA_TYPE>
         std::stringstream s;
-
         if constexpr (can_ostream_v<decltype(std::get<N-1>(t))>) {
             s << std::get<N-1>(t);
         }
+
         s << "; ";
         base += s.str();
     }

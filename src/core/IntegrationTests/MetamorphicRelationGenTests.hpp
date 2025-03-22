@@ -7,7 +7,6 @@
 #include "src/core/Modules/MRGenerator/MRBuilder.hpp"
 
 #include <map>
-#include <src/common/util.hpp>
 
 /*
 Why wrap pow() in poww()?

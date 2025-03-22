@@ -33,7 +33,7 @@ struct TupleStringify {
             s << std::get<N-1>(t);
         }
 
-        s << "; ";
+        s << ", ";
         base += s.str();
     }
 };

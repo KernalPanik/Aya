@@ -51,11 +51,12 @@ namespace Aya {
         }
 
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(std::function<void(T&, Args...)> func,
-                std::vector<std::tuple<Args...>> params, size_t index) {
+                std::vector<std::tuple<Args...>> params, size_t index, const std::vector<std::string>& argNameOverrides) {
             auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
             auto transformers = GetTransformersInternal(func, params);
 
-            for (auto &i : transformers) {
+            for (std::shared_ptr<ITransformer> &i : transformers) {
+                i->OverrideArgNames(argNameOverrides);
                 v.push_back(std::make_shared<std::pair<size_t, std::shared_ptr<ITransformer>>>(std::make_pair(index, std::move(i))));
             }
             return v;

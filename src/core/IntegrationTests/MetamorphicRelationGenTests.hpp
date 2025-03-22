@@ -72,6 +72,11 @@ namespace MetamorphicRelationGenTests {
         testedInputs.push_back({2.0, 3.0, 4.0});
         mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
 
+
+        for (auto &mr : finalMRs) {
+            std::cout << mr.ToString() << std::endl;
+        }
+
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
         TEST_EXPECT(finalMRs.size() == expectedMatchCount);
     }

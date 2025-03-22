@@ -17,16 +17,17 @@ namespace Aya {
         virtual size_t GetRepeat() = 0;
         [[nodiscard]]
         virtual std::string ToString() = 0;
+        virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
     };
 
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:
         explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
-            : func(f), args(std::make_tuple(std::forward<Args>(args)...)) {}
+            : func(f), args(std::make_tuple(std::forward<Args>(args)...)), m_ArgNames(std::vector<std::string>()) {}
 
         Transformer(std::function<void(T&, Args...)> f, std::tuple<Args...> args)
-            : func(f), args(args) {}
+            : func(f), args(args), m_ArgNames(std::vector<std::string>()) {}
 
         void Apply(void* data) override {
             if (data == nullptr) {
@@ -63,26 +64,39 @@ namespace Aya {
 
         [[nodiscard]]
         std::string ToString() override {
-            //std::stringstream ss;
-            //ss << TupleToString(args);
             if constexpr (sizeof...(Args) > 0) {
+                if (!m_ArgNames.empty()) {
+                    std::stringstream ss;
+                    ss << "[";
+                    for (size_t i = 0; i < m_ArgNames.size(); i++) {
+                        ss << m_ArgNames[i];
+                        ss << ";";
+                    }
+                    ss << "]";
+                    return ss.str();
+                }
+
                 return TupleToString(args);
             }
             else {
-                return std::string("");
+                return {""};
             }
+        }
+
+        void OverrideArgNames(const std::vector<std::string> newNames) override {
+            m_ArgNames = newNames;
         }
 
     private:
         std::function<void(T&, Args...)> func;
         std::tuple<Args...> args;
+        std::vector<std::string> m_ArgNames;
 
         size_t m_Repeat = 1;
 
         template<std::size_t... I>
         void ApplyImpl(std::index_sequence<I...>, T& baseValue) {
             std::tuple<Args...> vargs = std::forward_as_tuple(std::get<I>(args)...);
-            //func(baseValue, vargs);
             auto tup = std::make_tuple(baseValue);
             auto tups = std::tuple_cat(tup, vargs);
             std::apply(func, tups);

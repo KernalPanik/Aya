@@ -156,11 +156,18 @@ namespace Core {
                 matchingArgs.push_back(std::any_cast<T>(stateVector[index+offset]));
             }
 
+            auto argNameOverrides = std::vector<std::string>();
+            for (const auto &index : m_MatchingArgumentIndices) {
+                argNameOverrides.push_back("arg" + std::to_string(index));
+            }
+
             std::vector<std::vector<std::any>> result;
             for (auto &func : m_OutputTransformFuncs) {
-                for (auto &mi : matchingArgs) {
+                for (size_t i = 0; i < m_MatchingArgumentIndices.size(); i++) {
                     // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
-                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(func, {mi}, targetOutputIndex);
+                    auto matchingArgOverrides = std::vector<std::string>();
+                    matchingArgOverrides.emplace_back(argNameOverrides[i]);
+                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(func, {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);

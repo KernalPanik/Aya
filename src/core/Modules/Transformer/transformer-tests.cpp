@@ -45,14 +45,14 @@ static void AddVal(float& f, float val) {
 
 void TransformerTests_CallWithArgs() {
     auto baseValue = 10.0f;
-    const auto transformer = ConstructTransformer<float, float>(AddVal, 12.0f);
+    const auto transformer = ConstructTransformer<float, float>(AddVal, "Add", 12.0f);
     transformer->Apply(&baseValue);
     TEST_EXPECT(baseValue == 22.0f);
 }
 
 void TransformerTests_MutableCall() {
     auto baseValue = 10;
-    const auto transformer = ConstructTransformer<int>(ModifyBase);
+    const auto transformer = ConstructTransformer<int>(ModifyBase, "Modify");
     transformer->Apply(&baseValue);
     TEST_EXPECT(baseValue == 20);
 }
@@ -62,7 +62,7 @@ void TransformerTests_MutableStruct() {
     sample.testValue = 40;
     sample.testString = "test";
 
-    const auto transformer = ConstructTransformer<TestStruct>(ModifyStruct);
+    const auto transformer = ConstructTransformer<TestStruct>(ModifyStruct, "Modify");
     transformer->Apply(&sample);
     TEST_EXPECT(sample.testValue == 42);
     TEST_EXPECT(sample.testString == "testa");
@@ -77,7 +77,7 @@ void TransformerTests_ToString() {
     sample2.testValue = 40;
     sample2.testString = std::string("test");
 
-    const auto transformer = ConstructTransformer<TestStruct, int, int, TestStruct>(ModifyStruct1, 1, 2, std::move(sample2));
+    const auto transformer = ConstructTransformer<TestStruct, int, int, TestStruct>(ModifyStruct1, "Modify", 1, 2, std::move(sample2));
     transformer->Apply(&sample);
 
     TEST_EXPECT("[1; 2; TestStruct(40;test); ]" == transformer->ToString("input", 0));

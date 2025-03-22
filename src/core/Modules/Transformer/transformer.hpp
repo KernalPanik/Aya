@@ -23,11 +23,11 @@ namespace Aya {
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:
-        explicit Transformer(std::function<void(T&, Args...)> f, Args&&... args)
-            : func(f), m_FunctionName("TEST1"), args(std::make_tuple(std::forward<Args>(args)...)), m_ArgNames(std::vector<std::string>()) {}
+        explicit Transformer(const std::string& functionName, std::function<void(T&, Args...)> f, Args&&... args)
+            : func(f), m_FunctionName(functionName), args(std::make_tuple(std::forward<Args>(args)...)), m_ArgNames(std::vector<std::string>()) {}
 
-        Transformer(std::function<void(T&, Args...)> f, std::tuple<Args...> args)
-            : func(f), m_FunctionName("TEST1"), args(args), m_ArgNames(std::vector<std::string>()) {}
+        Transformer(const std::string& functionName, std::function<void(T&, Args...)> f, std::tuple<Args...> args)
+            : func(f), m_FunctionName(functionName), args(args), m_ArgNames(std::vector<std::string>()) {}
 
         void Apply(void* data) override {
             if (data == nullptr) {

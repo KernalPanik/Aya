@@ -35,11 +35,13 @@ namespace Core {
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& inputTransformChain,
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& outputTransformChain,
             std::vector<std::function<void(T&, T)>> variableOutputTransformingFunctions,
+            std::vector<std::string> variableOutputTransformFunctionNames,
             const std::vector<size_t>& matchingVariableTransformingIndices)
             :   m_Func(std::move(f)),
                 m_InputTransforms(inputTransformChain),
                 m_OutputTransforms(outputTransformChain),
                 m_OutputTransformFuncs(variableOutputTransformingFunctions),
+                m_OutputTransformFuncNames(variableOutputTransformFunctionNames),
                 m_MatchingArgumentIndices(matchingVariableTransformingIndices) {
             std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;
@@ -118,6 +120,7 @@ namespace Core {
         // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
         // TODO: Maybe specify this type separately, like U.
         std::vector<std::function<void(U&, U)>> m_OutputTransformFuncs;
+        std::vector<std::string> m_OutputTransformFuncNames;
         std::vector<size_t> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'
         std::unique_ptr<std::function<bool(U, U)>> m_Comparer;
 
@@ -162,12 +165,12 @@ namespace Core {
             }
 
             std::vector<std::vector<std::any>> result;
-            for (auto &func : m_OutputTransformFuncs) {
+            for (size_t j = 0; j < m_OutputTransformFuncs.size(); j++) {
                 for (size_t i = 0; i < m_MatchingArgumentIndices.size(); i++) {
                     // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
                     auto matchingArgOverrides = std::vector<std::string>();
                     matchingArgOverrides.emplace_back(argNameOverrides[i]);
-                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(func, {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
+                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(m_OutputTransformFuncs[j], m_OutputTransformFuncNames[j], {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);

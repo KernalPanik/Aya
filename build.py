@@ -46,6 +46,7 @@ def getListOfSourceFiles() -> list:
         "src/core/Modules/MRGenerator/MRBuilder.hpp",
         "src/core/Modules/MRGenerator/MetamorphicRelation.hpp",
         "src/core/Modules/MRGenerator/MRContext.hpp",
+        "src/common/tuple-utils.h",
         "src/public/AyaCore.h",
     ]
 

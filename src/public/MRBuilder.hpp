@@ -1,7 +1,7 @@
 #pragma once
-#include "src/public/transformer.hpp"
-#include "src/public/CompositeCartesianIterator.h"
-#include "src/public/MRContext.hpp"
+#include "transformer.hpp"
+#include "CompositeCartesianIterator.h"
+#include "MRContext.hpp"
 
 #include <vector>
 #include <any>

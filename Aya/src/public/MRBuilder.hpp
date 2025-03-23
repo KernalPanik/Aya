@@ -12,10 +12,10 @@ namespace Aya {
     // U -- tracked output type
     // Args -- tested function args
     template <typename T, typename U, typename... Args>
-    class MRBuilderInternal {
+    class MRBuilder {
     public:
         // Transformer pools are generated with TransformBuilder class. MRBuilder extracts iterators from them.
-        MRBuilderInternal(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
+        MRBuilder(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
                     std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& outputTransformerPool,
                     std::vector<std::function<void(T&, T)>> outputTransformFunctions,
                     std::vector<std::string> outputTransformFunctionNames,
@@ -44,7 +44,7 @@ namespace Aya {
 
             m_EnableImplicitOutputTransforms = false;
         }
-        ~MRBuilderInternal() = default;
+        ~MRBuilder() = default;
 
         void SetComparer(std::function<void(U, U)> comparer) {
             m_Comparer = comparer;

@@ -15,15 +15,15 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
-add_subdirectory(src)
-add_subdirectory(test)
+#add_subdirectory(src)
+#add_subdirectory(test)
 
 add_executable(AyaTest
-        testMain.cpp
-        framework/testRunner.cpp
-        ../src/Common/util.cpp
-        ../src/Common/util-tests.cpp
-        ../src/Common/CartesianIterator.cpp
-        ../src/Common/CompositeCartesianIterator.cpp
-        ../src/Common/CartesianIteratorTests.cpp
-        ../src/core/Modules/Transformer/transformer-tests.cpp)
+        test/testMain.cpp
+        test/framework/testRunner.cpp
+        src/Common/util.cpp
+        src/Common/util-tests.cpp
+        src/Common/CartesianIterator.cpp
+        src/Common/CompositeCartesianIterator.cpp
+        src/Common/CartesianIteratorTests.cpp
+        src/core/Modules/Transformer/transformer-tests.cpp)

@@ -10,6 +10,7 @@
 #include <string>
 #include <any>
 #include <algorithm>
+#include <utility>
 
 namespace Aya {
     class IMRContext {
@@ -41,7 +42,7 @@ namespace Aya {
                 m_InputTransforms(inputTransformChain),
                 m_OutputTransforms(outputTransformChain),
                 m_OutputTransformFuncs(variableOutputTransformingFunctions),
-                m_OutputTransformFuncNames(variableOutputTransformFunctionNames),
+                m_OutputTransformFuncNames(std::move(variableOutputTransformFunctionNames)),
                 m_MatchingArgumentIndices(matchingVariableTransformingIndices) {
             std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;

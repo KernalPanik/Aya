@@ -24,13 +24,13 @@ void UtilTests_shuffle_doesnt_produce_garbage() {
 void UtilTests_Tuple_SimpleToString() {
     auto t = std::make_tuple("testString", 20.0f, 42);
     std::string wantedOutput = std::string("testString, 20, 42, ");
-    std::string s = TupleToString(t);
+    std::string s = Aya::TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
 }
 
 void UtilTests_Vector_Tuplify() {
     std::vector<std::any> v = {1, 2, 3.0f, std::string("3")};
     const std::tuple<int, int, float, std::string> w = std::make_tuple(1, 2, 3.0f, std::string("3"));
-    const std::tuple<int, int, float, std::string> received = Tuplify<int, int, float, std::string>(v);
+    const std::tuple<int, int, float, std::string> received = Aya::Tuplify<int, int, float, std::string>(v);
     TEST_EXPECT(w == received);
 }

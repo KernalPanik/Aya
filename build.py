@@ -43,7 +43,7 @@ def getListOfSourceFiles() -> list:
     return [
         "src/core/Modules/Transformer/transformer.hpp",
         "src/core/Modules/Transformer/TransformBuilder.hpp",
-        "src/core/Modules/MRGenerator/MRBuilder.hpp",
+        "src/core/Modules/MRGenerator/MRBuilderInternal.hpp",
         "src/public/AyaCore.h",
     ]
 

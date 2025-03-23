@@ -4,7 +4,7 @@
 #include "src/core/IntegrationTests/TestUtils/TransformerFunctions.hpp"
 #include "src/core/Modules/Transformer/transformer.hpp"
 #include "src/core/Modules/Transformer/TransformBuilder.hpp"
-#include "src/core/Modules/MRGenerator/MRBuilder.hpp"
+#include "src/core/Modules/MRGenerator/MRBuilderInternal.hpp"
 
 #include <map>
 
@@ -63,7 +63,7 @@ namespace MetamorphicRelationGenTests {
         size_t overallMatchCount = 0;
         // MR Builder for a function returning type double, tracked output type double, and two arguments of type double
         // double pow(double, double)
-        auto mrBuilder = Core::MRBuilder<double, double, double, double>(poww,
+        auto mrBuilder = Core::MRBuilderInternal<double, double, double, double>(poww,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, outputTransformNames, {0, 1}, 0);
         mrBuilder.SetEnableImplicitOutputTransforms(true);
         std::vector<std::vector<std::any>> testedInputs;
@@ -117,7 +117,7 @@ namespace MetamorphicRelationGenTests {
 #pragma endregion
 
         size_t overallMatchCount = 0;
-        auto mrBuilder = Core::MRBuilder<size_t, size_t, std::vector<int>>(VecSize,
+        auto mrBuilder = Core::MRBuilderInternal<size_t, size_t, std::vector<int>>(VecSize,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, outputTransformNames, {0}, 0);
         mrBuilder.SetEnableImplicitOutputTransforms(false);
         std::vector<std::vector<std::any>> testedInputs;

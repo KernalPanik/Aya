@@ -7,7 +7,7 @@
 #include <any>
 #include <map>
 
-namespace Aya {
+namespace Core {
     // T -- tested function return type
     // U -- tracked output type
     // Args -- tested function args
@@ -25,7 +25,7 @@ namespace Aya {
                         m_InputTransformerPool(inputTransformerPool),
                         m_OutputTransformerPool(outputTransformerPool),
                         m_OutputTransformFunctions(outputTransformFunctions),
-                        m_OutputTransformFunctionNames(outputTransformFunctionNames),
+                        m_OutputTransformFunctionNames(std::move(outputTransformFunctionNames)),
                         m_OutputTransformerIndices(outputTransformerIndices),
                         m_TargetOutputTransformIndex(targetOutputTransformIndex) {
             if (m_InputTransformerPool.empty() || m_OutputTransformerPool.empty()) {

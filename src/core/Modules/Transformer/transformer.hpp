@@ -4,7 +4,7 @@
 #include <any>
 #include <src/common/tuple-utils.h>
 
-namespace Aya {
+namespace Core {
     class ITransformer {
     public:
         virtual ~ITransformer() = default;

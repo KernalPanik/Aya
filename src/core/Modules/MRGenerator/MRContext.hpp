@@ -16,7 +16,7 @@ namespace Core {
     public:
         virtual ~IMRContext() = default;
         // std::vector<std::any> is an abstract class friendly way of having a tuple. So MRSearch would accept a vector of vectors, encompassing inputs.
-        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex, std::vector<Aya::MetamorphicRelation>& metamorphicRelations) = 0;
+        virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t targetOutputIndex, std::vector<Core::MetamorphicRelation>& metamorphicRelations) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
         virtual void OverrideComparerMethod(std::any func) = 0;
@@ -32,8 +32,8 @@ namespace Core {
             T>;
 
         explicit MRContext(std::function<T(Args...)> f,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& inputTransformChain,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& outputTransformChain,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>>& inputTransformChain,
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>>& outputTransformChain,
             std::vector<std::function<void(T&, T)>> variableOutputTransformingFunctions,
             std::vector<std::string> variableOutputTransformFunctionNames,
             const std::vector<size_t>& matchingVariableTransformingIndices)
@@ -71,7 +71,7 @@ namespace Core {
         }
 
         bool ValidateTransformChains(const std::vector<std::any>& inputs, const size_t targetOutputIndex,
-                std::vector<Aya::MetamorphicRelation>& metamorphicRelations) override {
+                std::vector<Core::MetamorphicRelation>& metamorphicRelations) override {
             bool match = false;
             // Create a sequence chain of some sorts?
             auto initialState = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
@@ -91,7 +91,7 @@ namespace Core {
             }
 
             if (m_BuildImplicitOutputTransforms) {
-                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
+                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>>> producedOutputTransforms;
                 auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
                 size_t index = 0;
                 for (auto &sample : variableTransformedOutputSamples) {
@@ -115,8 +115,8 @@ namespace Core {
 
     private:
         std::function<T(Args...)> m_Func;
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_InputTransforms;
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_OutputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>> m_InputTransforms;
+        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>> m_OutputTransforms;
         // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
         // TODO: Maybe specify this type separately, like U.
         std::vector<std::function<void(U&, U)>> m_OutputTransformFuncs;
@@ -146,7 +146,7 @@ namespace Core {
         // TODO: Make it work properly with void return type too, maybe add tests.
         std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
                 const size_t targetOutputIndex,
-                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>>& producedOutputTransformChains) {
+                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>>>& producedOutputTransformChains) {
             auto stateCopy(stateVector);
             size_t offset = 0;
             if constexpr (!std::is_void_v<T>) {
@@ -170,7 +170,7 @@ namespace Core {
                     // TODO: get index of mi within arg state, set it properly when calling to MapTransformers...
                     auto matchingArgOverrides = std::vector<std::string>();
                     matchingArgOverrides.emplace_back(argNameOverrides[i]);
-                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(m_OutputTransformFuncs[j], m_OutputTransformFuncNames[j], {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
+                    auto transformer = Core::TransformBuilder<U, U>().MapTransformersToStateIndex(m_OutputTransformFuncs[j], m_OutputTransformFuncNames[j], {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
                     auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
                     producedOutputTransformChains.push_back(transformer);
                     result.push_back(newState);
@@ -214,7 +214,7 @@ namespace Core {
 
         template <std::size_t... I>
         std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers, std::index_sequence<I...>) {
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Core::ITransformer>>>>& transformers, std::index_sequence<I...>) {
             auto outputsCopy(outputs);
 
             for (const auto &t: transformers) {

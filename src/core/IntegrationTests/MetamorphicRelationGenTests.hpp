@@ -4,7 +4,7 @@
 #include "src/core/IntegrationTests/TestUtils/TransformerFunctions.hpp"
 #include "src/core/Modules/Transformer/transformer.hpp"
 #include "src/core/Modules/Transformer/TransformBuilder.hpp"
-#include "src/core/Modules/MRGenerator/MRBuilderInternal.hpp"
+#include "src/core/Modules/MRGenerator/MRBuilder.hpp"
 
 #include <map>
 

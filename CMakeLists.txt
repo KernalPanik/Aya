@@ -1,3 +1,4 @@
+# Build the AyaTest Executable
 cmake_minimum_required(VERSION 3.28)
 project(Aya CXX)
 
@@ -15,8 +16,6 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
-#add_subdirectory(src)
-#add_subdirectory(test)
 
 add_executable(AyaTest
         test/testMain.cpp
@@ -32,4 +31,3 @@ add_library(Aya SHARED
         src/Common/util.cpp
         src/Common/CartesianIterator.cpp
         src/Common/CompositeCartesianIterator.cpp)
-target_link_libraries(Aya m)

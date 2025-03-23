@@ -52,8 +52,7 @@ def getListOfSourceFiles() -> list:
 def package_products():
     print("Packaging Final Products!")
     cwd = os.getcwd()
-    testPath = os.path.join(cwd, "test", "AyaTest")
-    libPath = os.path.join(cwd, "src", "libAyaCore")
+    libPath = os.path.join(cwd, "libAya")
     targetLocation = os.path.join(cwd, "ayaBuild")
 
     src_files = getListOfSourceFiles()
@@ -68,7 +67,6 @@ def package_products():
 
     if not os.path.exists(targetLocation):
         os.makedirs(targetLocation)
-    shutil.copy(testPath, targetLocation)
     shutil.copy(libPath, targetLocation)
     for f in src_files:
         shutil.copy(f, targetLocation)

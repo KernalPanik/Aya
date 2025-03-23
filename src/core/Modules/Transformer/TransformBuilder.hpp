@@ -4,7 +4,7 @@
 
 #include "transformer.hpp"
 
-namespace Core {
+namespace Aya {
     template<typename T, typename... Args, typename Callable>
     std::shared_ptr<ITransformer> ConstructTransformer(Callable&& f, std::string functionName, Args&&... args) {
         return std::make_shared<Transformer<T, Args...>>(functionName, std::forward<Callable>(f), std::forward<Args>(args)...);

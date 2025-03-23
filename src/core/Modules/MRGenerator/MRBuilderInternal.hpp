@@ -7,7 +7,7 @@
 #include <any>
 #include <map>
 
-namespace Core {
+namespace Aya {
     // T -- tested function return type
     // U -- tracked output type
     // Args -- tested function args
@@ -102,7 +102,7 @@ namespace Core {
                 std::vector<MetamorphicRelation> mrs;
 
                 for (auto &otc : outputTransformerChains) {
-                    auto ctx = Core::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformFunctionNames, m_OutputTransformerIndices);
+                    auto ctx = Aya::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformFunctionNames, m_OutputTransformerIndices);
                     ctx.SetImplicitOutputTransforms(m_EnableImplicitOutputTransforms);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();

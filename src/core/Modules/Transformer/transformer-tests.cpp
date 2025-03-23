@@ -8,7 +8,7 @@
 #include <functional>
 #include <src/core/IntegrationTests/TestUtils/TransformerFunctions.hpp>
 
-using namespace Core;
+using namespace Aya;
 
 #pragma region helper_functions
 struct TestStruct {

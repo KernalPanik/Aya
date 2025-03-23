@@ -48,26 +48,26 @@ namespace MetamorphicRelationGenTests {
         outputTransformerArgPool.push_back({{1.0}, {2.0}, {-1.0}});
 
         // Pow Function accepts args with type "double" only, hence we only need to prepare a pool of transformers for this data type.
-        std::vector<std::shared_ptr<Core::ITransformer>> doubleTransformers = Core::TransformBuilder<double, double>().GetTransformers(inputTransformerFuncs, inputTransformNames, inputTransformerArgPool);
-        std::vector<std::shared_ptr<Core::ITransformer>> doubleTransformersForOutput = Core::TransformBuilder<double, double>().GetTransformers(outputTransformerFuncs, outputTransformNames, outputTransformerArgPool);
+        std::vector<std::shared_ptr<Aya::ITransformer>> doubleTransformers = Aya::TransformBuilder<double, double>().GetTransformers(inputTransformerFuncs, inputTransformNames, inputTransformerArgPool);
+        std::vector<std::shared_ptr<Aya::ITransformer>> doubleTransformersForOutput = Aya::TransformBuilder<double, double>().GetTransformers(outputTransformerFuncs, outputTransformNames, outputTransformerArgPool);
 
         // Map transformers to matching indices of args (start from 0)
         // double Pow(double x, double y)
-        std::map<size_t, std::vector<std::shared_ptr<Core::ITransformer>>> inputTransformerPool;
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> inputTransformerPool;
         inputTransformerPool.insert({0, doubleTransformers}); // x
         inputTransformerPool.insert({1, doubleTransformers}); // y
 
-        std::map<size_t, std::vector<std::shared_ptr<Core::ITransformer>>> outputTransformerPool;
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
         outputTransformerPool.insert({0, doubleTransformersForOutput}); // return value
 #pragma endregion
         size_t overallMatchCount = 0;
         // MR Builder for a function returning type double, tracked output type double, and two arguments of type double
         // double pow(double, double)
-        auto mrBuilder = Core::MRBuilderInternal<double, double, double, double>(poww,
+        auto mrBuilder = Aya::MRBuilderInternal<double, double, double, double>(poww,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, outputTransformNames, {0, 1}, 0);
         mrBuilder.SetEnableImplicitOutputTransforms(true);
         std::vector<std::vector<std::any>> testedInputs;
-        std::vector<Core::MetamorphicRelation> finalMRs;
+        std::vector<Aya::MetamorphicRelation> finalMRs;
         testedInputs.push_back({10.0, 11.0, 12.0});
         testedInputs.push_back({2.0, 3.0, 4.0});
         mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
@@ -98,10 +98,10 @@ namespace MetamorphicRelationGenTests {
         }
 
         //TODO: GetTransformers accept function names vector to match them to according function pointers.
-        std::vector<std::shared_ptr<Core::ITransformer>> pushTransformers = Core::TransformBuilder<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, "Push", pushArgs);
-        std::vector<std::shared_ptr<Core::ITransformer>> popTransformers = Core::TransformBuilder<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, "Pop", popArgs);
+        std::vector<std::shared_ptr<Aya::ITransformer>> pushTransformers = Aya::TransformBuilder<std::vector<int>, int, int>().GetTransformers(inputPushTransformerFunc, "Push", pushArgs);
+        std::vector<std::shared_ptr<Aya::ITransformer>> popTransformers = Aya::TransformBuilder<std::vector<int>, int>().GetTransformers(inputPopTransformerFunc, "Pop", popArgs);
 
-        std::map<size_t, std::vector<std::shared_ptr<Core::ITransformer>>> inputTransformerPool;
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> inputTransformerPool;
         inputTransformerPool.insert({0, pushTransformers});
         inputTransformerPool.insert({0, popTransformers});
 
@@ -111,17 +111,17 @@ namespace MetamorphicRelationGenTests {
         const std::vector<std::function<void(size_t&, size_t)>> outputTransformerFuncs = {VecAdd, VecSub };
         const std::vector<std::string> outputTransformNames = {"VecSizeAdd", "VecSizeSub"};
 
-        std::vector<std::shared_ptr<Core::ITransformer>> outputTransformers = Core::TransformBuilder<size_t, size_t>().GetTransformers(outputTransformerFuncs, outputTransformNames, outputTransformArgPool);
-        std::map<size_t, std::vector<std::shared_ptr<Core::ITransformer>>> outputTransformerPool;
+        std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformers = Aya::TransformBuilder<size_t, size_t>().GetTransformers(outputTransformerFuncs, outputTransformNames, outputTransformArgPool);
+        std::map<size_t, std::vector<std::shared_ptr<Aya::ITransformer>>> outputTransformerPool;
         outputTransformerPool.insert({0, outputTransformers});
 #pragma endregion
 
         size_t overallMatchCount = 0;
-        auto mrBuilder = Core::MRBuilderInternal<size_t, size_t, std::vector<int>>(VecSize,
+        auto mrBuilder = Aya::MRBuilderInternal<size_t, size_t, std::vector<int>>(VecSize,
             inputTransformerPool, outputTransformerPool, outputTransformerFuncs, outputTransformNames, {0}, 0);
         mrBuilder.SetEnableImplicitOutputTransforms(false);
         std::vector<std::vector<std::any>> testedInputs;
-        std::vector<Core::MetamorphicRelation> finalMRs;
+        std::vector<Aya::MetamorphicRelation> finalMRs;
 
         testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{1}});
         testedInputs.emplace_back(std::vector<std::any>{std::vector<int>{5}});

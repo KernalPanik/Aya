@@ -47,6 +47,8 @@ def getListOfSourceFiles() -> list:
         "src/core/Modules/MRGenerator/MetamorphicRelation.hpp",
         "src/core/Modules/MRGenerator/MRContext.hpp",
         "src/common/tuple-utils.h",
+        "src/common/CartesianIterator.h",
+        "src/common/CompositeCartesianIterator.h",
         "src/public/AyaCore.h",
     ]
 

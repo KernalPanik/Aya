@@ -1,4 +1,4 @@
-#include "CompositeCartesianIterator.h"
+#include "src/public/CompositeCartesianIterator.h"
 
 CompositeCartesianIterator::CompositeCartesianIterator(std::vector<CartesianIterator> iterators)
     : m_Iterators(std::move(iterators)), m_Done(false) {

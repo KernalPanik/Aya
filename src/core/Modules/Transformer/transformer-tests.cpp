@@ -1,6 +1,6 @@
 #include "transformer-tests.h"
-#include "transformer.hpp"
-#include "TransformBuilder.hpp"
+#include "src/public/transformer.hpp"
+#include "src/public/TransformBuilder.hpp"
 #include "../../../../test/Framework/testRunnerUtils.h"
 
 #include <iostream>

@@ -2,9 +2,9 @@
 
 #include "test/Framework/testRunnerUtils.h"
 #include "src/core/IntegrationTests/TestUtils/TransformerFunctions.hpp"
-#include "src/core/Modules/Transformer/transformer.hpp"
-#include "src/core/Modules/Transformer/TransformBuilder.hpp"
-#include "src/core/Modules/MRGenerator/MRBuilder.hpp"
+#include "src/public/transformer.hpp"
+#include "src/public/TransformBuilder.hpp"
+#include "src/public/MRBuilder.hpp"
 
 #include <map>
 

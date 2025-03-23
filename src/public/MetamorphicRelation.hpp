@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <sstream>
 
 // Hold transform chains for inputs and outputs
 namespace Aya {

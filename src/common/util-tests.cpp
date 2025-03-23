@@ -1,7 +1,7 @@
 #include "util-tests.h"
 #include "util.hpp"
 #include "../../test/Framework/testRunnerUtils.h"
-#include "tuple-utils.h"
+#include "src/public/tuple-utils.h"
 
 #include <vector>
 #include <numeric>

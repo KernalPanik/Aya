@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/Common/tuple-utils.h"
-#include "src/core/Modules/Transformer/transformer.hpp"
-#include "src/core/Modules/Transformer/TransformBuilder.hpp"
+#include "tuple-utils.h"
+#include "transformer.hpp"
+#include "TransformBuilder.hpp"
 #include "MetamorphicRelation.hpp"
 
 #include <functional>
@@ -10,7 +10,6 @@
 #include <string>
 #include <any>
 #include <algorithm>
-#include <utility>
 
 namespace Aya {
     class IMRContext {

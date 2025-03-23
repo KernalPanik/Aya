@@ -1,5 +1,5 @@
 #include "CartesianIteratorTests.h"
-#include "CartesianIterator.h"
+#include "src/public/CartesianIterator.h"
 #include "../../test/Framework/testRunnerUtils.h"
 
 #include <iostream>

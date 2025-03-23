@@ -1,4 +1,4 @@
-#include "CartesianIterator.h"
+#include "src/public/CartesianIterator.h"
 
 CartesianIterator::CartesianIterator(std::vector<size_t> indexLengths)
     : m_Indices(indexLengths.size(), 0), m_Lengths(std::move(indexLengths)), m_Done(false) {}

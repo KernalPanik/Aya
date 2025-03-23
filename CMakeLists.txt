@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(AyaCore CXX)
+project(Aya CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -17,3 +17,13 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
 add_subdirectory(src)
 add_subdirectory(test)
+
+add_executable(AyaTest
+        testMain.cpp
+        framework/testRunner.cpp
+        ../src/Common/util.cpp
+        ../src/Common/util-tests.cpp
+        ../src/Common/CartesianIterator.cpp
+        ../src/Common/CompositeCartesianIterator.cpp
+        ../src/Common/CartesianIteratorTests.cpp
+        ../src/core/Modules/Transformer/transformer-tests.cpp)

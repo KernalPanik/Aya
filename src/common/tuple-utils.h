@@ -6,10 +6,6 @@
 #include <tuple>
 #include <vector>
 
-/*
-Unexplored caveat: std::string() operator overrides for more complex data types
-*/
-
 // TODO: Explore making this a template class
 
 template <typename T, typename = void>

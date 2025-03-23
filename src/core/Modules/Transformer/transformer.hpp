@@ -16,7 +16,7 @@ namespace Aya {
         [[nodiscard]]
         virtual size_t GetRepeat() = 0;
         [[nodiscard]]
-        virtual std::string ToString(const char* targetName, const size_t inputIndex) = 0;
+        virtual std::string ToString(const char* targetName, size_t inputIndex) = 0;
         virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
     };
 

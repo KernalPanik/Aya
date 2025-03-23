@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 import subprocess
-
+import platform
 
 def cleanup_cmake_artifacts():
     files_to_remove = ["CMakeCache.txt", "aya", "ayatest", "cmake_install.cmake", "makefile"]
@@ -17,14 +17,8 @@ def cleanup_cmake_artifacts():
             shutil.rmtree(d)
 
 
-def prep_cmake(should_we_test: bool, should_we_release: bool):
-    if (should_we_release and should_we_test):
-        print("Both Release and Test flags enabled somehow. This should not happen")
-        exit(1)
-    if should_we_test:
-        print("Building Tests... (Debug Mode ON)")
-        subprocess.run(["cmake", "-DCMAKE_BUILD_TYPE=Debug", "-DTEST=true", "CMakeLists.txt"])
-    elif should_we_release:
+def prep_cmake(should_we_release: bool):
+    if should_we_release:
         print("Building Executable...")
         subprocess.run(["cmake", "-DTEST=false", "CMakeLists.txt"])
     else:
@@ -36,15 +30,48 @@ def run_make():
     subprocess.run(["make"])
 
 
-def build_entry(should_we_test: bool, should_we_release: bool):
+def build_entry(should_we_release: bool):
     if "posix" in os.name:
         cleanup_cmake_artifacts()
-        prep_cmake(should_we_test, should_we_release)
+        prep_cmake(should_we_release)
         run_make()
         print("Done")
     elif "win32" in os.name:
         pass  # TODO
 
+def getListOfSourceFiles() -> list:
+    return [
+        "src/core/Modules/Transformer/transformer.hpp",
+        "src/core/Modules/Transformer/TransformBuilder.hpp",
+        "src/core/Modules/MRGenerator/MRBuilder.hpp",
+        "src/public/AyaCore.h",
+    ]
+
+def package_products():
+    print("Packaging Final Products!")
+    cwd = os.getcwd()
+    testPath = os.path.join(cwd, "test", "AyaTest")
+    libPath = os.path.join(cwd, "src", "libAyaCore")
+    targetLocation = os.path.join(cwd, "ayaBuild")
+
+    src_files = getListOfSourceFiles()
+
+    if platform.system().lower() == "darwin":
+        libPath = libPath + ".dylib"
+    elif platform.system().lower() == "linux":
+        libPath = libPath + ".so"
+    else:
+        # yuck
+        libPath = libPath + ".dll"
+
+    if not os.path.exists(targetLocation):
+        os.makedirs(targetLocation)
+    shutil.copy(testPath, targetLocation)
+    shutil.copy(libPath, targetLocation)
+    for f in src_files:
+        shutil.copy(f, targetLocation)
+
+    print("You will find the final build in ayaBuild directory.")
 
 if __name__ == "__main__":
     arg = ""
@@ -62,8 +89,5 @@ if __name__ == "__main__":
         cleanup_cmake_artifacts()
         should_we_release = True;
 
-    should_we_test = False
-    if arg.lower() == "test":
-        should_we_test = True
-
-    build_entry(should_we_test, should_we_release)
+    build_entry(should_we_release)
+    package_products()

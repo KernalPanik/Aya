@@ -27,3 +27,9 @@ add_executable(AyaTest
         src/Common/CompositeCartesianIterator.cpp
         src/Common/CartesianIteratorTests.cpp
         src/core/Modules/Transformer/transformer-tests.cpp)
+
+add_library(Aya SHARED
+        src/Common/util.cpp
+        src/Common/CartesianIterator.cpp
+        src/Common/CompositeCartesianIterator.cpp)
+target_link_libraries(Aya m)

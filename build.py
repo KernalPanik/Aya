@@ -41,14 +41,14 @@ def build_entry(should_we_release: bool):
 
 def getListOfSourceFiles() -> list:
     return [
-        "src/core/Modules/Transformer/transformer.hpp",
-        "src/core/Modules/Transformer/TransformBuilder.hpp",
-        "src/core/Modules/MRGenerator/MRBuilder.hpp",
-        "src/core/Modules/MRGenerator/MetamorphicRelation.hpp",
-        "src/core/Modules/MRGenerator/MRContext.hpp",
-        "src/common/tuple-utils.h",
-        "src/common/CartesianIterator.h",
-        "src/common/CompositeCartesianIterator.h",
+        "src/public/transformer.hpp",
+        "src/public/TransformBuilder.hpp",
+        "src/public/MRBuilder.hpp",
+        "src/public/MetamorphicRelation.hpp",
+        "src/public/MRContext.hpp",
+        "src/public/tuple-utils.h",
+        "src/public/CartesianIterator.h",
+        "src/public/CompositeCartesianIterator.h",
         "src/public/AyaCore.h",
     ]
 

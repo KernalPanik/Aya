@@ -20,20 +20,22 @@ namespace Aya {
         /// This will improve MR search by allowing to combine various output variable transformers, even gluing them with constant transformers.
         // Transformer pools are generated with TransformBuilder class. MRBuilder extracts iterators from them.
         MRBuilder(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
-                    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& outputTransformerPool,
-                    std::vector<std::function<void(T&, T)>> outputTransformFunctions,
-                    std::vector<std::string> outputTransformFunctionNames,
-                    const std::vector<size_t>& outputTransformerIndices,
-                    const size_t targetOutputTransformIndex)
+                    const std::vector<std::shared_ptr<ITransformer>>& outputTransformerPool,
+                    const size_t targetOutputTransformIndex,
+                    const std::vector<std::shared_ptr<ITransformer>>& outputVariableTransformerPool,    // Output variable transformers to be overridden
+                    const std::vector<std::vector<size_t>>& matchingOutputIndices)                      // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
                         : m_TestedFunction(testedFunction),
                         m_InputTransformerPool(inputTransformerPool),
-                        m_OutputTransformerPool(outputTransformerPool),
-                        m_OutputTransformFunctions(outputTransformFunctions),
-                        m_OutputTransformFunctionNames(std::move(outputTransformFunctionNames)),
-                        m_OutputTransformerIndices(outputTransformerIndices),
-                        m_TargetOutputTransformIndex(targetOutputTransformIndex) {
-            if (m_InputTransformerPool.empty() || m_OutputTransformerPool.empty()) {
-                throw std::invalid_argument("Input and output transform pool are not initialized");
+                        m_OutputConstantTransformerPool(outputTransformerPool),
+                        m_TargetOutputTransformIndex(targetOutputTransformIndex),
+                        m_OutputVariableTransformerPool(outputVariableTransformerPool), // indices of input state that can be passed to the output transform. To be replaced by matchingOutputIndices
+                        m_MatchingOutputVariableIndices(matchingOutputIndices) {
+            if (m_InputTransformerPool.empty()) {
+                throw std::invalid_argument("Input transform pool is not initialized");
+            }
+
+            if (m_OutputConstantTransformerPool.empty()) {
+                throw std::invalid_argument("Output constant transform pool is not initialized.");
             }
 
             m_InputTransformerCounts.reserve(inputTransformerPool.size());
@@ -42,9 +44,10 @@ namespace Aya {
             }
 
             m_OutputTransformerCounts.reserve(outputTransformerPool.size());
-            for (auto &[index, transformers] : outputTransformerPool) {
+            m_OutputTransformerCounts.push_back(outputTransformerPool.size());
+            /*for (auto &[transformers] : outputTransformerPool) {
                 m_OutputTransformerCounts.push_back(transformers.size());
-            }
+            }*/
 
             m_EnableImplicitOutputTransforms = false;
         }
@@ -58,17 +61,17 @@ namespace Aya {
             m_EnableImplicitOutputTransforms = value;
         }
 
-        void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformLength,
-                const size_t outputTransformLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
-            std::vector inputIteratorsTmp(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
-            std::vector inputIteratorsTmp1(inputTransformLength, CartesianIterator(m_InputTransformerCounts));
-            std::vector outputIteratorsTmp(outputTransformLength, CartesianIterator(m_OutputTransformerCounts));
+        void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformChainLength,
+                const size_t outputTransformChainLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
+            std::vector inputIteratorsTmp(inputTransformChainLength, CartesianIterator(m_InputTransformerCounts));
+            std::vector outputIteratorsTmp(outputTransformChainLength, CartesianIterator(m_OutputTransformerCounts));
 
             CompositeCartesianIterator inputIterator(inputIteratorsTmp);
             CompositeCartesianIterator outputIterator(outputIteratorsTmp);
 
             potentialMRCount = 0;
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
+// TODO: move Output transform chain generation to MRContext exclusively?
 #pragma region Output transform chain generation
             while (!outputIterator.isDone()) {
                 std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
@@ -76,7 +79,7 @@ namespace Aya {
                 for (auto &p : pos) {
                     for (auto &i : p) {
                         auto pair = std::make_shared<std::pair<size_t,
-                            std::shared_ptr<ITransformer>>>(std::make_pair(m_TargetOutputTransformIndex, m_OutputTransformerPool[m_TargetOutputTransformIndex][i]));
+                            std::shared_ptr<ITransformer>>>(std::make_pair(m_TargetOutputTransformIndex, m_OutputConstantTransformerPool[i]));
                         outputTransformerChain.push_back(pair);
                     }
                 }
@@ -105,8 +108,8 @@ namespace Aya {
                 auto funcInputIterator = CartesianIterator(functionInputLengths);
                 std::vector<MetamorphicRelation> mrs;
 
-                for (auto &otc : outputTransformerChains) {
-                    auto ctx = Aya::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, otc, m_OutputTransformFunctions, m_OutputTransformFunctionNames, m_OutputTransformerIndices);
+                //for (auto &otc : outputTransformerChains) {
+                    auto ctx = Aya::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, m_OutputConstantTransformerPool, m_OutputVariableTransformerPool, m_TargetOutputTransformIndex, m_MatchingOutputVariableIndices, outputTransformChainLength);
                     ctx.SetImplicitOutputTransforms(m_EnableImplicitOutputTransforms);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();
@@ -124,7 +127,7 @@ namespace Aya {
                         metamorphicRelations.insert(metamorphicRelations.end(), mrs.begin(), mrs.end());
                     }
                     mrs.clear();
-                }
+                //}
                 inputIterator.next();
                 inputTransformerChain.clear();
             }
@@ -133,12 +136,11 @@ namespace Aya {
     private:
         std::function<T(Args...)> m_TestedFunction;
         std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& m_InputTransformerPool;
-        std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& m_OutputTransformerPool;
-        std::vector<std::function<void(U&, U)>> m_OutputTransformFunctions;
-        std::vector<std::string> m_OutputTransformFunctionNames;
-        std::vector<size_t> m_OutputTransformerIndices;
+        std::vector<std::shared_ptr<ITransformer>> m_OutputConstantTransformerPool;
         const size_t m_TargetOutputTransformIndex;
         bool m_EnableImplicitOutputTransforms;
+        std::vector<std::shared_ptr<ITransformer>> m_OutputVariableTransformerPool;
+        std::vector<std::vector<size_t>> m_MatchingOutputVariableIndices;
 
         std::function<bool(U, U)> m_Comparer;
 

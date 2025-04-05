@@ -91,9 +91,14 @@ namespace Aya {
             m_ArgNames = newNames;
         }
 
+        // C# i guess
         void OverrideArgs(std::vector<void*> newArgs) override {}
 
         void OverrideArgs(const std::vector<std::any>& newArgs) override {
+            if (TupleVec(m_Args).size() != newArgs.size()) {
+                throw std::invalid_argument("Invalid number of arguments to override.");
+            }
+
             auto t = Tuplify<Args...>(newArgs);
             m_Args = t;
         }

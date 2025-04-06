@@ -23,7 +23,7 @@ inline size_t VecSize(std::vector<int> v) {
 
 namespace MetamorphicRelationGenTests {
     inline void MetamorphicRelationTest_Pow() {
-        constexpr size_t expectedMatchCount = 260;
+        constexpr size_t expectedMatchCount = 699;
         // MR: pow(x, y + 1) == pow(x, y) * x
 #pragma region Data Preparation
         // Prepare an array of transformer functions
@@ -79,6 +79,9 @@ namespace MetamorphicRelationGenTests {
         testedInputs.push_back({10.0, 11.0, 12.0});
         testedInputs.push_back({2.0, 3.0, 4.0});
         mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
+
+        std::cout << overallMatchCount << std::endl;
+        std::cout << finalMRs.size() << std::endl;
 
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
         TEST_EXPECT(finalMRs.size() == expectedMatchCount);

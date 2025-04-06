@@ -64,30 +64,10 @@ namespace Aya {
         void SearchForMRs(std::vector<std::vector<std::any>>& testedInputs, const size_t inputTransformChainLength,
                 const size_t outputTransformChainLength, size_t& potentialMRCount, std::vector<MetamorphicRelation>& metamorphicRelations) {
             std::vector inputIteratorsTmp(inputTransformChainLength, CartesianIterator(m_InputTransformerCounts));
-            std::vector outputIteratorsTmp(outputTransformChainLength, CartesianIterator(m_OutputTransformerCounts));
 
             CompositeCartesianIterator inputIterator(inputIteratorsTmp);
-            CompositeCartesianIterator outputIterator(outputIteratorsTmp);
 
             potentialMRCount = 0;
-            std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>> outputTransformerChains;
-// TODO: move Output transform chain generation to MRContext exclusively?
-#pragma region Output transform chain generation
-            while (!outputIterator.isDone()) {
-                std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformerChain;
-                auto pos = outputIterator.getPos();
-                for (auto &p : pos) {
-                    for (auto &i : p) {
-                        auto pair = std::make_shared<std::pair<size_t,
-                            std::shared_ptr<ITransformer>>>(std::make_pair(m_TargetOutputTransformIndex, m_OutputConstantTransformerPool[i]));
-                        outputTransformerChain.push_back(pair);
-                    }
-                }
-                outputTransformerChains.push_back(outputTransformerChain);
-                outputTransformerChain.clear();
-                outputIterator.next();
-            }
-#pragma endregion
             std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformerChain;
             std::vector<size_t> functionInputLengths;
             functionInputLengths.reserve(testedInputs.size());

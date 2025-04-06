@@ -83,8 +83,7 @@ namespace Aya {
             auto followUpState = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
             auto followUpStateVec = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
 
-            std::vector<std::any> sampleOutput;
-            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> generatedOutputTransformChains;
+            std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> generatedOutputTransformChains;
             std::vector<std::shared_ptr<ITransformer>> totalOutputTransformerPool;
             totalOutputTransformerPool.reserve(m_OutputConstantTransformers.size());
             totalOutputTransformerPool.insert(totalOutputTransformerPool.end(), m_OutputConstantTransformers.begin(), m_OutputConstantTransformers.end());
@@ -94,38 +93,30 @@ namespace Aya {
                 auto variableOutputTransformers = ProduceVariableOutputTransformers(initialStateVector, m_TargetOutputTransformIndex);
                 totalOutputTransformerPool.insert(totalOutputTransformerPool.end(), variableOutputTransformers.begin(), variableOutputTransformers.end());
             }
-            auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
 
-
-
-
-            //TODO
-            /*if (CompareTargetElements(std::any_cast<U>(followUpStateVec[targetOutputIndex]), std::any_cast<U>(sampleOutput[targetOutputIndex]))) {
-                metamorphicRelations.emplace_back(m_InputTransforms, m_OutputTransforms);
-                m_TotalMatches++;
-                match = true;
-            }*/
-
-            /*
-            if (m_BuildImplicitOutputTransforms) {
-                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
-                auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
-                size_t index = 0;
-                for (auto &sample : variableTransformedOutputSamples) {
-                    auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
-                    auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
-
-                    auto el1 = state1[targetOutputIndex];
-                    auto el2 = sample[targetOutputIndex];
-
-                    if (CompareTargetElements(std::any_cast<U>(el1), std::any_cast<U>(el2))) {
-                        metamorphicRelations.emplace_back(m_InputTransforms, producedOutputTransforms[index]);
-                        m_TotalMatches++;
+            std::vector outputTransformIterators(m_OutputTransformChainLength, CartesianIterator({totalOutputTransformerPool.size()}));
+            CompositeCartesianIterator outputTransformIterator(outputTransformIterators);
+            while (!outputTransformIterator.isDone()) {
+                std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformChain;
+                auto pos = outputTransformIterator.getPos();
+                for (auto &p: pos) {
+                    for (const auto &i: p) {
+                        auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>(m_TargetOutputTransformIndex, totalOutputTransformerPool[i]);
+                        outputTransformChain.push_back(pair);
                     }
-                    index++;
+                }
+                generatedOutputTransformChains.push_back(outputTransformChain);
+                outputTransformIterator.next();
+            }
+
+            for (auto &outputTransformChain: generatedOutputTransformChains) {
+                auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
+                if (CompareTargetElements(std::any_cast<U>(sampleOutput[targetOutputIndex]), std::any_cast<U>(followUpStateVec[targetOutputIndex]))) {
+                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
+                    m_TotalMatches++;
                     match = true;
                 }
-            }*/
+            }
 
             return match;
         }
@@ -160,13 +151,14 @@ namespace Aya {
         std::vector<std::shared_ptr<ITransformer>> ProduceVariableOutputTransformers(std::vector<std::any>& stateVector, size_t targetOutputIndex) const {
             std::vector<std::shared_ptr<ITransformer>> newOutputTransformers;
 
-            for (const auto & m_OutputVariableTransformer : m_OutputVariableTransformers) {
-                for (const auto & m_MatchingArgumentIndexPool : m_MatchingArgumentIndices) {
-                    for (auto& index: m_MatchingArgumentIndexPool) {
-                        newOutputTransformers.emplace_back(m_OutputVariableTransformer);
-                        newOutputTransformers.back()->OverrideArgs({stateVector[index+1]});
-                    }
+            for (size_t i = 0; i < m_OutputVariableTransformers.size(); i++) {
+                for (auto &index: m_MatchingArgumentIndices[i]) {
+                    auto copp = m_OutputVariableTransformers[i]->Clone();
+                    newOutputTransformers.push_back(copp);
+                    newOutputTransformers.back()->OverrideArgs({stateVector[index+1]});
+                    newOutputTransformers.back()->OverrideArgNames({"input[" + std::to_string(index) + "]"});
                 }
+
             }
             return newOutputTransformers;
         }
@@ -193,9 +185,8 @@ namespace Aya {
             return inputsCopy;
         }
 
-        template <std::size_t... I>
         std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers, std::index_sequence<I...>) {
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers) {
             auto outputsCopy(outputs);
 
             for (const auto &t: transformers) {

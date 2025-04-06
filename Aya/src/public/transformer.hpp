@@ -20,6 +20,7 @@ namespace Aya {
         virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
         virtual void OverrideArgs(std::vector<void*> newArgs) = 0;
         virtual void OverrideArgs(const std::vector<std::any>& newArgs) = 0;
+        virtual std::shared_ptr<ITransformer> Clone() = 0;
     };
 
     template<typename T, class... Args>
@@ -101,6 +102,13 @@ namespace Aya {
 
             auto t = Tuplify<Args...>(newArgs);
             m_Args = t;
+        }
+
+        std::shared_ptr<ITransformer> Clone() override {
+            auto a =  std::make_shared<Transformer<T, Args...>>(m_FunctionName, m_Func, m_Args);
+            a->OverrideArgNames(m_ArgNames);
+            a->SetRepeat(m_Repeat);
+            return a;
         }
 
     private:

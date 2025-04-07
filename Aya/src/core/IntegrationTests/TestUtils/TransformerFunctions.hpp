@@ -31,7 +31,8 @@ inline void push(std::vector<int>& vec, const int val, const int repeat) {
 
 inline void pop(std::vector<int>& vec, const int repeat) {
     for (int i = 0; i < repeat; i++) {
-        vec.pop_back();
+        if (!vec.empty()) // pop on empty vector is UB
+            vec.pop_back();
     }
 }
 
@@ -45,5 +46,4 @@ inline void VecSub(size_t& b, size_t val) {
 
 
 inline void VecNoop(std::vector<int>& vec) {}
-inline void VecNoop1(std::vector<int>& vec, const int val) {}
 #pragma endregion

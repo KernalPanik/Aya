@@ -55,28 +55,27 @@ namespace Aya {
             const std::vector<std::any>& inputs, const size_t trackedOutputIndex) {
         if constexpr (std::is_void_v<T>) {
             std::vector<std::any> inputState = inputs;
-
-            func(std::forward<Args...>(Tuplify<Args...>(inputState)));
+            std::apply(func, Tuplify<Args...>(inputState));
             U trackedInitialOutput = inputState[trackedOutputIndex];
 
             for (const auto& transformer : mr.InputTransformers) {
                 transformer->second->Apply(inputState[transformer->first]);
             }
-            func(std::forward<Args...>(Tuplify<Args...>(inputState)));
+            std::apply(func, Tuplify<Args...>(inputState));
             U trackedFollowUpOutput = inputState[trackedOutputIndex];
 
             for (const auto& transformer : mr.OutputTransformers) {
                 transformer->second->Apply(trackedInitialOutput);
             }
 
-            if (trackedFollowUpOutput != trackedInitialOutput) {
+            if (std::any_cast<U>(trackedFollowUpOutput) != std::any_cast<U>(trackedInitialOutput)) {
                 return false;
             }
+
             return true;
         }
         else {
-            std::tuple<Args...> t = Tuplify<Args...>(inputs);
-            std::any trackedInitialOutput = std::apply(func, t);
+            std::any trackedInitialOutput = std::apply(func, Tuplify<Args...>(inputs));
             std::vector<std::any> followUpInputState = inputs;
 
             for (const auto& transformer : mr.InputTransformers) {
@@ -104,7 +103,7 @@ namespace Aya {
             for (size_t j = 0; j < inputs.size(); j++) {
                 const bool v = Aya::ValidateInputVariant<std::vector<int>, std::vector<int>, std::vector<int>>(
                     static_cast<std::function<std::vector<int>(std::vector<int>)>>(func),
-                    MRs[i], inputs[j], 0);
+                    MRs[i], inputs[j], trackedOutputIndex);
                 if (v) {
                     validTestCount += 1;
                 }

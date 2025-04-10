@@ -6,7 +6,6 @@
 #include <tuple>
 #include <vector>
 
-// TODO: Explore making this a template class
 namespace Aya {
     template <typename T, typename = void>
     struct can_ostream : std::false_type {};

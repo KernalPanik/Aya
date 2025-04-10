@@ -14,11 +14,6 @@ namespace Aya {
     template <typename T, typename U, typename... Args>
     class MRBuilder {
     public:
-        //TODO: rework MRBuilder:
-        /// pass prebuilt variable output transformers. Allow ITransformer args to be overridden.
-        /// pass matching vectors of indices that can be applied to an arg. if passed 3 items in a vector, an ITransformer with 3 args is assumed.
-        /// This will improve MR search by allowing to combine various output variable transformers, even gluing them with constant transformers.
-        // Transformer pools are generated with TransformBuilder class. MRBuilder extracts iterators from them.
         MRBuilder(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
                     const std::vector<std::shared_ptr<ITransformer>>& outputTransformerPool,
                     const size_t targetOutputTransformIndex,

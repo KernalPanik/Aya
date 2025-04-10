@@ -136,7 +136,7 @@ namespace MetamorphicRelationGenTests {
         TEST_EXPECT(overallMatchCount == 135);
 
         std::vector<std::vector<std::any>> validatorInputs;
-        validatorInputs.reserve(5);
+        validatorInputs.reserve(4);
         validatorInputs.push_back({std::vector<int>({1, 2, 3, 4})});
         validatorInputs.push_back({std::vector<int>({})});
         validatorInputs.push_back({std::vector<int>{923231, 111142, 123}});

@@ -65,7 +65,16 @@ inline void GenerateMRsForSine() {
     testedInputs.push_back({15.0, 30.0, 180.0, -15.0, -30.0, -180.0, 45.0, 0.0});
     mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
 
-    std::cout << overallMatchCount << std::endl;
+    std::vector<std::vector<std::any>> validatorInputs;
+    validatorInputs.reserve(6);
+    validatorInputs.push_back({15.0});
+    validatorInputs.push_back({45.0});
+    validatorInputs.push_back({90.0});
+    validatorInputs.push_back({-15.0});
+    validatorInputs.push_back({-45.0});
+    validatorInputs.push_back({-95.0});
+
+    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), finalMRs, validatorInputs, 0);
 
     for (size_t i = 0; i < finalMRs.size(); ++i) {
         std::cout << finalMRs[i].ToString() << std::endl;

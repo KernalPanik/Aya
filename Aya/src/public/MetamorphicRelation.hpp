@@ -49,7 +49,6 @@ namespace Aya {
         }
     }
 
-    //TODO review
     template <typename T, typename U, typename... Args>
     bool ValidateInputVariant(std::function<T(Args...)> func, MetamorphicRelation& mr,
             const std::vector<std::any>& inputs, const size_t trackedOutputIndex) {
@@ -101,8 +100,8 @@ namespace Aya {
         for (size_t i = 0; i < MRs.size(); i++) {
             size_t validTestCount = 0;
             for (size_t j = 0; j < inputs.size(); j++) {
-                const bool v = Aya::ValidateInputVariant<std::vector<int>, std::vector<int>, std::vector<int>>(
-                    static_cast<std::function<std::vector<int>(std::vector<int>)>>(func),
+                const bool v = Aya::ValidateInputVariant<T, U, Args...>(
+                    static_cast<std::function<T(Args...)>>(func),
                     MRs[i], inputs[j], trackedOutputIndex);
                 if (v) {
                     validTestCount += 1;

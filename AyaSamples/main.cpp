@@ -1,8 +1,7 @@
-#include <iostream>
-
-#include "lib/AyaCore.h"
+#include "SineTest.hpp"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    GenerateMRsForSine();
+
     return 0;
 }

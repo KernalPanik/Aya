@@ -134,5 +134,15 @@ namespace MetamorphicRelationGenTests {
         std::vector<Aya::MetamorphicRelation> finalMRs;
         mrBuilder.SearchForMRs(testedInputs, 1, 2, overallMatchCount, finalMRs);
         TEST_EXPECT(overallMatchCount == 135);
+
+        std::vector<std::vector<std::any>> validatorInputs;
+        validatorInputs.reserve(5);
+        validatorInputs.push_back({std::vector<int>({1, 2, 3, 4})});
+        validatorInputs.push_back({std::vector<int>({})});
+        validatorInputs.push_back({std::vector<int>{923231, 111142, 123}});
+        validatorInputs.push_back({std::vector<int>{1}});
+
+        Aya::CalculateMRScore<std::vector<int>, std::vector<int>, std::vector<int>>(
+            static_cast<std::function<std::vector<int>(std::vector<int>)>>(VecInit), finalMRs, validatorInputs, 0);
     }
 }

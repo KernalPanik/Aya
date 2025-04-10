@@ -2,7 +2,6 @@
 
 #include "tuple-utils.h"
 #include "transformer.hpp"
-#include "TransformBuilder.hpp"
 #include "MetamorphicRelation.hpp"
 
 #include <functional>
@@ -10,6 +9,7 @@
 #include <string>
 #include <any>
 #include <algorithm>
+#include <map>
 
 namespace Aya {
     class IMRContext {
@@ -33,23 +33,26 @@ namespace Aya {
 
         explicit MRContext(std::function<T(Args...)> f,
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& inputTransformChain,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& outputTransformChain,
-            std::vector<std::function<void(T&, T)>> variableOutputTransformingFunctions,
-            std::vector<std::string> variableOutputTransformFunctionNames,
-            const std::vector<size_t>& matchingVariableTransformingIndices)
-            :   m_Func(std::move(f)),
-                m_InputTransforms(inputTransformChain),
-                m_OutputTransforms(outputTransformChain),
-                m_OutputTransformFuncs(variableOutputTransformingFunctions),
-                m_OutputTransformFuncNames(std::move(variableOutputTransformFunctionNames)),
-                m_MatchingArgumentIndices(matchingVariableTransformingIndices) {
+            const std::vector<std::shared_ptr<ITransformer>>& outputConstantTransformerPool,
+            const std::vector<std::shared_ptr<ITransformer>>& outputVariableTransformerPool,   // Output variable transformers to be overridden
+            const size_t targetOutputTransformIndex,               // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
+            const std::vector<std::vector<size_t>>& matchingOutputIndices,
+            const size_t outputTransformChainLength)               // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
+            : m_Func(std::move(f)),
+              m_InputTransforms(inputTransformChain),
+              m_MatchingArgumentIndices(matchingOutputIndices),
+              m_OutputConstantTransformers(outputConstantTransformerPool),
+              m_OutputVariableTransformers(outputVariableTransformerPool),
+              m_TargetOutputTransformIndex(targetOutputTransformIndex),
+              m_OutputTransformChainLength(outputTransformChainLength) {
             std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;
             });
 
-            std::sort(m_OutputTransforms.begin(), m_OutputTransforms.end(), [](auto &left, auto &right) {
-                return left->first < right->first;
-            });
+            if (m_MatchingArgumentIndices.size() != m_OutputVariableTransformers.size()) {
+                throw std::invalid_argument(
+                    "MRContext: Matching Argument Indices and Output variable transformer vector sizes must match. If there are Transformers without args, pass empty vector instead.");
+            }
 
             m_TotalMatches = 0;
             m_BuildImplicitOutputTransforms = false;
@@ -80,32 +83,37 @@ namespace Aya {
             auto followUpState = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
             auto followUpStateVec = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
 
-            // Samples are the transformed outputs trying to match changes from initial to follow up
-            auto sampleOutput = TransformOutputs(initialStateVector, std::index_sequence_for<Args...>{});
-            auto sampleOutputTuple = GetOutputStateTuple(sampleOutput, std::index_sequence_for<Args...>{});
+            std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> generatedOutputTransformChains;
+            std::vector<std::shared_ptr<ITransformer>> totalOutputTransformerPool;
+            totalOutputTransformerPool.reserve(m_OutputConstantTransformers.size());
+            totalOutputTransformerPool.insert(totalOutputTransformerPool.end(), m_OutputConstantTransformers.begin(), m_OutputConstantTransformers.end());
 
-            if (CompareTargetElements(std::any_cast<U>(followUpStateVec[targetOutputIndex]), std::any_cast<U>(sampleOutput[targetOutputIndex]))) {
-                metamorphicRelations.emplace_back(m_InputTransforms, m_OutputTransforms);
-                m_TotalMatches++;
-                match = true;
+            // Samples are the transformed outputs trying to match changes from initial to follow up
+            if (m_BuildImplicitOutputTransforms) {
+                auto variableOutputTransformers = ProduceVariableOutputTransformers(initialStateVector, m_TargetOutputTransformIndex);
+                totalOutputTransformerPool.insert(totalOutputTransformerPool.end(), variableOutputTransformers.begin(), variableOutputTransformers.end());
             }
 
-            if (m_BuildImplicitOutputTransforms) {
-                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>> producedOutputTransforms;
-                auto variableTransformedOutputSamples = ApplyVariableOutputTransforms(initialStateVector, targetOutputIndex, producedOutputTransforms);
-                size_t index = 0;
-                for (auto &sample : variableTransformedOutputSamples) {
-                    auto sampleTup = GetOutputStateTuple(sample, std::index_sequence_for<Args...>{});
-                    auto state1 = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
-
-                    auto el1 = state1[targetOutputIndex];
-                    auto el2 = sample[targetOutputIndex];
-
-                    if (CompareTargetElements(std::any_cast<U>(el1), std::any_cast<U>(el2))) {
-                        metamorphicRelations.emplace_back(m_InputTransforms, producedOutputTransforms[index]);
-                        m_TotalMatches++;
+            std::vector outputTransformIterators(m_OutputTransformChainLength, CartesianIterator({totalOutputTransformerPool.size()}));
+            CompositeCartesianIterator outputTransformIterator(outputTransformIterators);
+            while (!outputTransformIterator.isDone()) {
+                std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformChain;
+                auto pos = outputTransformIterator.getPos();
+                for (auto &p: pos) {
+                    for (const auto &i: p) {
+                        auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>(m_TargetOutputTransformIndex, totalOutputTransformerPool[i]);
+                        outputTransformChain.push_back(pair);
                     }
-                    index++;
+                }
+                generatedOutputTransformChains.push_back(outputTransformChain);
+                outputTransformIterator.next();
+            }
+
+            for (auto &outputTransformChain: generatedOutputTransformChains) {
+                auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
+                if (CompareTargetElements(std::any_cast<U>(sampleOutput[targetOutputIndex]), std::any_cast<U>(followUpStateVec[targetOutputIndex]))) {
+                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
+                    m_TotalMatches++;
                     match = true;
                 }
             }
@@ -116,13 +124,12 @@ namespace Aya {
     private:
         std::function<T(Args...)> m_Func;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_InputTransforms;
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_OutputTransforms;
-        // Accept only base func case for now. Not yet sure how to make it nicely expansible, but simple func should be enough for current experiments within the Master's
-        // TODO: Maybe specify this type separately, like U.
-        std::vector<std::function<void(U&, U)>> m_OutputTransformFuncs;
-        std::vector<std::string> m_OutputTransformFuncNames;
-        std::vector<size_t> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'
+        std::vector<std::vector<size_t>> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'. Generally specified by the user of the API
         std::unique_ptr<std::function<bool(U, U)>> m_Comparer;
+        std::vector<std::shared_ptr<ITransformer>> m_OutputConstantTransformers;
+        std::vector<std::shared_ptr<ITransformer>> m_OutputVariableTransformers;
+        const size_t m_TargetOutputTransformIndex;
+        const size_t m_OutputTransformChainLength;
 
         size_t m_TotalMatches = 0;
 
@@ -141,42 +148,19 @@ namespace Aya {
             }
         }
 
-        // Accepts final state, i.e. with an output, if exists.
-        // TODO: Use special type to control outputs, like S or U
-        // TODO: Make it work properly with void return type too, maybe add tests.
-        std::vector<std::vector<std::any>> ApplyVariableOutputTransforms(std::vector<std::any>& stateVector,
-                const size_t targetOutputIndex,
-                std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>>& producedOutputTransformChains) {
-            auto stateCopy(stateVector);
-            size_t offset = 0;
-            if constexpr (!std::is_void_v<T>) {
-                offset++; // operating on arguments. 0'th argument is now first, and so on.
-            }
+        std::vector<std::shared_ptr<ITransformer>> ProduceVariableOutputTransformers(std::vector<std::any>& stateVector, size_t targetOutputIndex) const {
+            std::vector<std::shared_ptr<ITransformer>> newOutputTransformers;
 
-            std::vector<T> matchingArgs;
-            matchingArgs.reserve(m_MatchingArgumentIndices.size());
-            for (auto &index : m_MatchingArgumentIndices) {
-                matchingArgs.push_back(std::any_cast<T>(stateVector[index+offset]));
-            }
-
-            auto argNameOverrides = std::vector<std::string>();
-            for (const auto &index : m_MatchingArgumentIndices) {
-                argNameOverrides.push_back("input" + std::to_string(index));
-            }
-
-            std::vector<std::vector<std::any>> result;
-            for (size_t j = 0; j < m_OutputTransformFuncs.size(); j++) {
-                for (size_t i = 0; i < m_MatchingArgumentIndices.size(); i++) {
-                    auto matchingArgOverrides = std::vector<std::string>();
-                    matchingArgOverrides.emplace_back(argNameOverrides[i]);
-                    auto transformer = Aya::TransformBuilder<U, U>().MapTransformersToStateIndex(m_OutputTransformFuncs[j], m_OutputTransformFuncNames[j], {matchingArgs[i]}, targetOutputIndex, matchingArgOverrides);
-                    auto newState = TransformOutputs(stateCopy, transformer, std::index_sequence_for<Args...>{});
-                    producedOutputTransformChains.push_back(transformer);
-                    result.push_back(newState);
+            for (size_t i = 0; i < m_OutputVariableTransformers.size(); i++) {
+                for (auto &index: m_MatchingArgumentIndices[i]) {
+                    auto copp = m_OutputVariableTransformers[i]->Clone();
+                    newOutputTransformers.push_back(copp);
+                    newOutputTransformers.back()->OverrideArgs({stateVector[index+1]});
+                    newOutputTransformers.back()->OverrideArgNames({"input[" + std::to_string(index) + "]"});
                 }
-            }
 
-            return result;
+            }
+            return newOutputTransformers;
         }
 
         template<std::size_t... I>
@@ -201,19 +185,8 @@ namespace Aya {
             return inputsCopy;
         }
 
-        template <std::size_t... I>
-        std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs, std::index_sequence<I...>) {
-            auto outputsCopy(outputs);
-
-            for (const auto &t: m_OutputTransforms) {
-                t->second->Apply(outputsCopy[t->first]);
-            }
-            return outputsCopy;
-        }
-
-        template <std::size_t... I>
         std::vector<std::any> TransformOutputs(const std::vector<std::any>& outputs,
-            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers, std::index_sequence<I...>) {
+            const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& transformers) {
             auto outputsCopy(outputs);
 
             for (const auto &t: transformers) {

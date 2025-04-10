@@ -118,7 +118,6 @@ namespace Aya {
         std::vector<std::string> m_ArgNames;
 
         size_t m_Repeat = 1;
-//(result.push_back(std::get<I + 1>(tup)), ...);
         template<std::size_t... I>
         void ApplyImpl(std::index_sequence<I...>, T& baseValue) {
             std::tuple<Args...> vargs = std::forward_as_tuple(std::get<I>(m_Args)...);

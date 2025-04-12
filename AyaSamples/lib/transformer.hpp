@@ -23,6 +23,7 @@ namespace Aya {
         virtual std::shared_ptr<ITransformer> Clone() = 0;
     };
 
+    // TODO: no arg transformer
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:

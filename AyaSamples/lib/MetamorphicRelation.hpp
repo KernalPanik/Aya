@@ -74,19 +74,31 @@ namespace Aya {
             return true;
         }
         else {
-            std::any trackedInitialOutput = std::apply(func, Tuplify<Args...>(inputs));
-            std::vector<std::any> followUpInputState = inputs;
+            std::vector<std::any> inputState = inputs;
+            std::vector<std::any> initialStateVector;
+            T val = std::apply(func, Tuplify<Args...>(inputState));
+            //inputState.insert(inputState.begin(), val);
+            initialStateVector.push_back(val);
+            initialStateVector.insert(initialStateVector.end(), inputState.begin(), inputState.end());
+
+            std::any trackedInitialOutput = initialStateVector[trackedOutputIndex];
 
             for (const auto& transformer : mr.InputTransformers) {
-                transformer->second->Apply(followUpInputState[transformer->first]);
+                transformer->second->Apply(inputState[transformer->first]);
             }
-            std::any trackedFollowUpOutput = std::apply(func, Tuplify<Args...>(followUpInputState));
+            T v2 = std::apply(func, Tuplify<Args...>(inputState));
+            std::vector<std::any> followUpStateVector;
+            followUpStateVector.push_back(v2);
+            followUpStateVector.insert(followUpStateVector.end(), inputState.begin(), inputState.end());
+            std::any trackedFollowUpOutput = followUpStateVector[trackedOutputIndex];
 
             for (const auto& transformer : mr.OutputTransformers) {
                 transformer->second->Apply(trackedInitialOutput);
             }
-
-            if (std::any_cast<U>(trackedFollowUpOutput) != std::any_cast<U>(trackedInitialOutput)) {
+            //TODO: Pass comparer functions here too
+            // Comparing followUp at 0 with tracked initial output yields 16% success rate
+            // Add tracked input state and output state indices. Make the same amends in MRContext
+            if (std::any_cast<U>(followUpStateVector[0]) != std::any_cast<U>(trackedInitialOutput)) {
                 return false;
             }
 
@@ -99,6 +111,7 @@ namespace Aya {
             const std::vector<std::vector<std::any>>& inputs, const size_t trackedOutputIndex) {
         for (size_t i = 0; i < MRs.size(); i++) {
             size_t validTestCount = 0;
+            std::cout << "Validating MR " << i << " " << MRs[i].ToString() << "\n";
             for (size_t j = 0; j < inputs.size(); j++) {
                 const bool v = Aya::ValidateInputVariant<T, U, Args...>(
                     static_cast<std::function<T(Args...)>>(func),

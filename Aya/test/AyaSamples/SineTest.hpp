@@ -17,7 +17,7 @@ inline bool equals(const double x, const double y) {
 }
 
 inline void GenerateMRsForSine() {
-    const std::vector<std::function<void(double&, double)>> singleArgumentTransformerFunctions = {Cos};
+    const std::vector<std::function<void(double&)>> singleArgumentTransformerFunctions = {Cos};
     const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos"};
     const std::vector<std::function<void(double&, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
@@ -42,14 +42,14 @@ inline void GenerateMRsForSine() {
     outputTransformerArgumentPool.push_back({{-1}, {1}, {0}});
     outputTransformerArgumentPool.push_back({{1.0}, {2.0}, {-1.0}});
     */
-    std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForInputs = Aya::TransformBuilder<double, double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames, {{1.0}});
+    std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForInputs = Aya::TransformBuilder<double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames);
     std::vector<std::shared_ptr<Aya::ITransformer>> doubleArgumentTransformersForInputs = Aya::TransformBuilder<double, double>().GetTransformers(doubleArgumentTransformerFunctions, doubleArgumentTransformerFunctionNames, inputTransformerArgumentPool);
     std::vector<std::shared_ptr<Aya::ITransformer>> inputTransformers;
     inputTransformers.reserve(singleArgumentTransformersForInputs.size() + doubleArgumentTransformersForInputs.size());
     inputTransformers.insert(inputTransformers.end(), singleArgumentTransformersForInputs.begin(), singleArgumentTransformersForInputs.end());
     inputTransformers.insert(inputTransformers.end(), doubleArgumentTransformersForInputs.begin(), doubleArgumentTransformersForInputs.end());
 
-    std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForOutputs = Aya::TransformBuilder<double, double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames, {{1.0}});
+    std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForOutputs = Aya::TransformBuilder<double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames);
     std::vector<std::shared_ptr<Aya::ITransformer>> doubleArgumentTransformersForOutputs = Aya::TransformBuilder<double, double>().GetTransformers(doubleArgumentTransformerFunctions, doubleArgumentTransformerFunctionNames, outputTransformerArgumentPool);
     std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformers;
     outputTransformers.reserve(singleArgumentTransformersForInputs.size() + doubleArgumentTransformersForInputs.size());

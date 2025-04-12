@@ -2,15 +2,15 @@
 
 #include <functional>
 #include <any>
+#include <utility>
 #include "tuple-utils.h"
 
 namespace Aya {
     class ITransformer {
     public:
         virtual ~ITransformer() = default;
-        virtual void Apply(void* data) = 0;
-        // NOTE: might not be applicable in C# context
         virtual void Apply(std::any& data) = 0;
+        virtual void Apply(void* data) = 0;
         virtual size_t GetArgCount() = 0;
         virtual void SetRepeat(size_t val) = 0;
         [[nodiscard]]
@@ -18,12 +18,74 @@ namespace Aya {
         [[nodiscard]]
         virtual std::string ToString(const char* targetName, size_t inputIndex) = 0;
         virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
-        virtual void OverrideArgs(std::vector<void*> newArgs) = 0;
         virtual void OverrideArgs(const std::vector<std::any>& newArgs) = 0;
         virtual std::shared_ptr<ITransformer> Clone() = 0;
     };
 
-    // TODO: no arg transformer
+    template<typename T>
+    class NoArgumentTransformer : public ITransformer {
+    public:
+        explicit NoArgumentTransformer(std::string functionName, std::function<void(T&)> f)
+            : m_Func(f), m_FunctionName(std::move(functionName)), m_Repeat(1) {}
+
+        void Apply(std::any& data) override {
+            auto baseValue = std::any_cast<T>(data);
+            for (size_t i = 0; i < m_Repeat; i++) {
+                m_Func(baseValue);
+            }
+            data = baseValue;
+        }
+
+        void Apply(void* data) override {
+            if (data == nullptr) {
+                throw std::invalid_argument("Cannot transform base that is null.");
+            }
+
+            auto baseValue = *static_cast<T*>(data);
+            for (size_t i = 0; i < m_Repeat; i++) {
+                m_Func(baseValue);
+            }
+            memcpy(data, &baseValue, sizeof(baseValue));
+        }
+
+        void SetRepeat(size_t val) override {
+            m_Repeat = val;
+        }
+
+        [[nodiscard]]
+        size_t GetRepeat() override {
+            return m_Repeat;
+        }
+
+        [[nodiscard]]
+        std::string ToString(const char* targetName, size_t inputIndex) override {
+            std::stringstream ss;
+            ss << m_FunctionName << "( " + std::string(targetName) +  "[" << std::to_string(inputIndex) << "] )";
+            return ss.str();
+        }
+
+        std::shared_ptr<ITransformer> Clone() override {
+            return std::make_shared<NoArgumentTransformer<T>>(m_FunctionName, m_Func);
+        }
+
+        size_t GetArgCount() override {
+            return 0;
+        };
+
+        void OverrideArgNames(std::vector<std::string> newNames) override {
+
+        }
+
+        void OverrideArgs(const std::vector<std::any>& newArgs) override {
+
+        }
+
+    private:
+        std::function<void(T&)> m_Func;
+        std::string m_FunctionName;
+        size_t m_Repeat;
+    };
+
     template<typename T, class... Args>
     class Transformer final : public ITransformer {
     public:
@@ -32,6 +94,14 @@ namespace Aya {
 
         Transformer(const std::string& functionName, std::function<void(T&, Args...)> f, std::tuple<Args...> args)
             : m_Func(f), m_FunctionName(functionName), m_Args(args), m_ArgNames(std::vector<std::string>()) {}
+
+        void Apply(std::any& data) override {
+            auto baseValue = std::any_cast<T>(data);
+            for (size_t i = 0; i < m_Repeat; i++) {
+                ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
+            }
+            data = baseValue;
+        }
 
         void Apply(void* data) override {
             if (data == nullptr) {
@@ -43,14 +113,6 @@ namespace Aya {
                 ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
             }
             memcpy(data, &baseValue, sizeof(baseValue));
-        }
-
-        void Apply(std::any& data) override {
-            auto baseValue = std::any_cast<T>(data);
-            for (size_t i = 0; i < m_Repeat; i++) {
-                ApplyImpl(std::index_sequence_for<Args...>{}, baseValue);
-            }
-            data = baseValue;
         }
 
         size_t GetArgCount() override {
@@ -92,9 +154,6 @@ namespace Aya {
         void OverrideArgNames(const std::vector<std::string> newNames) override {
             m_ArgNames = newNames;
         }
-
-        // C# i guess
-        void OverrideArgs(std::vector<void*> newArgs) override {}
 
         void OverrideArgs(const std::vector<std::any>& newArgs) override {
             if (TupleVec(m_Args).size() != newArgs.size()) {

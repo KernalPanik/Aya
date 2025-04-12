@@ -17,6 +17,10 @@ inline double poww(double x, double y) {
     return pow(x, y);
 }
 
+inline bool compare(double x, double y) {
+    return fabs(x - y) < 1e-6;
+}
+
 inline std::vector<int> VecInit(std::vector<int> v) {
     return v;
 }
@@ -73,8 +77,8 @@ namespace MetamorphicRelationGenTests {
             usableIndices.emplace_back(tmp);
         }
 
-        auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww,
-            inputTransformerPool, outputTransformerPool, 0, doubleTransformersForOutput, usableIndices);
+        auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww, compare,
+            inputTransformerPool, outputTransformerPool, 0, 0, doubleTransformersForOutput, usableIndices);
         mrBuilder.SetEnableImplicitOutputTransforms(true);
         std::vector<std::vector<std::any>> testedInputs;
         std::vector<Aya::MetamorphicRelation> finalMRs;
@@ -122,7 +126,7 @@ namespace MetamorphicRelationGenTests {
         outputTransformerPool.insert(outputTransformerPool.end(), transformers.begin(), transformers.end());
 
         auto mrBuilder = Aya::MRBuilder<std::vector<int>, std::vector<int>, std::vector<int>>(
-            VecInit, inputTransformerPool, outputTransformerPool, 0, {}, {});
+            VecInit, nullptr, inputTransformerPool, outputTransformerPool, 0, 0, {}, {});
         mrBuilder.SetEnableImplicitOutputTransforms(false);
         std::vector<std::vector<std::any>> testedInputs;
         testedInputs.emplace_back();
@@ -143,6 +147,6 @@ namespace MetamorphicRelationGenTests {
         validatorInputs.push_back({std::vector<int>{1}});
 
         Aya::CalculateMRScore<std::vector<int>, std::vector<int>, std::vector<int>>(
-            static_cast<std::function<std::vector<int>(std::vector<int>)>>(VecInit), finalMRs, validatorInputs, 0);
+            static_cast<std::function<std::vector<int>(std::vector<int>)>>(VecInit), nullptr, finalMRs, validatorInputs, 0, 0);
     }
 }

@@ -14,13 +14,16 @@ namespace Aya {
     template <typename T, typename U, typename... Args>
     class MRBuilder {
     public:
-        MRBuilder(std::function<T(Args...)> testedFunction, std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
+        MRBuilder(std::function<T(Args...)> testedFunction,
+                    std::function<bool(U, U)> comparer,
+                    std::map<size_t, std::vector<std::shared_ptr<ITransformer>>>& inputTransformerPool,
                     const std::vector<std::shared_ptr<ITransformer>>& outputTransformerPool,
                     const size_t targetLeftValueIndex,
                     const size_t targetRightValueIndex,
                     const std::vector<std::shared_ptr<ITransformer>>& outputVariableTransformerPool,    // Output variable transformers to be overridden
                     const std::vector<std::vector<size_t>>& matchingOutputIndices)                      // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
                         : m_TestedFunction(testedFunction),
+                        m_Comparer(comparer),
                         m_InputTransformerPool(inputTransformerPool),
                         m_OutputConstantTransformerPool(outputTransformerPool),
                         m_TargetLeftValueIndex(targetLeftValueIndex),
@@ -41,12 +44,9 @@ namespace Aya {
             }
 
             m_EnableImplicitOutputTransforms = false;
+            m_Comparer = nullptr;
         }
         ~MRBuilder() = default;
-
-        void SetComparer(std::function<void(U, U)> comparer) {
-            m_Comparer = comparer;
-        }
 
         void SetEnableImplicitOutputTransforms(const bool value) {
             m_EnableImplicitOutputTransforms = value;
@@ -80,7 +80,7 @@ namespace Aya {
                 std::vector<MetamorphicRelation> mrs;
 
                 //for (auto &otc : outputTransformerChains) {
-                    auto ctx = Aya::MRContext<T, U, Args...>(m_TestedFunction, inputTransformerChain, m_OutputConstantTransformerPool, m_OutputVariableTransformerPool, m_TargetLeftValueIndex, m_TargetRightValueIndex, m_MatchingOutputVariableIndices, outputTransformChainLength);
+                    auto ctx = Aya::MRContext<T, U, Args...>(m_TestedFunction, m_Comparer, inputTransformerChain, m_OutputConstantTransformerPool, m_OutputVariableTransformerPool, m_TargetLeftValueIndex, m_TargetRightValueIndex, m_MatchingOutputVariableIndices, outputTransformChainLength);
                     ctx.SetImplicitOutputTransforms(m_EnableImplicitOutputTransforms);
                     while (!funcInputIterator.isDone()) {
                         auto funcInputPos = funcInputIterator.getPos();

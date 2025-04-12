@@ -35,87 +35,71 @@ namespace Aya {
         }
     };
 
-    inline void DumpMRsToFile(const std::vector<MetamorphicRelation>& MRs, const std::string& path) {
+    inline void DumpMRsToFile(const std::vector<MetamorphicRelation>& MRs, const std::string& path, float successRateThreshold) {
         std::ofstream outputFile(path);
         for (size_t i = 0; i < MRs.size(); i++) {
-            outputFile << MRs[i].ToString() << "\n";
+            if (MRs[i].LastSuccessRate > successRateThreshold) {
+                outputFile << MRs[i].ToString() << "\n";
+            }
         }
         outputFile.close();
     }
 
-    inline void DumpMrsToStdout(const std::vector<MetamorphicRelation>& MRs) {
+    inline void DumpMrsToStdout(const std::vector<MetamorphicRelation>& MRs, float successRateThreshold) {
         for (size_t i = 0; i < MRs.size(); i++) {
-            std::cout << MRs[i].ToString() << "\n";
+            if (MRs[i].LastSuccessRate > successRateThreshold) {
+                std::cout << MRs[i].ToString() << "\n";
+            }
         }
     }
 
     template <typename T, typename U, typename... Args>
-    bool ValidateInputVariant(std::function<T(Args...)> func, MetamorphicRelation& mr,
-            const std::vector<std::any>& inputs, const size_t trackedOutputIndex) {
+    std::vector<std::any> CaptureProducedState(std::function<T(Args...)> func, const std::vector<std::any>& inputs) {
+        std::vector<std::any> producedState = inputs;
         if constexpr (std::is_void_v<T>) {
-            std::vector<std::any> inputState = inputs;
-            std::apply(func, Tuplify<Args...>(inputState));
-            U trackedInitialOutput = inputState[trackedOutputIndex];
-
-            for (const auto& transformer : mr.InputTransformers) {
-                transformer->second->Apply(inputState[transformer->first]);
-            }
-            std::apply(func, Tuplify<Args...>(inputState));
-            U trackedFollowUpOutput = inputState[trackedOutputIndex];
-
-            for (const auto& transformer : mr.OutputTransformers) {
-                transformer->second->Apply(trackedInitialOutput);
-            }
-
-            if (std::any_cast<U>(trackedFollowUpOutput) != std::any_cast<U>(trackedInitialOutput)) {
-                return false;
-            }
-
-            return true;
+            std::apply(func, Tuplify<Args...>(producedState));
         }
         else {
-            std::vector<std::any> inputState = inputs;
-            std::vector<std::any> initialStateVector;
-            T val = std::apply(func, Tuplify<Args...>(inputState));
-            //inputState.insert(inputState.begin(), val);
-            initialStateVector.push_back(val);
-            initialStateVector.insert(initialStateVector.end(), inputState.begin(), inputState.end());
-
-            std::any trackedInitialOutput = initialStateVector[trackedOutputIndex];
-
-            for (const auto& transformer : mr.InputTransformers) {
-                transformer->second->Apply(inputState[transformer->first]);
-            }
-            T v2 = std::apply(func, Tuplify<Args...>(inputState));
-            std::vector<std::any> followUpStateVector;
-            followUpStateVector.push_back(v2);
-            followUpStateVector.insert(followUpStateVector.end(), inputState.begin(), inputState.end());
-            std::any trackedFollowUpOutput = followUpStateVector[trackedOutputIndex];
-
-            for (const auto& transformer : mr.OutputTransformers) {
-                transformer->second->Apply(trackedInitialOutput);
-            }
-            //TODO: Pass comparer functions here too
-            // Comparing followUp at 0 with tracked initial output yields 16% success rate
-            // Add tracked input state and output state indices. Make the same amends in MRContext
-            if (std::any_cast<U>(followUpStateVector[0]) != std::any_cast<U>(trackedInitialOutput)) {
-                return false;
-            }
-
-            return true;
+            U returnValue = std::apply(func, Tuplify<Args...>(producedState));
+            producedState.insert(producedState.begin(), returnValue);
         }
+
+        return producedState;
     }
 
     template <typename T, typename U, typename... Args>
-    void CalculateMRScore(std::function<T(Args...)> func, std::vector<MetamorphicRelation>& MRs,
-            const std::vector<std::vector<std::any>>& inputs, const size_t trackedOutputIndex) {
+    bool ValidateInputVariant(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
+            MetamorphicRelation& mr, const std::vector<std::any>& inputs, const size_t leftValueIndex,
+            const size_t rightValueIndex) {
+        const std::vector<std::any> initialState = CaptureProducedState<T, U, Args...>(func, inputs);
+
+        std::vector<std::any> followUpInputs = inputs;
+        for (const auto& transformer : mr.InputTransformers) {
+            transformer->second->Apply(followUpInputs[transformer->first]);
+        }
+
+        std::vector<std::any> followUpState = CaptureProducedState<T, U, Args...>(func, followUpInputs);
+        std::vector<std::any> sampleState = initialState;
+        for (const auto& transformer : mr.OutputTransformers) {
+            transformer->second->Apply(sampleState[rightValueIndex]);
+        }
+
+        if (comparerFunction) {
+            return comparerFunction(std::any_cast<U>(sampleState[rightValueIndex]), std::any_cast<U>(followUpState[leftValueIndex]));
+        }
+        return std::any_cast<U>(sampleState[rightValueIndex]) == std::any_cast<U>(followUpState[leftValueIndex]);
+    }
+
+    template <typename T, typename U, typename... Args>
+    void CalculateMRScore(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
+            std::vector<MetamorphicRelation>& MRs, const std::vector<std::vector<std::any>>& inputs,
+            const size_t leftValueIndex, const size_t rightValueIndex) {
         for (size_t i = 0; i < MRs.size(); i++) {
             size_t validTestCount = 0;
-            std::cout << "Validating MR " << i << " " << MRs[i].ToString() << "\n";
             for (size_t j = 0; j < inputs.size(); j++) {
                 const bool v = Aya::ValidateInputVariant<T, U, Args...>(
-                    static_cast<std::function<T(Args...)>>(func),
-                    MRs[i], inputs[j], trackedOutputIndex);
+                    static_cast<std::function<T(Args...)>>(func), comparerFunction,
+                    MRs[i], inputs[j], leftValueIndex, rightValueIndex);
                 if (v) {
                     validTestCount += 1;
                 }

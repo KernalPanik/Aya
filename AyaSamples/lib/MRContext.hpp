@@ -19,7 +19,6 @@ namespace Aya {
         virtual bool ValidateTransformChains(const std::vector<std::any>& inputs, size_t leftValueIndex, size_t rightValueIndex, std::vector<Aya::MetamorphicRelation>& metamorphicRelations) = 0;
         [[nodiscard]]
         virtual size_t GetTotalMatches() const = 0;
-        virtual void OverrideComparerMethod(std::any func) = 0;
         virtual void SetImplicitOutputTransforms(bool value) = 0;
     };
 
@@ -32,6 +31,7 @@ namespace Aya {
             T>;
 
         explicit MRContext(std::function<T(Args...)> f,
+            std::function<bool(U, U)> comparer,
             const std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>>& inputTransformChain,
             const std::vector<std::shared_ptr<ITransformer>>& outputConstantTransformerPool,
             const std::vector<std::shared_ptr<ITransformer>>& outputVariableTransformerPool,   // Output variable transformers to be overridden
@@ -40,6 +40,7 @@ namespace Aya {
             const std::vector<std::vector<size_t>>& matchingOutputIndices,
             const size_t outputTransformChainLength)               // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
             : m_Func(std::move(f)),
+              m_Comparer(comparer),
               m_InputTransforms(inputTransformChain),
               m_MatchingArgumentIndices(matchingOutputIndices),
               m_OutputConstantTransformers(outputConstantTransformerPool),
@@ -63,12 +64,6 @@ namespace Aya {
         [[nodiscard]]
         size_t GetTotalMatches() const override {
             return m_TotalMatches;
-        }
-
-        // Might be crap for C# interface...
-        // If so, pass raw function pointer, and convert it to std::function
-        void OverrideComparerMethod(std::any func) override {
-            m_Comparer = std::make_unique<std::function<bool(U, U)>>(std::any_cast<std::function<bool(U, U)>>(func));
         }
 
         void SetImplicitOutputTransforms(const bool value) override {
@@ -127,7 +122,7 @@ namespace Aya {
         std::function<T(Args...)> m_Func;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>> m_InputTransforms;
         std::vector<std::vector<size_t>> m_MatchingArgumentIndices; // double(double, int) => index 0 can be used to transform output 'double'. Generally specified by the user of the API
-        std::unique_ptr<std::function<bool(U, U)>> m_Comparer;
+        std::function<bool(U, U)> m_Comparer;
         std::vector<std::shared_ptr<ITransformer>> m_OutputConstantTransformers;
         std::vector<std::shared_ptr<ITransformer>> m_OutputVariableTransformers;
         const size_t m_LeftValueIndex;
@@ -239,8 +234,8 @@ namespace Aya {
         }
 
         bool CompareTargetElements(const U e1, const U e2) {
-            if (m_Comparer != nullptr) {
-                return (*m_Comparer)(e1, e2);
+            if (m_Comparer) {
+                return m_Comparer(e1, e2);
             }
 
             return e1 == e2;

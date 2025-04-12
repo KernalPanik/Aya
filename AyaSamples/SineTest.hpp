@@ -12,6 +12,10 @@ inline double sine(const double x) {
     return sin(x*PI/180) * sin(x*PI/180);
 }
 
+inline bool equals(const double x, const double y) {
+    return fabs(x - y) < 1e-6;
+}
+
 inline void GenerateMRsForSine() {
     const std::vector<std::function<void(double&, double)>> singleArgumentTransformerFunctions = {Cos};
     const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos"};
@@ -62,7 +66,7 @@ inline void GenerateMRsForSine() {
     for (size_t i = 3; i < inputTransformers.size()-1; ++i) {
         variableTransformerIndices.push_back({0});
     }
-    auto mrBuilder = Aya::MRBuilder<double, double, double>(sine, inputTransformerPool, outputTransformers, 0, 1, outputTransformers, variableTransformerIndices);
+    auto mrBuilder = Aya::MRBuilder<double, double, double>(sine, equals, inputTransformerPool, outputTransformerPool, 0, 1, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
     size_t overallMatchCount = 0;
@@ -80,11 +84,8 @@ inline void GenerateMRsForSine() {
     validatorInputs.push_back({-45.0});
     validatorInputs.push_back({-95.0});
 
-    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), finalMRs, validatorInputs, 1);
+    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), equals, finalMRs, validatorInputs, 0, 1);
 
    // Aya::DumpMRsToFile(finalMRs, "SineTest.txt");
-
-    for (size_t i = 0; i < finalMRs.size(); ++i) {
-        std::cout << finalMRs[i].ToString() << std::endl;
-    }
+    Aya::DumpMrsToStdout(finalMRs, 0.5);
 }

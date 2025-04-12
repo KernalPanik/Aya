@@ -17,8 +17,6 @@ inline void Div(double& b, double val) {
   b /= val;
 }
 
-// TODO: document the specificity of Single argument transformers -- b and val will be the same
-
 #define PI 3.14159265
 inline void Sin(double& b, double val) {
   //b = sin(b) * sin(b);

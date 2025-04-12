@@ -27,6 +27,16 @@ add_executable(AyaTest
         src/Common/CartesianIteratorTests.cpp
         src/core/Modules/Transformer/transformer-tests.cpp)
 
+add_executable(AyaSamples
+        test/AyaSamples/main.cpp
+        test/framework/testRunner.cpp
+        src/Common/util.cpp
+        src/Common/util-tests.cpp
+        src/Common/CartesianIterator.cpp
+        src/Common/CompositeCartesianIterator.cpp
+        src/Common/CartesianIteratorTests.cpp
+        src/core/Modules/Transformer/transformer-tests.cpp)
+
 add_library(Aya SHARED
         src/Common/util.cpp
         src/Common/CartesianIterator.cpp

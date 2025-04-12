@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "lib/AyaCore.h"
+#include "AyaCore.h"
 #include "DoubleTypeTransformers.hpp"
 
 #define PI 3.14159265

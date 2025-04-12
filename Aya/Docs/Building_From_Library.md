@@ -1,3 +1,9 @@
+# Building With a Library
+
+To produce a library, execute `ProduceLib.sh` script.
+
+Consider this CMake example:
+```
 cmake_minimum_required(VERSION 3.30)
 project(AyaSamples)
 
@@ -11,3 +17,5 @@ find_library(LIBR
 add_executable(AyaSamples main.cpp)
 
 target_link_libraries(AyaSamples PRIVATE ${LIBR})
+```
+

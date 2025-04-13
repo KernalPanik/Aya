@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tuple-utils.h"
+#include "CoreUtilities.hpp"
 #include "transformer.hpp"
 #include "MetamorphicRelation.hpp"
 
@@ -17,7 +17,7 @@ namespace Aya {
         virtual ~IMRContext() = default;
 
         // std::vector<std::any> is an abstract class friendly way of having a tuple. So MRSearch would accept a vector of vectors, encompassing inputs.
-        virtual bool ValidateTransformChains(const std::vector<std::any> &inputs, size_t leftValueIndex,
+        virtual void ValidateTransformChains(const std::vector<std::any> &inputs, size_t leftValueIndex,
                                              size_t rightValueIndex,
                                              std::vector<Aya::MetamorphicRelation> &metamorphicRelations) = 0;
 
@@ -78,16 +78,12 @@ namespace Aya {
             m_BuildImplicitOutputTransforms = value;
         }
 
-        bool ValidateTransformChains(const std::vector<std::any> &inputs, const size_t leftValueIndex,
+        void ValidateTransformChains(const std::vector<std::any> &inputs, const size_t leftValueIndex,
                                      const size_t rightValueIndex,
                                      std::vector<MetamorphicRelation> &metamorphicRelations) override {
-            bool match = false;
-            // Create a sequence chain of some sorts?
-            auto initialState = InvokeInternal(inputs, std::index_sequence_for<Args...>{});
-            auto initialStateVector = MapTupleToVecNonVoid(initialState, std::index_sequence_for<Args...>{});
+            auto initialStateVector = InvokeInternal(inputs);
             auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
-            auto followUpState = InvokeInternal(followUpInputs, std::index_sequence_for<Args...>{});
-            auto followUpStateVec = MapTupleToVecNonVoid(followUpState, std::index_sequence_for<Args...>{});
+            auto followUpStateVec = InvokeInternal(followUpInputs);
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>>
                     generatedOutputTransformChains;
@@ -104,7 +100,7 @@ namespace Aya {
                                                   variableOutputTransformers.end());
             }
 
-            std::vector outputTransformIterators(m_OutputTransformChainLength,
+            const std::vector outputTransformIterators(m_OutputTransformChainLength,
                                                  CartesianIterator({totalOutputTransformerPool.size()}));
             CompositeCartesianIterator outputTransformIterator(outputTransformIterators);
             while (!outputTransformIterator.isDone()) {
@@ -123,15 +119,12 @@ namespace Aya {
 
             for (auto &outputTransformChain: generatedOutputTransformChains) {
                 auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
-                if (CompareTargetElements(std::any_cast<U>(sampleOutput[leftValueIndex]),
-                                          std::any_cast<U>(followUpStateVec[rightValueIndex]))) {
+                if (CompareTargetElements(std::any_cast<U>(sampleOutput[rightValueIndex]),
+                                          std::any_cast<U>(followUpStateVec[leftValueIndex]))) {
                     metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
                     m_TotalMatches++;
-                    match = true;
                 }
             }
-
-            return match;
         }
 
     private:
@@ -145,22 +138,14 @@ namespace Aya {
         const size_t m_LeftValueIndex;
         const size_t m_RightValueIndex;
         const size_t m_OutputTransformChainLength;
-
         size_t m_TotalMatches = 0;
-
         bool m_BuildImplicitOutputTransforms = false;
 
-        template<std::size_t... I>
-        auto InvokeInternal(const std::vector<std::any> &inputs, std::index_sequence<I...>) {
-            if constexpr (!std::is_void_v<T>) {
-                auto args = std::make_tuple(std::any_cast<Args>(inputs[I])...);
-                auto ret = m_Func(std::get<I>(args)...);
-                return std::tuple_cat(std::make_tuple(ret), args);
-            } else {
-                auto args = std::make_tuple(std::any_cast<Args>(inputs[I])...);
-                m_Func(std::get<I>(args)...);
-                return args;
-            }
+        std::vector<std::any> InvokeInternal(const std::vector<std::any> &inputs) {
+            std::vector<std::any> inputState = inputs;
+            auto producedState = CaptureProducedState<T, U, Args...>(m_Func, inputState);
+
+            return producedState;
         }
 
         std::vector<std::shared_ptr<ITransformer>> ProduceVariableOutputTransformers(
@@ -176,19 +161,6 @@ namespace Aya {
                 }
             }
             return newOutputTransformers;
-        }
-
-        template<std::size_t... I>
-        std::tuple<Args...> GetInputState(const std::vector<std::any> &inputs, std::index_sequence<I...>) {
-            return std::make_tuple(std::any_cast<Args>(inputs[I])...);
-        }
-
-        template<std::size_t... I>
-        std::tuple<ReturnType, Args...> GetOutputStateTuple(const std::vector<std::any> &inputs,
-                                                            std::index_sequence<I...>) {
-            auto arg = std::make_tuple(std::any_cast<Args>(inputs[I + 1])...);
-            auto ret = std::make_tuple(std::any_cast<ReturnType>(inputs[0]));
-            return std::tuple_cat(ret, arg);
         }
 
         template<std::size_t... I>
@@ -210,46 +182,6 @@ namespace Aya {
                 t->second->Apply(outputsCopy[t->first]);
             }
             return outputsCopy;
-        }
-
-        std::string GetStateString(std::tuple<ReturnType, Args...> state) {
-            return TupleToString(state);
-        }
-
-        template<size_t... I>
-        std::vector<std::any> MapTupleToVecNonVoid(std::tuple<ReturnType, Args...> tup, std::index_sequence<I...>) {
-            std::vector<std::any> result;
-            result.push_back(std::any_cast<ReturnType>(std::get<0>(tup)));
-            (result.push_back(std::get<I + 1>(tup)), ...);
-            return result;
-        }
-
-        template<size_t... I>
-        std::vector<std::any> MapTupleToVecVoid(std::tuple<Args...> tup, std::index_sequence<I...>) {
-            std::vector<std::any> result;
-            (result.push_back(std::get<I + 1>(tup)), ...);
-
-            return result;
-        }
-
-        template<std::size_t... I>
-        void PrintInputVec(const std::vector<std::any> &inputs, std::index_sequence<I...>) {
-            auto tup = std::make_tuple(std::any_cast<Args>(inputs[I])...);
-            std::cout << TupleToString(tup) << std::endl;
-        }
-
-        template<std::size_t... I>
-        void PrintOutputVec(const std::vector<std::any> &inputs, std::index_sequence<I...>) {
-            if constexpr (!std::is_void_v<T>) {
-                auto r = std::make_tuple(std::any_cast<ReturnType>(inputs[0]));
-                auto tup = std::make_tuple(std::any_cast<Args>(inputs[I + 1])...);
-
-                auto finalTup = std::tuple_cat(r, tup);
-                std::cout << TupleToString(finalTup) << std::endl;
-            } else {
-                auto tup = std::make_tuple(std::any_cast<Args>(inputs[I])...);
-                std::cout << TupleToString(tup) << std::endl;
-            }
         }
 
         bool CompareTargetElements(const U e1, const U e2) {

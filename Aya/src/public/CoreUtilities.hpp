@@ -116,4 +116,17 @@ namespace Aya {
         }
         return ConstructTupleFromVec<Args...>(v, std::index_sequence_for<Args...>{});
     }
+
+    template<typename T, typename U, typename... Args>
+    std::vector<std::any> CaptureProducedState(std::function<T(Args...)> func, const std::vector<std::any> &inputs) {
+        std::vector<std::any> producedState = inputs;
+        if constexpr (std::is_void_v<T>) {
+            std::apply(func, Tuplify<Args...>(producedState));
+        } else {
+            U returnValue = std::apply(func, Tuplify<Args...>(producedState));
+            producedState.insert(producedState.begin(), returnValue);
+        }
+
+        return producedState;
+    }
 }

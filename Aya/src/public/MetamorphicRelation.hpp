@@ -19,12 +19,12 @@ namespace Aya {
         [[nodiscard]]
         std::string ToString() const {
             std::stringstream ss;
-            for (size_t i = 0; i < InputTransformers.size(); i++) {
-                ss << InputTransformers[i]->second->ToString("InitialInput", InputTransformers[i]->first) << " ";
+            for (const auto & InputTransformer : InputTransformers) {
+                ss << InputTransformer->second->ToString("InitialInput", InputTransformer->first) << " ";
             }
             ss << " => ";
-            for (size_t i = 0; i < OutputTransformers.size(); i++) {
-                ss << OutputTransformers[i]->second->ToString("InitialOutputState", OutputTransformers[i]->first) <<
+            for (const auto & OutputTransformer : OutputTransformers) {
+                ss << OutputTransformer->second->ToString("InitialOutputState", OutputTransformer->first) <<
                         " ";
             }
 
@@ -55,19 +55,6 @@ namespace Aya {
                 std::cout << MR.ToString() << "\n";
             }
         }
-    }
-
-    template<typename T, typename U, typename... Args>
-    std::vector<std::any> CaptureProducedState(std::function<T(Args...)> func, const std::vector<std::any> &inputs) {
-        std::vector<std::any> producedState = inputs;
-        if constexpr (std::is_void_v<T>) {
-            std::apply(func, Tuplify<Args...>(producedState));
-        } else {
-            U returnValue = std::apply(func, Tuplify<Args...>(producedState));
-            producedState.insert(producedState.begin(), returnValue);
-        }
-
-        return producedState;
     }
 
     template<typename T, typename U, typename... Args>

@@ -6,11 +6,16 @@
 class CartesianIterator {
 public:
     explicit CartesianIterator(std::vector<size_t> indexLengths);
+
     ~CartesianIterator();
+
     void next();
-    const std::vector<size_t>& getPos();
+
+    const std::vector<size_t> &getPos();
+
     [[nodiscard]]
     bool isDone() const;
+
     void reset();
 
 private:

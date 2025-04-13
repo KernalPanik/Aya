@@ -2,13 +2,13 @@
 
 #include <chrono>
 
-class TestRunner 
-{
+class TestRunner {
 public:
-    TestRunner(bool failOnAssert);
+    explicit TestRunner(bool failOnAssert);
 
     void SetFailOnAssert(bool value);
-    void RunTest(void(test)(), const char* printableFuncName);
+
+    void RunTest(void (test)(), const char *printableFuncName);
 
 private:
     bool failOnAssert;

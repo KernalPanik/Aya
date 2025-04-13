@@ -9,8 +9,10 @@ public:
     explicit CompositeCartesianIterator(std::vector<CartesianIterator> iterators);
 
     void next();
+
     [[nodiscard]]
-    const std::vector<std::vector<size_t>>& getPos() const;
+    const std::vector<std::vector<size_t>> &getPos() const;
+
     [[nodiscard]]
     bool isDone() const;
 

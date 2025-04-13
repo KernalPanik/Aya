@@ -3,8 +3,8 @@
 #include <cstdio>
 #include <stdexcept>
 
-static int AssertThrow(const char *expect, const char* file, const char* func, int line) {
-    fprintf(stderr,"%s:%d %s: expectation (%s) failed.\n", file , line , func , expect);
+static int AssertThrow(const char *expect, const char *file, const char *func, int line) {
+    fprintf(stderr, "%s:%d %s: expectation (%s) failed.\n", file, line, func, expect);
     throw std::logic_error("test");
 }
 

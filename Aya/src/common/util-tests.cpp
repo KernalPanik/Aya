@@ -1,7 +1,7 @@
 #include "util-tests.h"
 #include "util.hpp"
 #include "../../test/Framework/testRunnerUtils.h"
-#include "src/public/tuple-utils.h"
+#include "src/public/CoreUtilities.hpp"
 
 #include <vector>
 #include <numeric>
@@ -23,7 +23,7 @@ void UtilTests_shuffle_doesnt_produce_garbage() {
 
 void UtilTests_Tuple_SimpleToString() {
     auto t = std::make_tuple("testString", 20.0f, 42);
-    std::string wantedOutput = std::string("testString, 20, 42, ");
+    const auto wantedOutput = std::string("testString, 20, 42, ");
     std::string s = Aya::TupleToString(t);
     TEST_EXPECT(s == wantedOutput);
 }

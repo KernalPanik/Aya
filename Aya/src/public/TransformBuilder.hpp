@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tuple-utils.h"
+#include "CoreUtilities.hpp"
 
 #include "transformer.hpp"
 
@@ -22,32 +22,22 @@ namespace Aya {
         return std::make_shared<Transformer<T, Args...>>(functionName, f, args);
     }
 
-    /// Convert vector of vectors into vector of tuples using Tuplify().
-    template<typename... Args>
-    std::vector<std::tuple<Args...>> PrepareParamTuples(const std::vector<std::vector<std::any>> &params) {
-        std::vector<std::tuple<Args...>> result;
-        for (const auto &input: params) {
-            result.emplace_back(Tuplify<Args...>(input));
-        }
-
-        return result;
-    }
-
-    // If Transformer functions can be properly done with a single arg of known type, refer to TransformBuilder for now.
     template<typename T, typename... Args>
     class TransformBuilder {
     public:
         TransformBuilder() = default;
 
+        // Single function, multiple argument variants
         std::vector<std::shared_ptr<ITransformer>> GetTransformers(std::function<void(T &, Args...)> func,
                                                                     const std::string &functionName,
                                                                     std::vector<std::tuple<Args...>> params) {
             return GetTransformersInternal(functionName, func, params);
         }
 
+        // Functions without arguments
         std::vector<std::shared_ptr<ITransformer>> GetTransformers(
-            std::vector<std::function<void(T &, Args...)>> func,
-            const std::vector<std::string> &functionNames) {
+                std::vector<std::function<void(T &, Args...)>> func,
+                const std::vector<std::string> &functionNames) {
             std::vector<std::shared_ptr<ITransformer>> v;
 
             for (size_t i = 0; i < func.size(); ++i) {
@@ -63,9 +53,9 @@ namespace Aya {
         }
 
         std::vector<std::shared_ptr<ITransformer>> GetTransformers(
-            std::vector<std::function<void(T &, Args...)>> func,
-            const std::vector<std::string> &functionNames,
-            std::vector<std::vector<std::tuple<Args...>>> params) {
+                std::vector<std::function<void(T &, Args...)>> func,
+                const std::vector<std::string> &functionNames,
+                std::vector<std::vector<std::tuple<Args...>>> params) {
             std::vector<std::shared_ptr<ITransformer>> v;
             if (func.size() != params.size()) {
                 throw std::invalid_argument("Vector of functions must match the vector of arguments.");
@@ -74,22 +64,6 @@ namespace Aya {
             for (size_t i = 0; i < params.size(); ++i) {
                 auto transformers = GetTransformersInternal(functionNames[i], func[i], params[i]);
                 v.insert(v.end(), transformers.begin(), transformers.end());
-            }
-            return v;
-        }
-
-        std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> MapTransformersToStateIndex(
-            std::function<void(T &, Args...)> func,
-            const std::string &functionName, std::vector<std::tuple<Args...>> params, size_t index,
-            const std::vector<std::string> &argNameOverrides) {
-            auto v = std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>();
-            auto transformers = GetTransformersInternal(functionName, func, params);
-
-            for (std::shared_ptr<ITransformer> &i: transformers) {
-                i->OverrideArgNames(argNameOverrides);
-                v.push_back(
-                    std::make_shared<std::pair<size_t,
-                    std::shared_ptr<ITransformer>>>(std::make_pair(index, std::move(i))));
             }
             return v;
         }

@@ -63,8 +63,6 @@ namespace MetamorphicRelationGenTests {
         inputTransformerPool.insert({0, doubleTransformers}); // x
         inputTransformerPool.insert({1, doubleTransformers}); // y
 
-        std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformerPool;
-        outputTransformerPool.insert(outputTransformerPool.end(), doubleTransformersForOutput.begin(), doubleTransformersForOutput.end()); // return value
 #pragma endregion
         size_t overallMatchCount = 0;
         // MR Builder for a function returning type double, tracked output type double, and two arguments of type double
@@ -78,7 +76,7 @@ namespace MetamorphicRelationGenTests {
         }
 
         auto mrBuilder = Aya::MRBuilder<double, double, double, double>(poww, compare,
-            inputTransformerPool, outputTransformerPool, 0, 0, doubleTransformersForOutput, usableIndices);
+            inputTransformerPool, doubleTransformersForOutput, 0, 0, doubleTransformersForOutput, usableIndices);
         mrBuilder.SetEnableImplicitOutputTransforms(true);
         std::vector<std::vector<std::any>> testedInputs;
         std::vector<Aya::MetamorphicRelation> finalMRs;

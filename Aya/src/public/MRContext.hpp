@@ -41,9 +41,6 @@ namespace Aya {
                            &inputTransformChain,
                            const std::vector<std::shared_ptr<ITransformer>> &outputConstantTransformerPool,
                            const std::vector<std::shared_ptr<ITransformer>> &outputVariableTransformerPool,
-                           // Output variable transformers to be overridden
-                           const size_t leftValueIndex,
-                           const size_t rightValueIndex,
                            // Indices of arguments to use as an override. If vec is empty, assumed that no arg transform is executed.
                            const std::vector<std::vector<size_t>> &matchingOutputIndices,
                            const size_t outputTransformChainLength)
@@ -53,17 +50,10 @@ namespace Aya {
               m_Comparer(comparer),
               m_OutputConstantTransformers(outputConstantTransformerPool),
               m_OutputVariableTransformers(outputVariableTransformerPool),
-              m_LeftValueIndex(leftValueIndex),
-              m_RightValueIndex(rightValueIndex),
               m_OutputTransformChainLength(outputTransformChainLength) {
             std::sort(m_InputTransforms.begin(), m_InputTransforms.end(), [](auto &left, auto &right) {
                 return left->first < right->first;
             });
-
-            if (m_MatchingArgumentIndices.size() != m_OutputVariableTransformers.size()) {
-                throw std::invalid_argument(
-                    "MRContext: Matching Argument Indices and Output variable transformer vector sizes must match. If there are Transformers without args, pass empty vector instead.");
-            }
 
             m_TotalMatches = 0;
             m_BuildImplicitOutputTransforms = false;
@@ -95,7 +85,7 @@ namespace Aya {
             // Samples are the transformed outputs trying to match changes from initial to follow up
             if (m_BuildImplicitOutputTransforms) {
                 auto variableOutputTransformers = ProduceVariableOutputTransformers(
-                    initialStateVector, m_RightValueIndex);
+                    initialStateVector, rightValueIndex);
                 totalOutputTransformerPool.insert(totalOutputTransformerPool.end(), variableOutputTransformers.begin(),
                                                   variableOutputTransformers.end());
             }
@@ -109,7 +99,7 @@ namespace Aya {
                 for (auto &p: pos) {
                     for (const auto &i: p) {
                         auto pair = std::make_shared<std::pair<size_t, std::shared_ptr<Aya::ITransformer>>>(
-                            m_RightValueIndex, totalOutputTransformerPool[i]);
+                            rightValueIndex, totalOutputTransformerPool[i]);
                         outputTransformChain.push_back(pair);
                     }
                 }
@@ -119,8 +109,8 @@ namespace Aya {
 
             for (auto &outputTransformChain: generatedOutputTransformChains) {
                 auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
-                if (CompareTargetElements(std::any_cast<U>(sampleOutput[rightValueIndex]),
-                                          std::any_cast<U>(followUpStateVec[leftValueIndex]))) {
+                if (CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
+                                          std::any_cast<U>(sampleOutput[rightValueIndex]))) {
                     metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
                     m_TotalMatches++;
                 }
@@ -135,8 +125,6 @@ namespace Aya {
         std::function<bool(U, U)> m_Comparer;
         std::vector<std::shared_ptr<ITransformer>> m_OutputConstantTransformers;
         std::vector<std::shared_ptr<ITransformer>> m_OutputVariableTransformers;
-        const size_t m_LeftValueIndex;
-        const size_t m_RightValueIndex;
         const size_t m_OutputTransformChainLength;
         size_t m_TotalMatches = 0;
         bool m_BuildImplicitOutputTransforms = false;

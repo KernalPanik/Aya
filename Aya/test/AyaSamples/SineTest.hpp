@@ -24,10 +24,10 @@ inline void GenerateMRsForSine() {
     std::vector<std::vector<std::tuple<double>>> inputTransformerArgumentPool;
     std::vector<std::vector<std::tuple<double>>> outputTransformerArgumentPool;
 
-    inputTransformerArgumentPool.push_back({{-1}});
-    inputTransformerArgumentPool.push_back({{-1.0}});
-    inputTransformerArgumentPool.push_back({{1}});
-    inputTransformerArgumentPool.push_back({{1.0}});
+    inputTransformerArgumentPool.push_back({{-1}, {1.0}});
+    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}});
+    inputTransformerArgumentPool.push_back({{1.0}, {-1.0}});
+    inputTransformerArgumentPool.push_back({{1.0}, {-1.0}});
 
     outputTransformerArgumentPool.push_back({{-1}});
     outputTransformerArgumentPool.push_back({{-1.0}});

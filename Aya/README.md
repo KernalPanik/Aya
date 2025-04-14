@@ -25,6 +25,34 @@ Aya allows to operate on abstract functions of any signature, and transformers o
 
 ## Aya MR Generation Procedure
 
-## Tested Functions
+There are 4 components in Aya:
 
-## How To Build & Run
+### ITransformer
+
+Interface for a given input/output transformer. Encapsulates *std:function<void(T&, Args...)>* function pointer alongside with concrete Tuple of *Args...*. This is done to allow combining Transformers of any signature together.
+
+### TransformBuilder
+
+An Interface that allows to produce chains of *ITransformer* instances which accepts a collection of Transform functions and corresponding arguments to produce a pool of Transforms to be used in *MRBuilder*.
+
+### MRBuilder
+
+Component that Accepts Transformer Pools for inputs and outputs, tested function with sample inputs, and combines transforms into chains of specified length, verifying if any produced input and output Transformer Chains form a Metamorphic Relation.
+
+### MetamorphicRelation
+
+A structure with a form:
+
+```
+struct MetamorphicRelation
+{
+    std::vector<ITransformer> inputTransformerChain;
+    std::vector<ITransformer> outputTransformerChain;
+};
+```
+
+Also contains functions to validate the given MR against a different set of sample inputs.
+
+## How To Build & Runs
+
+*Aya* is built as a library. To produce it, execute `ProduceLib.sh` script, or run `CMake` on a supplied `CMakeLists.txt` file.

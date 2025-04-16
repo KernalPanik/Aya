@@ -59,7 +59,7 @@ Also contains functions to validate the given MR against a different set of samp
 
 MR Generation consists of 3 synchronous calls to core components:
 
-![image](../Aya/Docs/MRSearchModel.drawio.png)
+![image](Aya/Docs/MRSearchModel.drawio.png)
 
 ## How To Build & Runs
 

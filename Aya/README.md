@@ -25,6 +25,8 @@ Aya allows to operate on abstract functions of any signature, and transformers o
 
 ## Aya MR Generation Procedure
 
+For usage examples, refer to Tests in `test/AyaSamples`. 
+
 There are 4 components in Aya:
 
 ### ITransformer
@@ -52,6 +54,12 @@ struct MetamorphicRelation
 ```
 
 Also contains functions to validate the given MR against a different set of sample inputs.
+
+### MR Generation Sequence
+
+MR Generation consists of 3 synchronous calls to core components:
+
+![image](../Aya/Docs/MRSearchModel.drawio.png)
 
 ## How To Build & Runs
 

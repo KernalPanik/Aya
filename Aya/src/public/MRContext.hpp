@@ -136,6 +136,13 @@ namespace Aya {
             return producedState;
         }
 
+       /*
+        * NOTE:
+        * Effectively, this function always overrides the 'first' argument that comes after the base value.
+        * This is a bug that was discovered recently. Transformers with multiple arguments, that are not possible
+        * to be split into multiple smaller (one base, one modifier) transformers cannot be overridden.
+        * Workaround: split larger transformers into several smaller ones.
+        */
         std::vector<std::shared_ptr<ITransformer>> ProduceVariableOutputTransformers(
             std::vector<std::any> &stateVector, size_t targetOutputIndex) const {
             std::vector<std::shared_ptr<ITransformer>> newOutputTransformers;
@@ -144,7 +151,7 @@ namespace Aya {
                 for (auto &index: m_MatchingArgumentIndices[i]) {
                     auto copp = m_OutputVariableTransformers[i]->Clone();
                     newOutputTransformers.push_back(copp);
-                    newOutputTransformers.back()->OverrideArgs({stateVector[index + 1]});
+                    newOutputTransformers.back()->OverrideArgs({stateVector[index + 1]}, index+1);
                     newOutputTransformers.back()->OverrideArgNames({"input[" + std::to_string(index) + "]"});
                 }
             }

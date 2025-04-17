@@ -38,3 +38,7 @@ inline void Square(double &b) {
 }
 
 inline void Noop(double &b, double val) {}
+
+inline bool equals(const double x, const double y) {
+    return fabs(x - y) < 1e-6;
+}

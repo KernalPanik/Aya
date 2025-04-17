@@ -25,7 +25,10 @@ namespace Aya {
 
         virtual void OverrideArgNames(std::vector<std::string> newNames) = 0;
 
-        virtual void OverrideArgs(const std::vector<std::any> &newArgs) = 0;
+        virtual void OverrideArgs(const std::vector<std::any> &newArgs, size_t overriddenArgIndex) = 0;
+
+        // Return an index of a stateVector which was used to override the argument
+        virtual size_t GetOverriddenArgIndex() = 0;
 
         virtual std::shared_ptr<ITransformer> Clone() = 0;
     };
@@ -44,6 +47,8 @@ namespace Aya {
             }
             data = baseValue;
         }
+
+        size_t GetOverriddenArgIndex() override { return 0; }
 
         void Apply(void *data) override {
             if (data == nullptr) {
@@ -84,7 +89,7 @@ namespace Aya {
         void OverrideArgNames(std::vector<std::string> newNames) override {
         }
 
-        void OverrideArgs(const std::vector<std::any> &newArgs) override {
+        void OverrideArgs(const std::vector<std::any> &newArgs, const size_t overriddenArgIndex) override {
         }
 
     private:
@@ -98,11 +103,13 @@ namespace Aya {
     public:
         explicit Transformer(std::string functionName, std::function<void(T &, Args...)> f, Args &&... args)
             : m_Func(f), m_FunctionName(std::move(functionName)), m_Args(std::make_tuple(std::forward<Args>(args)...)),
+              m_OverriddenArgIndex(0),
               m_ArgNames(std::vector<std::string>()) {
         }
 
         Transformer(std::string functionName, std::function<void(T &, Args...)> f, std::tuple<Args...> args)
-            : m_Func(f), m_FunctionName(std::move(functionName)), m_Args(args), m_ArgNames(std::vector<std::string>()) {
+            : m_Func(f), m_FunctionName(std::move(functionName)), m_Args(args), m_OverriddenArgIndex(0),
+              m_ArgNames(std::vector<std::string>()) {
         }
 
         void Apply(std::any &data) override {
@@ -112,6 +119,7 @@ namespace Aya {
             }
             data = baseValue;
         }
+
 
         void Apply(void *data) override {
             if (data == nullptr) {
@@ -163,13 +171,18 @@ namespace Aya {
             m_ArgNames = newNames;
         }
 
-        void OverrideArgs(const std::vector<std::any> &newArgs) override {
+        void OverrideArgs(const std::vector<std::any> &newArgs, const size_t overriddenArgIndex) override {
             if (TupleVec(m_Args).size() != newArgs.size()) {
                 throw std::invalid_argument("Invalid number of arguments to override.");
             }
 
+            m_OverriddenArgIndex = overriddenArgIndex;
             auto t = Tuplify<Args...>(newArgs);
             m_Args = t;
+        }
+
+        size_t GetOverriddenArgIndex() override {
+            return m_OverriddenArgIndex;
         }
 
         std::shared_ptr<ITransformer> Clone() override {
@@ -183,6 +196,7 @@ namespace Aya {
         std::function<void(T &, Args...)> m_Func;
         std::string m_FunctionName;
         std::tuple<Args...> m_Args;
+        size_t m_OverriddenArgIndex;
         std::vector<std::string> m_ArgNames;
 
         size_t m_Repeat = 1;

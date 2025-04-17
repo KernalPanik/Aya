@@ -10,10 +10,6 @@ inline double sine(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
 }
 
-inline bool equals(const double x, const double y) {
-    return fabs(x - y) < 1e-6;
-}
-
 inline void GenerateMRsForSine() {
     const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos};
     const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos"};

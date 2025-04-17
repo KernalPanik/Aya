@@ -71,6 +71,8 @@ namespace Aya {
         std::vector<std::any> followUpState = CaptureProducedState<T, U, Args...>(func, followUpInputs);
         std::vector<std::any> sampleState = initialState;
         for (const auto &transformer: mr.OutputTransformers) {
+            size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
+            transformer->second->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
             transformer->second->Apply(sampleState[rightValueIndex]);
         }
 
@@ -92,7 +94,6 @@ namespace Aya {
             inputVariantCount *= inputPool.size();
         }
         std::vector inputIteratorsTmp(1, CartesianIterator(inputSizes));
-
         for (auto & MR : MRs) {
             size_t validTestCount = 0;
             CompositeCartesianIterator inputIterator(inputIteratorsTmp);

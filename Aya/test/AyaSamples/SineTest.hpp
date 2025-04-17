@@ -80,12 +80,7 @@ inline void GenerateMRsForSine() {
     // sin2(x) = cos2(x) - 1 * -1
     std::vector<std::vector<std::any>> validatorInputs;
     validatorInputs.reserve(6);
-    validatorInputs.push_back({15.0});
-    validatorInputs.push_back({45.0});
-    validatorInputs.push_back({90.0});
-    validatorInputs.push_back({-15.0});
-    validatorInputs.push_back({-45.0});
-    validatorInputs.push_back({-95.0});
+    validatorInputs.push_back({15.0, 45.0, 90.0, -15.0, -45.0, -90.0, 45.0, 0.0});
 
     Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), equals, finalMRs,
                                                   validatorInputs, 0, 1);

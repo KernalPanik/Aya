@@ -85,17 +85,36 @@ namespace Aya {
     void CalculateMRScore(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
                           std::vector<MetamorphicRelation> &MRs, const std::vector<std::vector<std::any>> &inputs,
                           const size_t leftValueIndex, const size_t rightValueIndex) {
+        std::vector<size_t> inputSizes;
+        size_t inputVariantCount = 1;
+        for (const auto& inputPool : inputs) {
+            inputSizes.push_back(inputPool.size());
+            inputVariantCount *= inputPool.size();
+        }
+        std::vector inputIteratorsTmp(1, CartesianIterator(inputSizes));
+
         for (auto & MR : MRs) {
             size_t validTestCount = 0;
-            for (const auto & input : inputs) {
-                const bool v = Aya::ValidateInputVariant<T, U, Args...>(
-                    static_cast<std::function<T(Args...)>>(func), comparerFunction,
-                    MR, input, leftValueIndex, rightValueIndex);
-                if (v) {
-                    validTestCount += 1;
+            CompositeCartesianIterator inputIterator(inputIteratorsTmp);
+            while (!inputIterator.isDone()) {
+                auto pos = inputIterator.getPos();
+                std::vector<std::any> evaluatedInput;
+                size_t x = 0;
+                for (auto &p : pos) {
+                    for (auto &q : p) {
+                        evaluatedInput.push_back(inputs[x][q]);
+                        x++;
+                    }
+                    const bool v = Aya::ValidateInputVariant<T, U, Args...>(
+                        static_cast<std::function<T(Args...)>>(func), comparerFunction,
+                        MR, evaluatedInput, leftValueIndex, rightValueIndex);
+                    if (v) {
+                        validTestCount += 1;
+                    }
                 }
+                inputIterator.next();
             }
-            const float successRate = static_cast<float>(validTestCount) / static_cast<float>(inputs.size());
+            const float successRate = static_cast<float>(validTestCount) / static_cast<float>(inputVariantCount);
             MR.SetLastSuccessRate(successRate);
         }
     }

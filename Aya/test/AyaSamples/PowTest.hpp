@@ -67,5 +67,5 @@ inline void GenerateMRsForPow() {
     Aya::CalculateMRScore<double, double, double, double>(
         static_cast<std::function<double(double, double)>>(Pow), equals, finalMRs, validatorInputs, 0, 0);
 
-    Aya::DumpMrsToStdout(finalMRs, 0.1);
+    Aya::DumpMrsToStdout(finalMRs, 0.5);
 }

@@ -10,9 +10,11 @@ inline double sine(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
 }
 
-inline void GenerateMRsForSine() {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos"};
+inline void GenerateMRsForSineOrCos(std::function<double(double)> testedFunction, const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength) {
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -64,7 +66,7 @@ inline void GenerateMRsForSine() {
     for (size_t i = 3; i < inputTransformers.size() - 1; ++i) {
         variableTransformerIndices.push_back({0});
     }
-    auto mrBuilder = Aya::MRBuilder<double, double, double>(sine, equals, inputTransformerPool, outputTransformerPool,
+    auto mrBuilder = Aya::MRBuilder<double, double, double>(testedFunction, equals, inputTransformerPool, outputTransformerPool,
                                                             0, 1, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
@@ -72,14 +74,12 @@ inline void GenerateMRsForSine() {
     std::vector<std::vector<std::any>> testedInputs;
     std::vector<Aya::MetamorphicRelation> finalMRs;
     testedInputs.push_back({15.0, 30.0, 180.0, -15.0, -30.0, -180.0, 45.0, 0.0});
-    mrBuilder.SearchForMRs(testedInputs, 1, 3, overallMatchCount, finalMRs);
-    // sin2(x) = cos2(x) - 1 * -1
+    mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
     std::vector<std::vector<std::any>> validatorInputs;
     validatorInputs.reserve(6);
     validatorInputs.push_back({15.0, 45.0, 90.0, -15.0, -45.0, -90.0, 45.0, 0.0});
 
     Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), equals, finalMRs,
                                                   validatorInputs, 0, 1);
-
-    Aya::DumpMrsToStdout(finalMRs, 0.5);
+    Aya::ProduceMREvaluationReport(finalMRs, outputMRFile);
 }

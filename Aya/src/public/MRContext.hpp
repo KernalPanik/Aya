@@ -111,7 +111,7 @@ namespace Aya {
                 auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
                 if (CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
                                           std::any_cast<U>(sampleOutput[rightValueIndex]))) {
-                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
+                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
                     m_TotalMatches++;
                 }
             }

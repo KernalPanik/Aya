@@ -9,13 +9,17 @@ namespace Aya {
     struct MetamorphicRelation {
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> InputTransformers;
         std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> OutputTransformers;
+        size_t InputFollowUpIndex;
+        size_t OutputFollowUpIndex;
         float LastSuccessRate;
 
         explicit MetamorphicRelation(
             std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> inputTransformers,
-            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformers)
+            std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>> outputTransformers,
+            size_t inputFollowUpIndex,
+            size_t outputFollowUpIndex)
             : InputTransformers(std::move(inputTransformers)), OutputTransformers(std::move(outputTransformers)),
-              LastSuccessRate(0.0f) {
+            InputFollowUpIndex(0), OutputFollowUpIndex(0), LastSuccessRate(0.0f) {
         }
 
         [[nodiscard]]
@@ -24,12 +28,14 @@ namespace Aya {
             for (const auto & InputTransformer : InputTransformers) {
                 ss << InputTransformer->second->ToString("InitialInput", InputTransformer->first) << " ";
             }
-            ss << " => ";
+            ss << " === ";
             for (const auto & OutputTransformer : OutputTransformers) {
                 ss << OutputTransformer->second->ToString("InitialOutputState", OutputTransformer->first) <<
                         " ";
             }
 
+            ss << " => ";
+            ss << "InputFollowUpState[0]" << " == " << "OutputFollowUpState[0]";
             ss << " LastSuccessRate: " << LastSuccessRate;
 
             return ss.str();
@@ -41,7 +47,7 @@ namespace Aya {
     };
 
     inline void DumpMRsToFile(const std::vector<MetamorphicRelation> &MRs, const std::string &path,
-                              float successRateThreshold, std::ios_base::openmode mode) {
+                              const float successRateThreshold, const std::ios_base::openmode mode) {
         std::ofstream outputFile(path, mode);
         for (const auto & MR : MRs) {
             if (MR.LastSuccessRate > successRateThreshold) {

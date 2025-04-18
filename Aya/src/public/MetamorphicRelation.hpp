@@ -19,7 +19,7 @@ namespace Aya {
             size_t inputFollowUpIndex,
             size_t outputFollowUpIndex)
             : InputTransformers(std::move(inputTransformers)), OutputTransformers(std::move(outputTransformers)),
-            InputFollowUpIndex(0), OutputFollowUpIndex(0), LastSuccessRate(0.0f) {
+            InputFollowUpIndex(inputFollowUpIndex), OutputFollowUpIndex(outputFollowUpIndex), LastSuccessRate(0.0f) {
         }
 
         [[nodiscard]]
@@ -35,7 +35,7 @@ namespace Aya {
             }
 
             ss << " => ";
-            ss << "InputFollowUpState[0]" << " == " << "OutputFollowUpState[0]";
+            ss << "InputFollowUpState[" << InputFollowUpIndex << "]" << " == " << "OutputFollowUpState[" << OutputFollowUpIndex << "]";
             ss << " LastSuccessRate: " << LastSuccessRate;
 
             return ss.str();

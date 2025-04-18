@@ -6,7 +6,9 @@ inline double Pow(double x, double y) {
     return pow(x, y);
 }
 
-inline void GenerateMRsForPow() {
+inline void GenerateMRsForPow(std::function<double(double, double)> testedFunction, const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength) {
     // Prepare an array of transformer functions
     const std::vector<std::function<void(double &, double)> > inputTransformerFuncs = {Div, Mul, Add, Sub, Noop};
     const std::vector<std::string> inputTransformNames = {"Div", "Mul", "Add", "Sub", "Noop"};
@@ -51,7 +53,7 @@ inline void GenerateMRsForPow() {
         usableIndices.emplace_back(tmp);
     }
 
-    auto mrBuilder = Aya::MRBuilder<double, double, double, double>(Pow, equals,
+    auto mrBuilder = Aya::MRBuilder<double, double, double, double>(testedFunction, equals,
                                                                     inputTransformerPool, doubleTransformersForOutput,
                                                                     0, 0, doubleTransformersForOutput, usableIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
@@ -59,7 +61,7 @@ inline void GenerateMRsForPow() {
     std::vector<Aya::MetamorphicRelation> finalMRs;
     testedInputs.push_back({10.0, 11.0, 12.0});
     testedInputs.push_back({2.0, 3.0, 4.0});
-    mrBuilder.SearchForMRs(testedInputs, 1, 1, overallMatchCount, finalMRs);
+    mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
     std::vector<std::vector<std::any> > validatorInputs;
     validatorInputs.reserve(2);
@@ -68,4 +70,5 @@ inline void GenerateMRsForPow() {
 
     Aya::CalculateMRScore<double, double, double, double>(
         static_cast<std::function<double(double, double)>>(Pow), equals, finalMRs, validatorInputs, 0, 0);
+    Aya::ProduceMREvaluationReport(finalMRs, outputMRFile);
 }

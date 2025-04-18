@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cmath>
 
 inline double Pow(double x, double y) {
@@ -66,6 +68,4 @@ inline void GenerateMRsForPow() {
 
     Aya::CalculateMRScore<double, double, double, double>(
         static_cast<std::function<double(double, double)>>(Pow), equals, finalMRs, validatorInputs, 0, 0);
-
-    Aya::DumpMrsToStdout(finalMRs, 0.5);
 }

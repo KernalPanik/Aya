@@ -1,5 +1,7 @@
 #pragma once
+
 #include <fstream>
+#include <map>
 #include <sstream>
 
 // Hold transform chains for inputs and outputs
@@ -39,8 +41,8 @@ namespace Aya {
     };
 
     inline void DumpMRsToFile(const std::vector<MetamorphicRelation> &MRs, const std::string &path,
-                              float successRateThreshold) {
-        std::ofstream outputFile(path);
+                              float successRateThreshold, std::ios_base::openmode mode) {
+        std::ofstream outputFile(path, mode);
         for (const auto & MR : MRs) {
             if (MR.LastSuccessRate > successRateThreshold) {
                 outputFile << MR.ToString() << "\n";
@@ -55,6 +57,29 @@ namespace Aya {
                 std::cout << MR.ToString() << "\n";
             }
         }
+    }
+
+    inline void ProduceMREvaluationReport(const std::vector<MetamorphicRelation> &MRs, const std::string MRFilePath) {
+        if (std::filesystem::exists(MRFilePath)) {
+            std::cout << "FYI: MR file at " << MRFilePath << " already exists. Overriding." << std::endl;
+            std::filesystem::remove(MRFilePath);
+        }
+
+        std::ofstream outputFile(MRFilePath, std::ios_base::out | std::ios_base::app);
+        outputFile << "Total MR count: " << MRs.size() << std::endl;
+        std::map<double, size_t> MRCounts;
+        for (const auto & MR : MRs) {
+            MRCounts[MR.LastSuccessRate]++;
+        }
+        outputFile << "MR success rates:" << std::endl;
+        for (const auto &MRcount : MRCounts) {
+            outputFile << "Success rate: " << MRcount.first << ": " << MRcount.second << " instances." << std::endl;
+        }
+
+        outputFile.close();
+        DumpMRsToFile(MRs, MRFilePath, -1.0f, std::ios_base::app);
+
+        std::cout << "Produced MR Evaluation Report at: " << MRFilePath << std::endl;
     }
 
     template<typename T, typename U, typename... Args>

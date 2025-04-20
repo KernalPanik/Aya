@@ -8,3 +8,4 @@
 #include "../../src/public/CoreUtilities.hpp"
 #include "../../src/public/CartesianIterator.h"
 #include "../../src/public/CompositeCartesianIterator.h"
+#include "../../src/common/InputGenerator.hpp"

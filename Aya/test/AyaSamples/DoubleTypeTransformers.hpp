@@ -40,3 +40,7 @@ inline void Noop(double &b, double val) {}
 inline bool equals(const double x, const double y) {
     return fabs(x - y) < 1e-6;
 }
+
+inline bool equalsWithMorePrecision(const double x, const double y) {
+    return fabs(x - y) < 1e-13;
+}

@@ -120,7 +120,6 @@ namespace Aya {
             data = baseValue;
         }
 
-
         void Apply(void *data) override {
             if (data == nullptr) {
                 throw std::invalid_argument("Cannot transform base that is null.");

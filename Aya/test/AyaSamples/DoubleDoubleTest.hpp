@@ -32,19 +32,23 @@ inline double Tan(const double x) {
   	return tan(x * PI / 180);
 }
 
+inline double RadToDeg(const double x) {
+    return x * 180 / PI;
+}
+
 inline double Asin(const double x) {
-	return asin(x);
+	return RadToDeg(asin(x));
 }
 
 inline double Acos(const double x) {
-  	return acos(x);
+  	return RadToDeg(acos(x));
 }
 
 inline double Atan(const double x) {
-  	return atan(x);
+  	return RadToDeg(atan(x));
 }
 
-inline void GenerateMRsForDoubleDoubleArgFunc(std::function<double(double)> testedFunction,
+inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)> &testedFunction,
         const std::function<bool(double, double)> &comparer,
         const std::string &outputMRFile,
         size_t inputTransformerChainLength,
@@ -53,8 +57,8 @@ inline void GenerateMRsForDoubleDoubleArgFunc(std::function<double(double)> test
         size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
         const std::vector<std::vector<std::any>> &validatorInputs) {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos"};
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -116,5 +120,5 @@ inline void GenerateMRsForDoubleDoubleArgFunc(std::function<double(double)> test
 
     Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), equals, finalMRs,
                                                   validatorInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, outputMRFile);
+    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, doubleTypeToString, outputMRFile);
 }

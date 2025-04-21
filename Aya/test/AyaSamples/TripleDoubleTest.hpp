@@ -15,8 +15,8 @@ inline void GenerateMRsForPow(const std::function<double(double, double)> &teste
     	size_t outputTransformerChainLength,
         size_t leftValueIndex,
         size_t rightValueIndex,
-    	std::vector<std::vector<std::any>> testedInputs,
-    	std::vector<std::vector<std::any>> validationInputs) {
+    	const std::vector<std::vector<std::any>>& testedInputs,
+    	const std::vector<std::vector<std::any>>& validationInputs) {
     // Prepare an array of transformer functions
     const std::vector<std::function<void(double &, double)>> inputTransformerFuncs = {Div, Mul, Add, Sub, Noop};
     const std::vector<std::string> inputTransformNames = {"Div", "Mul", "Add", "Sub", "Noop"};
@@ -70,5 +70,5 @@ inline void GenerateMRsForPow(const std::function<double(double, double)> &teste
 
     Aya::CalculateMRScore<double, double, double, double>(
         static_cast<std::function<double(double, double)>>(testedFunction), comparer, finalMRs, validationInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, outputMRFile);
+    Aya::ProduceMREvaluationReport(finalMRs, validationInputs, doubleTypeToString, outputMRFile);
 }

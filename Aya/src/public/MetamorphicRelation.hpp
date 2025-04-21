@@ -65,13 +65,25 @@ namespace Aya {
         }
     }
 
-    inline void ProduceMREvaluationReport(const std::vector<MetamorphicRelation> &MRs, const std::string MRFilePath) {
+    inline void ProduceMREvaluationReport(const std::vector<MetamorphicRelation> &MRs,
+            const std::vector<std::vector<std::any>>& usedValidationInputs,
+            std::function<std::string(std::any)> inputToString,
+            const std::string MRFilePath) {
         if (std::filesystem::exists(MRFilePath)) {
             std::cout << "FYI: MR file at " << MRFilePath << " already exists. Overriding." << std::endl;
             std::filesystem::remove(MRFilePath);
         }
 
         std::ofstream outputFile(MRFilePath, std::ios_base::out | std::ios_base::app);
+
+        outputFile << "Inputs Used For Validation: " << std::endl;
+        for (auto &inputVec : usedValidationInputs) {
+            for (auto &input : inputVec) {
+                outputFile << inputToString(input) << " ";
+            }
+            outputFile << std::endl;
+        }
+
         outputFile << "Total MR count: " << MRs.size() << std::endl;
         std::map<double, size_t> MRCounts;
         for (const auto & MR : MRs) {

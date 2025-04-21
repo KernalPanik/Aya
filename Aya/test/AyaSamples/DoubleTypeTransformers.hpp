@@ -3,6 +3,13 @@
 
 #define PI 3.1415926
 
+inline std::string doubleTypeToString(const std::any& value) {
+    auto v = std::any_cast<double>(value);
+    std::ostringstream os;
+    os << std::setprecision(15) << v;
+    return os.str();
+}
+
 inline void Add(double &b, double val) {
     b += val;
 }

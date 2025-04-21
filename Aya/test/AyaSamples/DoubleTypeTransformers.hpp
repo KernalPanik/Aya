@@ -20,11 +20,23 @@ inline void Div(double &b, double val) {
 }
 
 inline void Sin(double &b) {
-    b = sin(b * PI / 180) * sin(b * PI / 180);
+    b = sin(b * PI / 180);
 }
 
 inline void Cos(double &b) {
-    b = cos(b * PI / 180) * cos(b * PI / 180);
+    b = cos(b * PI / 180);
+}
+
+inline void SinDivCos(double &b) {
+    auto c = cos(b * PI / 180);
+    auto s = sin(b * PI / 180);
+    b = s / c;
+}
+
+inline void CosDivSin(double &b) {
+    auto c = cos(b * PI / 180);
+    auto s = sin(b * PI / 180);
+    b = c / s;
 }
 
 inline void Sqrt(double &b) {

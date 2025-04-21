@@ -6,23 +6,55 @@
 #include "AyaCore.h"
 #include "DoubleTypeTransformers.hpp"
 
-inline double sineSquared(const double x) {
+// Driver for functions of signature double(double) "double double"
+
+inline double SineSquared(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
 }
 
-inline double cosineSquared(const double x) {
+inline double CosineSquared(const double x) {
     return cos(x * PI / 180) * cos(x * PI / 180);
 }
 
-inline void GenerateMRsForSineOrCosLowPrecision(std::function<double(double)> testedFunction,
+inline double Root(const double x) {
+  	return sqrt(x);
+}
+
+inline double Exp(const double x) {
+  	return exp(x);
+}
+
+inline double Log(const double x) {
+  	return log(x);
+}
+
+inline double Tan(const double x) {
+  	return tan(x * PI / 180);
+}
+
+inline double Asin(const double x) {
+	return asin(x);
+}
+
+inline double Acos(const double x) {
+  	return acos(x);
+}
+
+inline double Atan(const double x) {
+  	return atan(x);
+}
+
+inline void GenerateMRsForDoubleDoubleArgFunc(std::function<double(double)> testedFunction,
         const std::function<bool(double, double)> &comparer,
         const std::string &outputMRFile,
         size_t inputTransformerChainLength,
         size_t outputTransformerChainLength,
+        size_t leftValueIndex,
+        size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
         const std::vector<std::vector<std::any>> &validatorInputs) {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin"};
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -75,7 +107,7 @@ inline void GenerateMRsForSineOrCosLowPrecision(std::function<double(double)> te
         variableTransformerIndices.push_back({0});
     }
     auto mrBuilder = Aya::MRBuilder<double, double, double>(testedFunction, comparer, inputTransformerPool, outputTransformerPool,
-                                                            0, 1, outputTransformers, variableTransformerIndices);
+                                                            leftValueIndex, rightValueIndex, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
     size_t overallMatchCount = 0;
@@ -83,6 +115,6 @@ inline void GenerateMRsForSineOrCosLowPrecision(std::function<double(double)> te
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
     Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), equals, finalMRs,
-                                                  validatorInputs, 0, 1);
+                                                  validatorInputs, leftValueIndex, rightValueIndex);
     Aya::ProduceMREvaluationReport(finalMRs, outputMRFile);
 }

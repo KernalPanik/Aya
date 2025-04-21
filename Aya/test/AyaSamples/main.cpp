@@ -3,7 +3,7 @@
 
 int main() {
 #pragma region TrigTest_Sine_Cosine
-    GenerateMRsForDoubleDoubleArgFunc(SineSquared, equals,
+   /* GenerateMRsForDoubleDoubleArgFunc(SineSquared, equals,
         std::filesystem::current_path().generic_string() + "/Sine2Test.txt",
         1, 3,
         0, 1,
@@ -26,10 +26,10 @@ int main() {
         1, 3,
         0, 1,
         {Aya::GenerateDoublesAsAny(4, 1, 10)},
-        {Aya::GenerateDoublesAsAny(4, 1, 10)});
+        {Aya::GenerateDoublesAsAny(4, 1, 10)});*/
 #pragma endregion
 #pragma region TrigTest_Tan_Atan
-    GenerateMRsForDoubleDoubleArgFunc(Tan, equalsWithMorePrecision,
+    /*GenerateMRsForDoubleDoubleArgFunc(Tan, equalsWithMorePrecision,
         std::filesystem::current_path().generic_string() + "/TanTestHighPrecision.txt",
         1, 1,
         0, 1,
@@ -53,7 +53,7 @@ int main() {
         1, 1,
         0, 1,
         {Aya::GenerateDoublesAsAny(4, 30, 90)},
-        {Aya::GenerateDoublesAsAny(4, 30, 90)});
+        {Aya::GenerateDoublesAsAny(4, 30, 90)});*/
 #pragma endregion
 #pragma region Pow()
     GenerateMRsForPow(Pow, equals, std::filesystem::current_path().generic_string() + "/PowerFuncTest.txt",

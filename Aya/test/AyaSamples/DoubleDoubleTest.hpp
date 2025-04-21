@@ -37,10 +37,16 @@ inline double RadToDeg(const double x) {
 }
 
 inline double Asin(const double x) {
+    if (x > 1 || x < -1) {
+       // throw std::domain_error("Invalid argument");
+    }
 	return RadToDeg(asin(x));
 }
 
 inline double Acos(const double x) {
+    if (x > 1 || x < -1) {
+     //   throw std::domain_error("Invalid argument");
+    }
   	return RadToDeg(acos(x));
 }
 

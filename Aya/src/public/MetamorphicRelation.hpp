@@ -150,11 +150,16 @@ namespace Aya {
                         evaluatedInput.push_back(inputs[x][q]);
                         x++;
                     }
-                    const bool v = Aya::ValidateInputVariant<T, U, Args...>(
-                        static_cast<std::function<T(Args...)>>(func), comparerFunction,
-                        MR, evaluatedInput, leftValueIndex, rightValueIndex);
-                    if (v) {
-                        validTestCount += 1;
+                    try {
+                        const bool v = Aya::ValidateInputVariant<T, U, Args...>(
+                            static_cast<std::function<T(Args...)>>(func), comparerFunction,
+                            MR, evaluatedInput, leftValueIndex, rightValueIndex);
+                        if (v) {
+                            validTestCount += 1;
+                        }
+                    }
+                    catch (std::domain_error &e) {
+                        std::cout << "Exception occurred: " << e.what() << std::endl;
                     }
                 }
                 inputIterator.next();

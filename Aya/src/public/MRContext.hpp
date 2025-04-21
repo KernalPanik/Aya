@@ -72,7 +72,13 @@ namespace Aya {
                                      const size_t rightValueIndex,
                                      std::vector<MetamorphicRelation> &metamorphicRelations) override {
             auto initialStateVector = InvokeInternal(inputs);
-            auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
+            std::vector<std::any> followUpInputs;
+            try {
+                followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
             auto followUpStateVec = InvokeInternal(followUpInputs);
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>>
@@ -108,12 +114,15 @@ namespace Aya {
             }
 
             for (auto &outputTransformChain: generatedOutputTransformChains) {
-                auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
-                if (CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
-                                          std::any_cast<U>(sampleOutput[rightValueIndex]))) {
-                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
-                    m_TotalMatches++;
+                try {
+                    if (auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
+                        CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
+                        std::any_cast<U>(sampleOutput[rightValueIndex]))) {
+                        metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
+                        m_TotalMatches++;
+                    }
                 }
+                catch (std::domain_error &e) {}
             }
         }
 

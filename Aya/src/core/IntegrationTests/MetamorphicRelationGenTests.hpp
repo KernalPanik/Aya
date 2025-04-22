@@ -89,6 +89,14 @@ namespace MetamorphicRelationGenTests {
 
         TEST_EXPECT(overallMatchCount == expectedMatchCount);
         TEST_EXPECT(finalMRs.size() == expectedMatchCount);
+
+        std::vector<std::vector<std::any>> validatorInputs;
+        validatorInputs.reserve(2);
+        validatorInputs.push_back({2.0, 3.0, 4.0, 5.0});
+        validatorInputs.push_back({-1.0, 0.0, 1.0, 2.0, 3.0});
+
+        Aya::CalculateMRScore<double, double, double, double>(
+            static_cast<std::function<double(double, double)>>(poww), compare, finalMRs, validatorInputs, 0, 0);
     }
 
     // No implicit transform generation
@@ -138,11 +146,8 @@ namespace MetamorphicRelationGenTests {
         TEST_EXPECT(overallMatchCount == 135);
 
         std::vector<std::vector<std::any>> validatorInputs;
-        validatorInputs.reserve(4);
-        validatorInputs.push_back({std::vector<int>({1, 2, 3, 4})});
-        validatorInputs.push_back({std::vector<int>({})});
-        validatorInputs.push_back({std::vector<int>{923231, 111142, 123}});
-        validatorInputs.push_back({std::vector<int>{1}});
+        validatorInputs.reserve(1);
+        validatorInputs.push_back({std::vector<int>({1, 2, 3, 4}), std::vector<int>({}), std::vector<int>{923231, 111142, 123}, std::vector<int>{1}});
 
         Aya::CalculateMRScore<std::vector<int>, std::vector<int>, std::vector<int>>(
             static_cast<std::function<std::vector<int>(std::vector<int>)>>(VecInit), nullptr, finalMRs, validatorInputs, 0, 0);

@@ -71,9 +71,31 @@ namespace Aya {
         void ValidateTransformChains(const std::vector<std::any> &inputs, const size_t leftValueIndex,
                                      const size_t rightValueIndex,
                                      std::vector<MetamorphicRelation> &metamorphicRelations) override {
-            auto initialStateVector = InvokeInternal(inputs);
-            auto followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
-            auto followUpStateVec = InvokeInternal(followUpInputs);
+            std::vector<std::any> initialStateVector;
+            try {
+                initialStateVector = InvokeInternal(inputs);
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
+
+            bool logState = false;
+            size_t indexx = 0;
+
+            std::vector<std::any> followUpInputs;
+            try {
+                followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
+            std::vector<std::any> followUpStateVec;
+            try {
+                followUpStateVec = InvokeInternal(followUpInputs);
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>>
                     generatedOutputTransformChains;
@@ -108,12 +130,51 @@ namespace Aya {
             }
 
             for (auto &outputTransformChain: generatedOutputTransformChains) {
-                auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
-                if (CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
-                                          std::any_cast<U>(sampleOutput[rightValueIndex]))) {
-                    metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain);
-                    m_TotalMatches++;
+                try {
+                    // Keep commented out. Uncomment for debugging purposes.
+                    /*if (indexx == 3143) {
+                        logState = true;
+                    }*/
+                    auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
+                    if (logState) {
+                        std::cout << "Initial State: " << std::endl;
+                        for (auto &it : initialStateVector) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                    if (logState) {
+                        std::cout << "FollowUp State: " << std::endl;
+                        for (auto &it : followUpStateVec) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                    if (logState) {
+                        std::cout << "Sample State: " << std::endl;
+                        for (auto &it : sampleOutput) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+
+                    auto success = CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]), std::any_cast<U>(sampleOutput[rightValueIndex]));
+
+                    auto newMR = MetamorphicRelation(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
+                    indexx++;
+                    if (logState) {
+                        std::cout << "MR built was: (indexx):" << indexx << std::endl;
+                        std::cout << newMR.ToString() << std::endl;
+                        std::cout << "success: " << success << std::endl;
+                    }
+
+                    if (success) {
+                        metamorphicRelations.emplace_back(std::move(newMR));
+                        m_TotalMatches++;
+                    }
+                    logState = false;
                 }
+                catch (std::domain_error &e) {}
             }
         }
 
@@ -136,6 +197,13 @@ namespace Aya {
             return producedState;
         }
 
+       /*
+        * NOTE:
+        * Effectively, this function always overrides the 'first' argument that comes after the base value.
+        * This is a bug that was discovered recently. Transformers with multiple arguments, that are not possible
+        * to be split into multiple smaller (one base, one modifier) transformers cannot be overridden.
+        * Workaround: split larger transformers into several smaller ones.
+        */
         std::vector<std::shared_ptr<ITransformer>> ProduceVariableOutputTransformers(
             std::vector<std::any> &stateVector, size_t targetOutputIndex) const {
             std::vector<std::shared_ptr<ITransformer>> newOutputTransformers;
@@ -144,7 +212,7 @@ namespace Aya {
                 for (auto &index: m_MatchingArgumentIndices[i]) {
                     auto copp = m_OutputVariableTransformers[i]->Clone();
                     newOutputTransformers.push_back(copp);
-                    newOutputTransformers.back()->OverrideArgs({stateVector[index + 1]});
+                    newOutputTransformers.back()->OverrideArgs({stateVector[index + 1]}, index+1);
                     newOutputTransformers.back()->OverrideArgNames({"input[" + std::to_string(index) + "]"});
                 }
             }

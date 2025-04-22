@@ -6,17 +6,65 @@
 #include "AyaCore.h"
 #include "DoubleTypeTransformers.hpp"
 
-inline double sine(const double x) {
+// Driver for functions of signature double(double) "double double"
+
+inline double SineSquared(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
 }
 
-inline bool equals(const double x, const double y) {
-    return fabs(x - y) < 1e-6;
+inline double CosineSquared(const double x) {
+    return cos(x * PI / 180) * cos(x * PI / 180);
 }
 
-inline void GenerateMRsForSine() {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos"};
+inline double RootFunc(const double x) {
+  	return sqrt(x);
+}
+
+inline double ExpFunc(const double x) {
+  	return exp(x);
+}
+
+inline double LogFunc(const double x) {
+  	return log(x);
+}
+
+inline double TanFunc(const double x) {
+  	return tan(x * PI / 180);
+}
+
+inline double RadToDeg(const double x) {
+    return x * 180 / PI;
+}
+
+inline double AsinFunc(const double x) {
+    if (x > 1 || x < -1) {
+        throw std::domain_error("Invalid argument");
+    }
+	return RadToDeg(asin(x));
+}
+
+inline double AcosFunc(const double x) {
+    if (x > 1 || x < -1) {
+        throw std::domain_error("Invalid argument");
+    }
+  	return RadToDeg(acos(x));
+}
+
+inline double AtanFunc(const double x) {
+  	return RadToDeg(atan(x));
+}
+
+inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)> &testedFunction,
+        const std::function<bool(double, double)> &comparer,
+        const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength,
+        size_t leftValueIndex,
+        size_t rightValueIndex,
+        const std::vector<std::vector<std::any>> &testedInputs,
+        const std::vector<std::vector<std::any>> &validatorInputs) {
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2, Square};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared", "Square"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -64,31 +112,19 @@ inline void GenerateMRsForSine() {
     std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformerPool;
     outputTransformerPool.insert(outputTransformerPool.end(), outputTransformers.begin(), outputTransformers.end());
 
-    std::vector<std::vector<size_t>> variableTransformerIndices = {{}, {}, {}, {}};
+    std::vector<std::vector<size_t>> variableTransformerIndices = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
     for (size_t i = 3; i < inputTransformers.size() - 1; ++i) {
         variableTransformerIndices.push_back({0});
     }
-    auto mrBuilder = Aya::MRBuilder<double, double, double>(sine, equals, inputTransformerPool, outputTransformerPool,
-                                                            0, 1, outputTransformers, variableTransformerIndices);
+    auto mrBuilder = Aya::MRBuilder<double, double, double>(testedFunction, comparer, inputTransformerPool, outputTransformerPool,
+                                                            leftValueIndex, rightValueIndex, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
     size_t overallMatchCount = 0;
-    std::vector<std::vector<std::any>> testedInputs;
     std::vector<Aya::MetamorphicRelation> finalMRs;
-    testedInputs.push_back({15.0, 30.0, 180.0, -15.0, -30.0, -180.0, 45.0, 0.0});
-    mrBuilder.SearchForMRs(testedInputs, 1, 3, overallMatchCount, finalMRs);
-    // sin2(x) = cos2(x) - 1 * -1
-    std::vector<std::vector<std::any>> validatorInputs;
-    validatorInputs.reserve(6);
-    validatorInputs.push_back({15.0});
-    validatorInputs.push_back({45.0});
-    validatorInputs.push_back({90.0});
-    validatorInputs.push_back({-15.0});
-    validatorInputs.push_back({-45.0});
-    validatorInputs.push_back({-95.0});
+    mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
-    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(sine), equals, finalMRs,
-                                                  validatorInputs, 0, 1);
-
-    Aya::DumpMrsToStdout(finalMRs, 0.5);
+    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), comparer, finalMRs,
+                                                  validatorInputs, leftValueIndex, rightValueIndex);
+    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, doubleTypeToString, outputMRFile);
 }

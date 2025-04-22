@@ -156,7 +156,9 @@ namespace Aya {
             success = comparerFunction(std::any_cast<U>(sampleState[rightValueIndex]),
                                     std::any_cast<U>(followUpState[leftValueIndex]));
         }
-        success = std::any_cast<U>(sampleState[rightValueIndex]) == std::any_cast<U>(followUpState[leftValueIndex]);
+        else {
+            success = std::any_cast<U>(sampleState[rightValueIndex]) == std::any_cast<U>(followUpState[leftValueIndex]);
+        }
 
         if (logStates) {
             std::cout << "success: " << success << std::endl;
@@ -193,7 +195,7 @@ namespace Aya {
                     try {
                         validatorCycleCount++;
                         // Keep commented out if not debugging.
-                        /*if (validatorCycleCount == 3486) {
+                        /*if (validatorCycleCount == 1) {
                             logStates = true;
                             std::cout << "Validating MR " << MR.ToString() << std::endl;
                         }*/

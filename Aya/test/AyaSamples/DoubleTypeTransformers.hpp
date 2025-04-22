@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+#include "DoubleDoubleTest.hpp"
+
 #define PI 3.1415926
 
 inline std::string doubleTypeToString(const std::any& value) {
@@ -32,6 +34,28 @@ inline void Sin(double &b) {
 
 inline void Cos(double &b) {
     b = cos(b * PI / 180);
+}
+
+inline void Tan(double &b) {
+    b = tan(b * PI / 180);
+}
+
+inline void Atan(double &b) {
+    b = atan(b) * 180 / PI;
+}
+
+inline void Asin(double &b) {
+    if (b > 1 || b < -1) {
+        throw std::domain_error("Invalid argument");
+    }
+    b = asin(b) * 180 / PI;
+}
+
+inline void Acos(double &b) {
+    if (b > 1 || b < -1) {
+        throw std::domain_error("Invalid argument");
+    }
+    b = acos(b) * 180 / PI;
 }
 
 inline void Sin2(double &b) {

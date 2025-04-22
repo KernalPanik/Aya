@@ -16,19 +16,19 @@ inline double CosineSquared(const double x) {
     return cos(x * PI / 180) * cos(x * PI / 180);
 }
 
-inline double Root(const double x) {
+inline double RootFunc(const double x) {
   	return sqrt(x);
 }
 
-inline double Exp(const double x) {
+inline double ExpFunc(const double x) {
   	return exp(x);
 }
 
-inline double Log(const double x) {
+inline double LogFunc(const double x) {
   	return log(x);
 }
 
-inline double Tan(const double x) {
+inline double TanFunc(const double x) {
   	return tan(x * PI / 180);
 }
 
@@ -36,21 +36,21 @@ inline double RadToDeg(const double x) {
     return x * 180 / PI;
 }
 
-inline double Asin(const double x) {
+inline double AsinFunc(const double x) {
     if (x > 1 || x < -1) {
         throw std::domain_error("Invalid argument");
     }
 	return RadToDeg(asin(x));
 }
 
-inline double Acos(const double x) {
+inline double AcosFunc(const double x) {
     if (x > 1 || x < -1) {
         throw std::domain_error("Invalid argument");
     }
   	return RadToDeg(acos(x));
 }
 
-inline double Atan(const double x) {
+inline double AtanFunc(const double x) {
   	return RadToDeg(atan(x));
 }
 
@@ -63,8 +63,8 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
         size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
         const std::vector<std::vector<std::any>> &validatorInputs) {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared"};
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2, Square};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared", "Square"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -119,8 +119,6 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     auto mrBuilder = Aya::MRBuilder<double, double, double>(testedFunction, comparer, inputTransformerPool, outputTransformerPool,
                                                             leftValueIndex, rightValueIndex, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
-
-
 
     size_t overallMatchCount = 0;
     std::vector<Aya::MetamorphicRelation> finalMRs;

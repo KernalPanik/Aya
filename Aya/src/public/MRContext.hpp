@@ -71,12 +71,16 @@ namespace Aya {
         void ValidateTransformChains(const std::vector<std::any> &inputs, const size_t leftValueIndex,
                                      const size_t rightValueIndex,
                                      std::vector<MetamorphicRelation> &metamorphicRelations) override {
-            auto initialStateVector = InvokeInternal(inputs);
+            std::vector<std::any> initialStateVector;
+            try {
+                initialStateVector = InvokeInternal(inputs);
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
 
             bool logState = false;
             size_t indexx = 0;
-
-
 
             std::vector<std::any> followUpInputs;
             try {
@@ -85,9 +89,13 @@ namespace Aya {
             catch (std::domain_error &e) {
                 return;
             }
-            auto followUpStateVec = InvokeInternal(followUpInputs);
-
-
+            std::vector<std::any> followUpStateVec;
+            try {
+                followUpStateVec = InvokeInternal(followUpInputs);
+            }
+            catch (std::domain_error &e) {
+                return;
+            }
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>>
                     generatedOutputTransformChains;

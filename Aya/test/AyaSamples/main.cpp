@@ -29,31 +29,60 @@ int main() {
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
 #pragma endregion
 #pragma region TrigTest_Tan_Atan
-    GenerateMRsForDoubleDoubleArgFunc(Tan, equalsWithMorePrecision,
+    GenerateMRsForDoubleDoubleArgFunc(TanFunc, equalsWithMorePrecision,
         std::filesystem::current_path().generic_string() + "/TanTestHighPrecision.txt",
         1, 1,
         0, 1,
         {Aya::GenerateDoublesAsAny(10, 30, 90)},
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
-    GenerateMRsForDoubleDoubleArgFunc(Tan, equals,
+    GenerateMRsForDoubleDoubleArgFunc(TanFunc, equals,
         std::filesystem::current_path().generic_string() + "/TanTest.txt",
         1, 1,
         0, 0,
         {Aya::GenerateDoublesAsAny(10, 30, 90)},
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
 
-    GenerateMRsForDoubleDoubleArgFunc(Atan, equalsWithMorePrecision,
+    GenerateMRsForDoubleDoubleArgFunc(AtanFunc, equalsWithMorePrecision,
         std::filesystem::current_path().generic_string() + "/AtanTestHighPrecision.txt",
         1, 1,
         0, 0,
         {Aya::GenerateDoublesAsAny(10, 30, 90)},
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
-    GenerateMRsForDoubleDoubleArgFunc(Atan, equals,
+    GenerateMRsForDoubleDoubleArgFunc(AtanFunc, equals,
         std::filesystem::current_path().generic_string() + "/AtanTest.txt",
         1, 1,
         0, 0,
         {Aya::GenerateDoublesAsAny(10, 30, 90)},
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
+#pragma endregion
+#pragma region TrigTest_Asin_Acos
+    // asin(sin(sin(x))) = sin(asin(sin(x)))
+    GenerateMRsForDoubleDoubleArgFunc(AsinFunc, equalsWithMorePrecision,
+        std::filesystem::current_path().generic_string() + "/AsinTestHighPrecision.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+    GenerateMRsForDoubleDoubleArgFunc(AsinFunc, equals,
+        std::filesystem::current_path().generic_string() + "/AsinTest.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+
+
+    GenerateMRsForDoubleDoubleArgFunc(AcosFunc, equalsWithMorePrecision,
+        std::filesystem::current_path().generic_string() + "/AcosTestHighPrecision.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+    GenerateMRsForDoubleDoubleArgFunc(AcosFunc, equals,
+        std::filesystem::current_path().generic_string() + "/AcosTest.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
 #pragma endregion
 #pragma region Pow()
     GenerateMRsForPow(Pow, equals, std::filesystem::current_path().generic_string() + "/PowerFuncTest.txt",
@@ -66,5 +95,46 @@ int main() {
         0, 0,
         {Aya::GenerateDoublesAsAny(10, 1, 10), Aya::GenerateDoublesAsAny(10, 1, 5)},
         {Aya::GenerateDoublesAsAny(10, 1, 10), Aya::GenerateDoublesAsAny(10, 1, 5)});
+#pragma endregion
+
+#pragma region log_exp_root
+    GenerateMRsForDoubleDoubleArgFunc(ExpFunc, equalsWithMorePrecision,
+        std::filesystem::current_path().generic_string() + "/ExpTestHighPrecision.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+    GenerateMRsForDoubleDoubleArgFunc(ExpFunc, equals,
+        std::filesystem::current_path().generic_string() + "/ExpTest.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+
+    GenerateMRsForDoubleDoubleArgFunc(LogFunc, equalsWithMorePrecision,
+        std::filesystem::current_path().generic_string() + "/LogTestHighPrecision.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+    GenerateMRsForDoubleDoubleArgFunc(LogFunc, equals,
+        std::filesystem::current_path().generic_string() + "/LogTest.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+
+    GenerateMRsForDoubleDoubleArgFunc(RootFunc, equalsWithMorePrecision,
+        std::filesystem::current_path().generic_string() + "/RootTestHighPrecision.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
+    GenerateMRsForDoubleDoubleArgFunc(RootFunc, equals,
+        std::filesystem::current_path().generic_string() + "/RootTest.txt",
+        1, 1,
+        0, 0,
+        {Aya::GenerateDoublesAsAny(10, 0, 0)},
+        {Aya::GenerateDoublesAsAny(10, 0, 0)});
 #pragma endregion
 }

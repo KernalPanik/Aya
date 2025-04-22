@@ -100,11 +100,22 @@ namespace Aya {
         std::cout << "Produced MR Evaluation Report at: " << MRFilePath << std::endl;
     }
 
+
+    // logStates is meant for debugging purposes. Cast std::any to whatever type you're debugging for prints
+    // and set logStates to True
     template<typename T, typename U, typename... Args>
     bool ValidateInputVariant(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
                               MetamorphicRelation &mr, const std::vector<std::any> &inputs, const size_t leftValueIndex,
-                              const size_t rightValueIndex) {
+                              const size_t rightValueIndex, bool logStates = false) {
         const std::vector<std::any> initialState = CaptureProducedState<T, U, Args...>(func, inputs);
+
+        if (logStates) {
+            std::cout << "initial state: " << std::endl;
+            for (auto &v : initialState) {
+                std::cout << std::any_cast<double>(v) << " ";
+            }
+            std::cout << std::endl;
+        }
 
         std::vector<std::any> followUpInputs = inputs;
         for (const auto &transformer: mr.InputTransformers) {
@@ -112,19 +123,52 @@ namespace Aya {
         }
 
         std::vector<std::any> followUpState = CaptureProducedState<T, U, Args...>(func, followUpInputs);
+
+        if (logStates) {
+            std::cout << "follow up state: " << std::endl;
+            for (auto &v : followUpState) {
+                std::cout << std::any_cast<double>(v) << " ";
+            }
+            std::cout << std::endl;
+        }
+
         std::vector<std::any> sampleState = initialState;
+        if (logStates) {
+            std::cout << "Transforming output element at index " << rightValueIndex << std::endl;
+        }
         for (const auto &transformer: mr.OutputTransformers) {
             auto clone = transformer->second->Clone();
-            size_t overrideIndex = clone->GetOverriddenArgIndex();
+
+            if (logStates) {
+                std::cout << "Original transformer: " << transformer->second->ToString("test", 12) << std::endl;
+                std::cout << "Cloned transformer: " << clone->ToString("test", 12) << std::endl;
+            }
+
+            size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
             clone->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
             clone->Apply(sampleState[rightValueIndex]);
         }
 
+        if (logStates) {
+            std::cout << "sample state: " << std::endl;
+            for (auto &v : sampleState) {
+                std::cout << std::any_cast<double>(v) << " ";
+            }
+            std::cout << std::endl;
+        }
+
+        bool success = false;
         if (comparerFunction) {
-            return comparerFunction(std::any_cast<U>(sampleState[rightValueIndex]),
+            success = comparerFunction(std::any_cast<U>(sampleState[rightValueIndex]),
                                     std::any_cast<U>(followUpState[leftValueIndex]));
         }
-        return std::any_cast<U>(sampleState[rightValueIndex]) == std::any_cast<U>(followUpState[leftValueIndex]);
+        success = std::any_cast<U>(sampleState[rightValueIndex]) == std::any_cast<U>(followUpState[leftValueIndex]);
+
+        if (logStates) {
+            std::cout << "success: " << success << std::endl;
+        }
+
+        return success;
     }
 
     template<typename T, typename U, typename... Args>
@@ -137,6 +181,8 @@ namespace Aya {
             inputSizes.push_back(inputPool.size());
             inputVariantCount *= inputPool.size();
         }
+        size_t validatorCycleCount = 0; // Used to get the iteration on which wanted MR gets validated, needed for debugging.
+        bool logStates = false;
         std::vector inputIteratorsTmp(1, CartesianIterator(inputSizes));
         for (auto & MR : MRs) {
             size_t validTestCount = 0;
@@ -151,12 +197,19 @@ namespace Aya {
                         x++;
                     }
                     try {
+                        validatorCycleCount++;
+                        // Keep commented out if not debugging.
+                        /*if (validatorCycleCount == 3486) {
+                            logStates = true;
+                            std::cout << "Validating MR " << MR.ToString() << std::endl;
+                        }*/
                         const bool v = Aya::ValidateInputVariant<T, U, Args...>(
                             static_cast<std::function<T(Args...)>>(func), comparerFunction,
-                            MR, evaluatedInput, leftValueIndex, rightValueIndex);
+                            MR, evaluatedInput, leftValueIndex, rightValueIndex, logStates);
                         if (v) {
                             validTestCount += 1;
                         }
+                        logStates = false;
                     }
                     catch (std::domain_error &e) {
                         std::cout << "Exception occurred: " << e.what() << std::endl;

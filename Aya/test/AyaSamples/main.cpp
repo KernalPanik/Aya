@@ -59,13 +59,13 @@ int main() {
     GenerateMRsForPow(Pow, equals, std::filesystem::current_path().generic_string() + "/PowerFuncTest.txt",
         1, 1,
         0, 0,
-        {Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10), Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10)},
-        {Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10), Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10)});
+        {Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10), Aya::GenerateNoDecimalDoublesAsAny(4, 1, 5)},
+        {Aya::GenerateNoDecimalDoublesAsAny(4, 1, 10), Aya::GenerateNoDecimalDoublesAsAny(4, 1, 5)});
     GenerateMRsForPow(Pow, equalsWithMorePrecision, std::filesystem::current_path().generic_string() + "/PowerFuncTestHighPrecision.txt",
         1, 1,
         0, 0,
-        {Aya::GenerateDoublesAsAny(4, 1, 10), Aya::GenerateDoublesAsAny(4, 1, 10)},
-        {Aya::GenerateDoublesAsAny(5, 1, 10), Aya::GenerateDoublesAsAny(5, 1, 10)});
+        {Aya::GenerateDoublesAsAny(4, 1, 10), Aya::GenerateDoublesAsAny(4, 1, 5)},
+        {Aya::GenerateDoublesAsAny(5, 1, 10), Aya::GenerateDoublesAsAny(5, 1, 5)});
 #pragma endregion
 
 

@@ -26,11 +26,11 @@ namespace Aya {
         std::string ToString() const {
             std::stringstream ss;
             for (const auto & InputTransformer : InputTransformers) {
-                ss << InputTransformer->second->ToString("InitialInput", InputTransformer->first) << " ";
+                ss << InputTransformer->second->ToString("Input", InputTransformer->first) << " | ";
             }
             ss << " === ";
             for (const auto & OutputTransformer : OutputTransformers) {
-                ss << OutputTransformer->second->ToString("InitialOutputState", OutputTransformer->first) <<
+                ss << OutputTransformer->second->ToString("OutputState", OutputTransformer->first) <<
                         " ";
             }
 
@@ -95,7 +95,7 @@ namespace Aya {
         }
 
         outputFile.close();
-        DumpMRsToFile(MRs, MRFilePath, -1.0f, std::ios_base::app);
+        DumpMRsToFile(MRs, MRFilePath, 0.0f, std::ios_base::app);
 
         std::cout << "Produced MR Evaluation Report at: " << MRFilePath << std::endl;
     }
@@ -138,12 +138,6 @@ namespace Aya {
         }
         for (const auto &transformer: mr.OutputTransformers) {
             auto clone = transformer->second->Clone();
-
-            if (logStates) {
-                std::cout << "Original transformer: " << transformer->second->ToString("test", 12) << std::endl;
-                std::cout << "Cloned transformer: " << clone->ToString("test", 12) << std::endl;
-            }
-
             size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
             clone->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
             clone->Apply(sampleState[rightValueIndex]);
@@ -211,9 +205,7 @@ namespace Aya {
                         }
                         logStates = false;
                     }
-                    catch (std::domain_error &e) {
-                        std::cout << "Exception occurred: " << e.what() << std::endl;
-                    }
+                    catch (std::domain_error &e) {}
                 }
                 inputIterator.next();
             }

@@ -38,14 +38,14 @@ inline double RadToDeg(const double x) {
 
 inline double Asin(const double x) {
     if (x > 1 || x < -1) {
-       // throw std::domain_error("Invalid argument");
+        throw std::domain_error("Invalid argument");
     }
 	return RadToDeg(asin(x));
 }
 
 inline double Acos(const double x) {
     if (x > 1 || x < -1) {
-     //   throw std::domain_error("Invalid argument");
+        throw std::domain_error("Invalid argument");
     }
   	return RadToDeg(acos(x));
 }
@@ -63,8 +63,8 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
         size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
         const std::vector<std::vector<std::any>> &validatorInputs) {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan"};
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -112,7 +112,7 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformerPool;
     outputTransformerPool.insert(outputTransformerPool.end(), outputTransformers.begin(), outputTransformers.end());
 
-    std::vector<std::vector<size_t>> variableTransformerIndices = {{}, {}, {}, {}};
+    std::vector<std::vector<size_t>> variableTransformerIndices = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
     for (size_t i = 3; i < inputTransformers.size() - 1; ++i) {
         variableTransformerIndices.push_back({0});
     }
@@ -120,11 +120,13 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
                                                             leftValueIndex, rightValueIndex, outputTransformers, variableTransformerIndices);
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
+
+
     size_t overallMatchCount = 0;
     std::vector<Aya::MetamorphicRelation> finalMRs;
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
-    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), equals, finalMRs,
+    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), comparer, finalMRs,
                                                   validatorInputs, leftValueIndex, rightValueIndex);
     Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, doubleTypeToString, outputMRFile);
 }

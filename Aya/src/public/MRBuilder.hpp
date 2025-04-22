@@ -61,7 +61,6 @@ namespace Aya {
             }
 
             m_EnableImplicitOutputTransforms = false;
-            m_Comparer = nullptr;
         }
 
         ~MRBuilder() = default;

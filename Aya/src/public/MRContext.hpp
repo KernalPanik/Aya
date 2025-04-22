@@ -72,6 +72,12 @@ namespace Aya {
                                      const size_t rightValueIndex,
                                      std::vector<MetamorphicRelation> &metamorphicRelations) override {
             auto initialStateVector = InvokeInternal(inputs);
+
+            bool logState = false;
+            size_t indexx = 0;
+
+
+
             std::vector<std::any> followUpInputs;
             try {
                 followUpInputs = TransformInputs(inputs, std::index_sequence_for<Args...>{});
@@ -80,6 +86,8 @@ namespace Aya {
                 return;
             }
             auto followUpStateVec = InvokeInternal(followUpInputs);
+
+
 
             std::vector<std::vector<std::shared_ptr<std::pair<size_t, std::shared_ptr<ITransformer>>>>>
                     generatedOutputTransformChains;
@@ -115,12 +123,48 @@ namespace Aya {
 
             for (auto &outputTransformChain: generatedOutputTransformChains) {
                 try {
-                    if (auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
-                        CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]),
-                        std::any_cast<U>(sampleOutput[rightValueIndex]))) {
-                        metamorphicRelations.emplace_back(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
+                    // Keep commented out. Uncomment for debugging purposes.
+                    /*if (indexx == 3143) {
+                        logState = true;
+                    }*/
+                    auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
+                    if (logState) {
+                        std::cout << "Initial State: " << std::endl;
+                        for (auto &it : initialStateVector) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                    if (logState) {
+                        std::cout << "FollowUp State: " << std::endl;
+                        for (auto &it : followUpStateVec) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                    if (logState) {
+                        std::cout << "Sample State: " << std::endl;
+                        for (auto &it : sampleOutput) {
+                            std::cout << std::any_cast<double>(it) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+
+                    auto success = CompareTargetElements(std::any_cast<U>(followUpStateVec[leftValueIndex]), std::any_cast<U>(sampleOutput[rightValueIndex]));
+
+                    auto newMR = MetamorphicRelation(m_InputTransforms, outputTransformChain, leftValueIndex, rightValueIndex);
+                    indexx++;
+                    if (logState) {
+                        std::cout << "MR built was: (indexx):" << indexx << std::endl;
+                        std::cout << newMR.ToString() << std::endl;
+                        std::cout << "success: " << success << std::endl;
+                    }
+
+                    if (success) {
+                        metamorphicRelations.emplace_back(std::move(newMR));
                         m_TotalMatches++;
                     }
+                    logState = false;
                 }
                 catch (std::domain_error &e) {}
             }

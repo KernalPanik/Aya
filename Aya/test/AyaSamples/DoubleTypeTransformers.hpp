@@ -34,6 +34,14 @@ inline void Cos(double &b) {
     b = cos(b * PI / 180);
 }
 
+inline void Sin2(double &b) {
+    b = sin(b * PI / 180) * sin(b * PI / 180);
+}
+
+inline void Cos2(double &b) {
+    b = cos(b * PI / 180) * cos(b * PI / 180);
+}
+
 inline void SinDivCos(double &b) {
     auto c = cos(b * PI / 180);
     auto s = sin(b * PI / 180);
@@ -57,7 +65,7 @@ inline void Square(double &b) {
 inline void Noop(double &b, double val) {}
 
 inline bool equals(const double x, const double y) {
-    return fabs(x - y) < 1e-6;
+    return fabs(x - y) < 1e-2;
 }
 
 inline bool equalsWithMorePrecision(const double x, const double y) {

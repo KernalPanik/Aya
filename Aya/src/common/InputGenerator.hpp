@@ -19,20 +19,7 @@ namespace Aya {
         for (size_t i = 0; i < n; i++) {
             const auto afterDot = std::generate_canonical<double, 128>(generator);
             const auto beforeDot = static_cast<double>(beforeDotGen(generator));
-            result.push_back(beforeDot + afterDot);
-        }
-
-        return result;
-    }
-
-    inline std::vector<std::any> GenerateNoDecimalDoublesAsAny(const size_t n, const int rangeMin, const int rangeMax) {
-        std::vector<std::any> result;
-        result.reserve(n);
-        static std::mt19937_64 generator(std::random_device{}());
-        std::uniform_int_distribution<> intGen(rangeMin, rangeMax);
-        for (size_t i = 0; i < n; i++) {
-            const auto randVal = static_cast<double>(intGen(generator));
-            result.push_back(randVal);
+            result.emplace_back(beforeDot + afterDot);
         }
 
         return result;

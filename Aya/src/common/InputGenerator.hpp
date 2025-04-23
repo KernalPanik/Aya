@@ -24,4 +24,29 @@ namespace Aya {
 
         return result;
     }
+
+    inline std::vector<double> GenerateNDimVectorAsAny(const size_t dim, const int rangeMin, const int rangeMax) {
+        std::vector<double> result;
+        auto v = GenerateDoublesAsAny(dim, rangeMin, rangeMax);
+        result.reserve(dim);
+        for (size_t i = 0; i < dim; i++) {
+            result.push_back(std::any_cast<double>(v[i]));
+        }
+        return result;
+    }
+
+    inline std::vector<std::any> Generate2dVectorsAsAny(const size_t n, const int rangeMin, const int rangeMax) {
+        std::vector<std::any> result;
+
+        for (size_t i = 0; i < n; i++) {
+            auto v = GenerateNDimVectorAsAny(2, rangeMin, rangeMax);
+            std::array<double, 2> arr;
+            arr[0] = v[0];
+            arr[1] = v[1];
+
+            result.emplace_back(arr);
+        }
+
+        return result;
+    }
 }

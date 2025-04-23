@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(Aya CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 26)
 
 if(APPLE)
     set(LIBRARY_EXTENSION "dylib")
@@ -16,6 +16,14 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
+
+if (APPLE)
+find_library(ACCELERATE_FRAMEWORK Accelerate)
+
+    if (NOT ACCELERATE_FRAMEWORK)
+        message(FATAL_ERROR "Accelerate not found")
+    endif ()
+endif ()
 
 add_executable(AyaTest
         test/testMain.cpp
@@ -41,3 +49,7 @@ add_library(Aya SHARED
         src/Common/util.cpp
         src/Common/CartesianIterator.cpp
         src/Common/CompositeCartesianIterator.cpp)
+
+if (APPLE)
+target_link_libraries(AyaSamples ${ACCELERATE_FRAMEWORK})
+endif ()

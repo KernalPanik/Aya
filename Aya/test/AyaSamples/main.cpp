@@ -1,5 +1,6 @@
-#include "DoubleDoubleTest.hpp"
-#include "TripleDoubleTest.hpp"
+#include "StandardMathTest.hpp"
+#include "PowTest.hpp"
+#include "LinalgTest.hpp"
 
 int main() {
 #pragma region TrigTest_Sine_Cosine
@@ -136,5 +137,21 @@ int main() {
         0, 0,
         {Aya::GenerateDoublesAsAny(10, 0, 0)},
         {Aya::GenerateDoublesAsAny(10, 0, 0)});
+#pragma endregion
+
+#pragma region linalg
+    GenerateMRsForMatrixMul(Vec2, vec2dEqual,
+        std::filesystem::current_path().generic_string() + "/MatrixMulTest.txt",
+        5, 2,
+        0, 0,
+        {Aya::Generate2dVectorsAsAny(5, 0, 60)},
+        {Aya::Generate2dVectorsAsAny(5, 0, 60)});
+
+    GenerateMRsForMatrixMul(Vec2, vec2dEqualHighPrecision,
+    std::filesystem::current_path().generic_string() + "/MatrixMulTestHighPrecision.txt",
+    5, 2,
+    0, 0,
+    {Aya::Generate2dVectorsAsAny(5, 0, 60)},
+    {Aya::Generate2dVectorsAsAny(5, 0, 60)});
 #pragma endregion
 }

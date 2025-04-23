@@ -96,8 +96,8 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
 
     std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForOutputs = Aya::TransformBuilder<
         double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames);
-    std::vector<std::shared_ptr<Aya::ITransformer>> doubleArgumentTransformersForOutputs = Aya::TransformBuilder<double
-        , double>().GetTransformers(doubleArgumentTransformerFunctions, doubleArgumentTransformerFunctionNames,
+    std::vector<std::shared_ptr<Aya::ITransformer>> doubleArgumentTransformersForOutputs = Aya::TransformBuilder<double,
+        double>().GetTransformers(doubleArgumentTransformerFunctions, doubleArgumentTransformerFunctionNames,
                                     outputTransformerArgumentPool);
     std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformers;
     outputTransformers.reserve(singleArgumentTransformersForInputs.size() + doubleArgumentTransformersForInputs.size());
@@ -124,7 +124,7 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     std::vector<Aya::MetamorphicRelation> finalMRs;
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
-    Aya::CalculateMRScore<double, double, double>(static_cast<std::function<double(double)>>(testedFunction), comparer, finalMRs,
+    Aya::CalculateMRScore<double, double, double>((testedFunction), comparer, finalMRs,
                                                   validatorInputs, leftValueIndex, rightValueIndex);
     Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, doubleTypeToString, outputMRFile);
 }

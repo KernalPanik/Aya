@@ -26,7 +26,7 @@ namespace Aya {
         std::string ToString() const {
             std::stringstream ss;
             for (const auto & InputTransformer : InputTransformers) {
-                ss << InputTransformer->second->ToString("Input", InputTransformer->first) << " | ";
+                ss << InputTransformer->second->ToString("Input", InputTransformer->first) << " ";
             }
             ss << " === ";
             for (const auto & OutputTransformer : OutputTransformers) {

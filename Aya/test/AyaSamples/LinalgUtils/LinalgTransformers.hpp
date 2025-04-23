@@ -1,7 +1,13 @@
 #pragma once
 
-#include <iostream>
 #include <array>
+
+inline std::string vec2str(const std::any &v) {
+    std::stringstream ss;
+    auto val = std::any_cast<std::array<double, 2>>(v);
+    ss << std::fixed << std::setprecision(15) << val[0] << ' ' << val[1];
+    return ss.str();
+}
 
 static bool vec2dEqual(const std::array<double, 2> v1, const std::array<double, 2> v2) {
     for (int i = 0; i < 2; i++) {
@@ -25,10 +31,9 @@ static bool vec2dEqualHighPrecision(const std::array<double, 2> v1, const std::a
     return true;
 }
 
-
 #pragma region Accelerate
 #if __APPLE__
-// Accelerate is macOS-only feature
+// Accelerate is macOS-only library
 #include <Accelerate/Accelerate.h>
 #endif
 

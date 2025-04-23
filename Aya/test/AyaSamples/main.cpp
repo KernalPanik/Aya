@@ -3,7 +3,6 @@
 #include "LinalgTest.hpp"
 
 int main() {
-    /*
 #pragma region TrigTest_Sine_Cosine
     GenerateMRsForDoubleDoubleArgFunc(SineSquared, equals,
         std::filesystem::current_path().generic_string() + "/Sine2Test.txt",
@@ -139,14 +138,20 @@ int main() {
         {Aya::GenerateDoublesAsAny(10, 0, 0)},
         {Aya::GenerateDoublesAsAny(10, 0, 0)});
 #pragma endregion
-*/
 
 #pragma region linalg
-    GenerateMRsForMatrixMul(SineSquared, equals,
+    GenerateMRsForMatrixMul(Vec2, vec2dEqual,
         std::filesystem::current_path().generic_string() + "/MatrixMulTest.txt",
-        1, 3,
-        0, 1,
-        {Aya::GenerateDoublesAsAny(10, 30, 90)},
-        {Aya::GenerateDoublesAsAny(10, 30, 90)});
+        5, 2,
+        0, 0,
+        {Aya::Generate2dVectorsAsAny(5, 0, 60)},
+        {Aya::Generate2dVectorsAsAny(5, 0, 60)});
+
+    GenerateMRsForMatrixMul(Vec2, vec2dEqualHighPrecision,
+    std::filesystem::current_path().generic_string() + "/MatrixMulTestHighPrecision.txt",
+    5, 2,
+    0, 0,
+    {Aya::Generate2dVectorsAsAny(5, 0, 60)},
+    {Aya::Generate2dVectorsAsAny(5, 0, 60)});
 #pragma endregion
 }

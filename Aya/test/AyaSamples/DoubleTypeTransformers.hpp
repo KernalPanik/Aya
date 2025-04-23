@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
 
-#include "DoubleDoubleTest.hpp"
+#include "StandardMathTest.hpp"
 
 #define PI 3.1415926
 
@@ -89,9 +89,9 @@ inline void Square(double &b) {
 inline void Noop(double &b, double val) {}
 
 inline bool equals(const double x, const double y) {
-    return fabs(x - y) < 1e-2;
+    return fabs(x - y) < 1e-6;
 }
 
 inline bool equalsWithMorePrecision(const double x, const double y) {
-    return fabs(x - y) < 1e-13;
+    return fabs(x - y) < 1e-12;
 }

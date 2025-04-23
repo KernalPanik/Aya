@@ -5,6 +5,7 @@
 #include <sstream>
 #include <tuple>
 #include <vector>
+#include <functional>
 
 namespace Aya {
     template<typename T, typename = void>

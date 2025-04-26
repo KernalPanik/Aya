@@ -2,8 +2,8 @@
 #include "PowTest.hpp"
 #include "LinalgTest.hpp"
 
-int main() {
-#pragma region TrigTest_Sine_Cosine
+void RunFullTest() {
+    #pragma region TrigTest_Sine_Cosine
     GenerateMRsForDoubleDoubleArgFunc(SineSquared, equals,
         std::filesystem::current_path().generic_string() + "/Sine2Test.txt",
         1, 3,
@@ -154,4 +154,46 @@ int main() {
     {Aya::Generate2dVectorsAsAny(5, 0, 60)},
     {Aya::Generate2dVectorsAsAny(5, 0, 60)});
 #pragma endregion
+}
+
+void RunManyRotationsTest(size_t rotationCount) {
+    std::array<double, 2> vec = {1.0, 0.0};
+
+    std::cout << "Rotating vector " << vec[0] << "; " << vec[1] << " by 15 degrees " << rotationCount << " times." << std::endl;
+
+    for (auto i : vec) {
+        std::cout << std::setprecision(15) << i << " ";
+    }
+
+    for (size_t i = 0; i < 24*1000000; i++) {
+        Accelerate_Rotate15deg(vec);
+    }
+
+    for (auto i : vec) {
+        std::cout << std::setprecision(15) << i << " ";
+    }
+    std::cout << std::endl;
+}
+
+void RunSinAsinTest(size_t iterationCount) {
+    std::cout << "Applying Sin " << iterationCount << " times, followed by asin for the same amount of times" << std::endl;
+    double val_deg = 45;
+    double val_rad = val_deg * M_PI / 180;
+
+    std::cout << "start value (rad) " << val_rad << std::endl;
+    std::cout << "start value (deg) " << val_deg << std::endl;
+    for (size_t i = 0; i < 24000; i++) {
+        val_rad = sin(val_rad);
+    }
+    for (size_t i = 0; i < 24000; i++) {
+        val_rad = asin(val_rad);
+    }
+    val_deg = val_rad * 180/M_PI;
+    std::cout << std::setprecision(15) << "end value (rad): " << val_rad << std::endl;
+    std::cout << std::setprecision(15) << "end value (deg): " << val_deg << std::endl;
+}
+
+int main() {
+    RunManyRotationsTest(24);
+    RunSinAsinTest(15000);
 }

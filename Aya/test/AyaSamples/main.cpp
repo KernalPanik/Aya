@@ -1,6 +1,8 @@
 #include "StandardMathTest.hpp"
 #include "PowTest.hpp"
 #include "LinalgTest.hpp"
+#include "TextConversionTests.hpp"
+#include <list>
 
 void RunFullTest() {
     #pragma region TrigTest_Sine_Cosine
@@ -154,6 +156,19 @@ void RunFullTest() {
     {Aya::Generate2dVectorsAsAny(5, 0, 60)},
     {Aya::Generate2dVectorsAsAny(5, 0, 60)});
 #pragma endregion
+
+#pragma region encodingTests
+    EncodedString inputStr = EncodedString("森 ąžuolas звезда по имени солнце ");
+    EncodedString validatorStr = EncodedString("meška ir kopūstas пёс - друг человека にゃん猫");
+    GenerateMRsForTextEncoding(EncodeStringAsUtf8, CompareEncodedStrings,
+                               std::filesystem::current_path().generic_string() + "/EncodingTest.txt",
+                               1,
+                               5,
+                               0,
+                               0,
+                               {{inputStr}},
+                               {{validatorStr}});
+#pragma endregion
 }
 
 void RunManyRotationsTest(size_t rotationCount) {
@@ -165,7 +180,7 @@ void RunManyRotationsTest(size_t rotationCount) {
         std::cout << std::setprecision(15) << i << " ";
     }
 
-    for (size_t i = 0; i < 24*1000000; i++) {
+    for (size_t i = 0; i < rotationCount; i++) {
         Accelerate_Rotate15deg(vec);
     }
 
@@ -176,9 +191,10 @@ void RunManyRotationsTest(size_t rotationCount) {
 }
 
 void RunSinAsinTest(size_t iterationCount) {
+    std::cout << "test";
     std::cout << "Applying Sin " << iterationCount << " times, followed by asin for the same amount of times" << std::endl;
-    double val_deg = 45;
-    double val_rad = val_deg * M_PI / 180;
+    double val_deg = 45.0;
+    double val_rad = val_deg * M_PI / 180.0;
 
     std::cout << "start value (rad) " << val_rad << std::endl;
     std::cout << "start value (deg) " << val_deg << std::endl;
@@ -194,6 +210,5 @@ void RunSinAsinTest(size_t iterationCount) {
 }
 
 int main() {
-    RunManyRotationsTest(24);
-    RunSinAsinTest(15000);
+    RunFullTest();
 }

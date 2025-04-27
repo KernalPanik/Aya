@@ -106,7 +106,7 @@ namespace Aya {
     template<typename T, typename U, typename... Args>
     bool ValidateInputVariant(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
                               MetamorphicRelation &mr, const std::vector<std::any> &inputs, const size_t leftValueIndex,
-                              const size_t rightValueIndex, bool logStates = false) {
+                              const size_t rightValueIndex, bool logStates = false, bool overrideArgs = false) {
         const std::vector<std::any> initialState = CaptureProducedState<T, U, Args...>(func, inputs);
 
         if (logStates) {
@@ -137,10 +137,15 @@ namespace Aya {
             std::cout << "Transforming output element at index " << rightValueIndex << std::endl;
         }
         for (const auto &transformer: mr.OutputTransformers) {
-            auto clone = transformer->second->Clone();
-            size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
-            clone->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
-            clone->Apply(sampleState[rightValueIndex]);
+            if (overrideArgs) {
+                auto clone = transformer->second->Clone();
+                size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
+                clone->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
+                clone->Apply(sampleState[rightValueIndex]);
+            }
+            else {
+                transformer->second->Apply(sampleState[rightValueIndex]);
+            }
         }
 
         if (logStates) {
@@ -170,7 +175,7 @@ namespace Aya {
     template<typename T, typename U, typename... Args>
     void CalculateMRScore(std::function<T(Args...)> func, std::function<bool(U, U)> comparerFunction,
                           std::vector<MetamorphicRelation> &MRs, const std::vector<std::vector<std::any>> &inputs,
-                          const size_t leftValueIndex, const size_t rightValueIndex) {
+                          const size_t leftValueIndex, const size_t rightValueIndex, bool overrideArgs = false) {
         std::vector<size_t> inputSizes;
         size_t inputVariantCount = 1;
         for (const auto& inputPool : inputs) {
@@ -201,7 +206,7 @@ namespace Aya {
                         }*/
                         const bool v = Aya::ValidateInputVariant<T, U, Args...>(
                             static_cast<std::function<T(Args...)>>(func), comparerFunction,
-                            MR, evaluatedInput, leftValueIndex, rightValueIndex, logStates);
+                            MR, evaluatedInput, leftValueIndex, rightValueIndex, logStates, overrideArgs);
                         if (v) {
                             validTestCount += 1;
                         }

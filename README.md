@@ -61,6 +61,15 @@ MR Generation consists of 3 synchronous calls to core components:
 
 ![image](Aya/Docs/MRSearchModel.drawio.png)
 
-## How To Build & Runs
+## How To Build & Run
 
-*Aya* is built as a library. To produce it, execute `ProduceLib.sh` script, or run `CMake` on a supplied `CMakeLists.txt` file.
+```
+cmake CMakeLists.txt
+make
+```
+
+This will produce *AyaSamples* alongside with *libAya* dynamic library.
+
+## Performed Tests
+
+*Aya* was used to produce MRs for standard mathematical functions, provided by *cmath* library. Additionally, matrix-vector multiplication (BLAS) and text encoding (libiconv) was tested using Metamorphic Relation search.

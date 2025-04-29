@@ -74,6 +74,11 @@ inline void Accelerate_Rotate15deg(std::array<double, 2> &vec) {
     Accelerate_MulMatrixBy2dVec(rot, vec);
 }
 
+inline void Accelerate_Rotate360deg(std::array<double, 2> &vec) {
+    const auto rot = Get2dRotationMatrix(360);
+    Accelerate_MulMatrixBy2dVec(rot, vec);
+}
+
 inline void Accelerate_Rotate30deg(std::array<double, 2> &vec) {
     const auto rot = Get2dRotationMatrix(30);
     Accelerate_MulMatrixBy2dVec(rot, vec);

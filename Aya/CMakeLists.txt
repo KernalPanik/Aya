@@ -16,10 +16,16 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-w)
+add_definitions(-lz)
+add_definitions(-liconv)
+
+find_library(ICONV iconv)
+if (NOT ICONV)
+    message(FATAL_ERROR "Failed to locate libiconv")
+endif()
 
 if (APPLE)
-find_library(ACCELERATE_FRAMEWORK Accelerate)
-
+    find_library(ACCELERATE_FRAMEWORK Accelerate)
     if (NOT ACCELERATE_FRAMEWORK)
         message(FATAL_ERROR "Accelerate not found")
     endif ()
@@ -51,5 +57,6 @@ add_library(Aya SHARED
         src/Common/CompositeCartesianIterator.cpp)
 
 if (APPLE)
-target_link_libraries(AyaSamples ${ACCELERATE_FRAMEWORK})
+    target_link_libraries(AyaSamples ${ACCELERATE_FRAMEWORK})
+    target_link_libraries(AyaSamples ${ICONV})
 endif ()

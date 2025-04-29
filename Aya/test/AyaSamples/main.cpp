@@ -5,7 +5,7 @@
 #include <list>
 
 void RunFullTest() {
-    #pragma region TrigTest_Sine_Cosine
+#pragma region TrigTest_Sine_Cosine
     GenerateMRsForDoubleDoubleArgFunc(SineSquared, equals,
         std::filesystem::current_path().generic_string() + "/Sine2Test.txt",
         1, 3,

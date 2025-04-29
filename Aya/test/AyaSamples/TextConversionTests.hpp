@@ -23,12 +23,7 @@ struct EncodedString {
     }
 
     void Encode(const std::string& encoding) {
-        std::cout << "Encoding value " << this->str << std::endl;
-        std::cout << "original encoding: " << this->encoding << std::endl;
-        std::cout << "target encoding: " << encoding << std::endl;
-
         ConvertEncoding(this->str, encoding.c_str(), this->encoding.c_str());
-        std::cout << "got value: " << this->str << std::endl;
         this->encoding = encoding;
     }
 

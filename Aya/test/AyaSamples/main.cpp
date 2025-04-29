@@ -198,10 +198,10 @@ void RunSinAsinTest(size_t iterationCount) {
 
     std::cout << "start value (rad) " << val_rad << std::endl;
     std::cout << "start value (deg) " << val_deg << std::endl;
-    for (size_t i = 0; i < 24000; i++) {
+    for (size_t i = 0; i < iterationCount; i++) {
         val_rad = sin(val_rad);
     }
-    for (size_t i = 0; i < 24000; i++) {
+    for (size_t i = 0; i < iterationCount; i++) {
         val_rad = asin(val_rad);
     }
     val_deg = val_rad * 180/M_PI;
@@ -211,4 +211,6 @@ void RunSinAsinTest(size_t iterationCount) {
 
 int main() {
     RunFullTest();
+    RunManyRotationsTest(24*15*1000000);
+    RunSinAsinTest(24000);
 }

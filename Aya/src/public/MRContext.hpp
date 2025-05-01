@@ -132,7 +132,7 @@ namespace Aya {
             for (auto &outputTransformChain: generatedOutputTransformChains) {
                 try {
                     // Keep commented out. Uncomment for debugging purposes.
-                    /*if (indexx == 3143) {
+                    /*if (indexx == 0) {
                         logState = true;
                     }*/
                     auto sampleOutput = TransformOutputs(initialStateVector, outputTransformChain);
@@ -172,7 +172,7 @@ namespace Aya {
                         metamorphicRelations.emplace_back(std::move(newMR));
                         m_TotalMatches++;
                     }
-                    logState = false;
+                    //logState = false;
                 }
                 catch (std::domain_error &e) {}
             }

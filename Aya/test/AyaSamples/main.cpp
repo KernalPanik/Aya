@@ -209,8 +209,39 @@ void RunSinAsinTest(size_t iterationCount) {
     std::cout << std::setprecision(15) << "end value (deg): " << val_deg << std::endl;
 }
 
+inline double Tax(double income) {
+    if (income < 0.0) {
+        return 0.0;
+    }
+
+    if (income > 60000) {
+        return income / 3;
+    }
+
+    return income / 4;
+}
+
 int main() {
-    RunFullTest();
-    RunManyRotationsTest(24*15*1000000);
-    RunSinAsinTest(24000);
+    GenerateMRsForDoubleDoubleArgFunc(mul2, equals,
+            std::filesystem::current_path().generic_string() + "/Mul2Test.txt",
+            1, 1,
+            0, 1,
+            {{1.0, 4.0, 9.0}},
+            {{10.0, 20.0, 30.0}});
+
+    std::vector<std::any> validationVals;
+    for (size_t i = 0; i < 100; i++) {
+        validationVals.push_back(i * 1000.0);
+    }
+
+    GenerateMRsForDoubleDoubleArgFunc(Tax, equalsWithMorePrecision,
+    std::filesystem::current_path().generic_string() + "/TaxTest.txt",
+    1, 3,
+    0, 1,
+    {{26000.0, 150.0, 90000.0, 90001.0}},
+    {validationVals});
+
+    //RunFullTest();
+    //RunManyRotationsTest(24*15*1000000);
+    //RunSinAsinTest(24000);
 }

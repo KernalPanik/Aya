@@ -100,7 +100,6 @@ namespace Aya {
         std::cout << "Produced MR Evaluation Report at: " << MRFilePath << std::endl;
     }
 
-
     // logStates is meant for debugging purposes. Cast std::any to whatever type you're debugging for prints
     // and set logStates to True
     template<typename T, typename U, typename... Args>
@@ -137,7 +136,7 @@ namespace Aya {
             std::cout << "Transforming output element at index " << rightValueIndex << std::endl;
         }
         for (const auto &transformer: mr.OutputTransformers) {
-            if (overrideArgs) {
+            if (overrideArgs && !transformer->second->GetArgNames().empty()) {
                 auto clone = transformer->second->Clone();
                 size_t overrideIndex = transformer->second->GetOverriddenArgIndex();
                 clone->OverrideArgs({initialState[overrideIndex]}, overrideIndex);
@@ -200,9 +199,9 @@ namespace Aya {
                     try {
                         validatorCycleCount++;
                         // Keep commented out if not debugging.
-                        /*if (validatorCycleCount == 1) {
+                        /*if (validatorCycleCount == 808) {
                             logStates = true;
-                            std::cout << "Validating MR " << MR.ToString() << std::endl;
+                            std::cout << "Validating MR " << validatorCycleCount << " " << MR.ToString() << std::endl;
                         }*/
                         const bool v = Aya::ValidateInputVariant<T, U, Args...>(
                             static_cast<std::function<T(Args...)>>(func), comparerFunction,

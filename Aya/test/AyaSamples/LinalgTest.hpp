@@ -51,5 +51,6 @@ inline void GenerateMRsForMatrixMul(const std::function<std::array<double, 2>(st
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
     Aya::CalculateMRScore<std::array<double, 2>, std::array<double, 2>, std::array<double, 2>>(testedFunction, comparer, finalMRs,
                                                      validatorInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, vec2str, outputMRFile);
+    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, inputTransformerPool.size(),
+        outputTransformerPool.size(), inputTransformerChainLength, outputTransformerChainLength, vec2str, outputMRFile);
 }

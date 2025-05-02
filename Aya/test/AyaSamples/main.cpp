@@ -229,9 +229,9 @@ int main() {
             {{1.0, 4.0, 9.0}},
             {{10.0, 20.0, 30.0}});
 
-    std::vector<std::any> validationVals;
+    std::vector<std::any> taxTestValidationValues;
     for (size_t i = 0; i < 100; i++) {
-        validationVals.push_back(i * 1000.0);
+        taxTestValidationValues.emplace_back(i * 1000.0);
     }
 
     GenerateMRsForDoubleDoubleArgFunc(Tax, equalsWithMorePrecision,
@@ -239,9 +239,9 @@ int main() {
     1, 3,
     0, 1,
     {{26000.0, 150.0, 90000.0, 90001.0}},
-    {validationVals});
+    {taxTestValidationValues});
 
-    //RunFullTest();
-    //RunManyRotationsTest(24*15*1000000);
-    //RunSinAsinTest(24000);
+    RunFullTest();
+    RunManyRotationsTest(24*15*1000000);
+    RunSinAsinTest(24000);
 }

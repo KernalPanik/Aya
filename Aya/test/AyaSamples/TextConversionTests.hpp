@@ -104,5 +104,6 @@ inline void GenerateMRsForTextEncoding(const std::function<EncodedString(Encoded
 
     Aya::CalculateMRScore<EncodedString, EncodedString, EncodedString>(testedFunction, comparerFunction, finalMRs,
                                                  validatorInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, EncodedStringToString, outputMRFile);
+    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, inputTransformers.size(),
+        outputTransformers.size(), inputTransformerChainLength, outputTransformerChainLength, EncodedStringToString, outputMRFile);
 }

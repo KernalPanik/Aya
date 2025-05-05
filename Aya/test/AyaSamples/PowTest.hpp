@@ -70,5 +70,6 @@ inline void GenerateMRsForPow(const std::function<double(double, double)> &teste
 
     Aya::CalculateMRScore<double, double, double, double>(
         static_cast<std::function<double(double, double)>>(testedFunction), comparer, finalMRs, validationInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, validationInputs, doubleTypeToString, outputMRFile);
+    Aya::ProduceMREvaluationReport(finalMRs, validationInputs, inputTransformerPool.size(),
+        doubleTransformersForOutput.size(), inputTransformerChainLength, outputTransformerChainLength, doubleTypeToString, outputMRFile);
 }

@@ -1,0 +1,41 @@
+Total input transformers used: 2
+Total output transformers used: 12
+Input transformer chain length: 1
+Output transformer chain length: 1
+2 Inputs Used For Validation: 
+7.79210510873372 2.84867806455281 10.0935288177698 5.12010351233361 8.01509626041958 9.49365413586598 1.76365222704683 3.18906259235166 2.95715840444115 6.17179178168861 
+5.96649445803015 5.40578754022108 2.06148291463946 5.74546132097147 3.99132400368534 1.35270334210865 3.31854622900934 4.50546047890736 2.37713816129273 5.605880086221 
+Total MR count: 5184
+MR success rates:
+Success rate: 0: 3384 instances.
+Success rate: 1: 1800 instances.
+Div( input[0], 1, ) Add( input[1], -1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]
+Div( input[0], 1, ) Add( input[1], 1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Div( input[0], 1, ) Div( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Div( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Mul( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Mul( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Noop( input[1], 0, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Noop( input[1], 0, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Div( input[0], 1, ) Sub( input[1], -1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Div( input[0], 1, ) Sub( input[1], 1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]
+Mul( input[0], 1, ) Add( input[1], -1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]
+Mul( input[0], 1, ) Add( input[1], 1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Mul( input[0], 1, ) Div( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Div( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Mul( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Mul( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Noop( input[1], 0, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Noop( input[1], 0, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Mul( input[0], 1, ) Sub( input[1], -1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Mul( input[0], 1, ) Sub( input[1], 1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]
+Noop( input[0], 0, ) Add( input[1], -1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]
+Noop( input[0], 0, ) Add( input[1], 1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Noop( input[0], 0, ) Div( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Div( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Mul( input[1], 1, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Mul( input[1], 1, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Noop( input[1], 0, )  === Div( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Noop( input[1], 0, )  === Mul( initialState[0], 1, )  => initialState[0] == followUpState[0] LastSuccessRate: 1 [Total occurred: 100; Avg. success rate: 1]
+Noop( input[0], 0, ) Sub( input[1], -1, )  === Mul( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 270; Avg. success rate: 0]
+Noop( input[0], 0, ) Sub( input[1], 1, )  === Div( initialState[0], input[0], )  => initialState[0] == followUpState[0] LastSuccessRate: 0 [Total occurred: 294; Avg. success rate: 0]

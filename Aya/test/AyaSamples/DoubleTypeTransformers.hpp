@@ -89,9 +89,9 @@ inline void Square(double &b) {
 inline void Noop(double &b, double val) {}
 
 inline bool equals(const double x, const double y) {
-    return fabs(x - y) < 1e-6;
+    return fabs(x - y) < 1e-6 || (isnan(x) && isnan(y));
 }
 
 inline bool equalsWithMorePrecision(const double x, const double y) {
-    return fabs(x - y) < 1e-12;
+    return fabs(x - y) < 1e-12 || (isnan(x) && isnan(y));
 }

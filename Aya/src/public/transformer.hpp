@@ -31,6 +31,8 @@ namespace Aya {
         virtual size_t GetOverriddenArgIndex() = 0;
 
         virtual std::shared_ptr<ITransformer> Clone() = 0;
+
+        virtual std::vector<std::string> GetArgNames() = 0;
     };
 
     template<typename T>
@@ -69,6 +71,10 @@ namespace Aya {
         [[nodiscard]]
         size_t GetRepeat() override {
             return m_Repeat;
+        }
+
+        std::vector<std::string> GetArgNames() override {
+            return std::vector<std::string>();
         }
 
         [[nodiscard]]
@@ -143,6 +149,10 @@ namespace Aya {
         [[nodiscard]]
         size_t GetRepeat() override {
             return m_Repeat;
+        }
+
+        std::vector<std::string> GetArgNames() override {
+            return m_ArgNames;
         }
 
         [[nodiscard]]

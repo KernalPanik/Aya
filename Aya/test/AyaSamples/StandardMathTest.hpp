@@ -8,8 +8,20 @@
 
 // Driver for functions of signature double(double) "double double"
 
+inline double mul2(const double x) {
+    return 0;
+}
+
 inline double SineSquared(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
+}
+
+inline double Sine(const double x) {
+    return sin(x * PI / 180);
+}
+
+inline double Cosine(const double x) {
+    return cos(x * PI / 180);
 }
 
 inline double CosineSquared(const double x) {
@@ -62,9 +74,10 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
         size_t leftValueIndex,
         size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
-        const std::vector<std::vector<std::any>> &validatorInputs) {
-    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2, Square};
-    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared", "Square"};
+        const std::vector<std::vector<std::any>> &validatorInputs,
+        bool overrideArgs = true) {
+    const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2, Square, Sqrt};
+    const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared", "Square", "Root"};
     const std::vector<std::function<void(double &, double)>> doubleArgumentTransformerFunctions = {Add, Mul, Sub, Div};
     const std::vector<std::string> doubleArgumentTransformerFunctionNames = {"Add", "Mul", "Sub", "Div"};
 
@@ -72,15 +85,16 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     std::vector<std::vector<std::tuple<double>>> inputTransformerArgumentPool;
     std::vector<std::vector<std::tuple<double>>> outputTransformerArgumentPool;
 
-    inputTransformerArgumentPool.push_back({{-1}, {1.0}});
-    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}});
-    inputTransformerArgumentPool.push_back({{1.0}, {-1.0}});
-    inputTransformerArgumentPool.push_back({{1.0}, {-1.0}});
+    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    inputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
 
-    outputTransformerArgumentPool.push_back({{-1}});
-    outputTransformerArgumentPool.push_back({{-1.0}});
-    outputTransformerArgumentPool.push_back({{1}});
-    outputTransformerArgumentPool.push_back({{1.0}});
+
+    outputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    outputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    outputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
+    outputTransformerArgumentPool.push_back({{-1.0}, {1.0}, {2.0}, {-2.0}});
 
     std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForInputs = Aya::TransformBuilder<
         double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames);
@@ -89,10 +103,10 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
                                   inputTransformerArgumentPool);
     std::vector<std::shared_ptr<Aya::ITransformer>> inputTransformers;
     inputTransformers.reserve(singleArgumentTransformersForInputs.size() + doubleArgumentTransformersForInputs.size());
-    inputTransformers.insert(inputTransformers.end(), singleArgumentTransformersForInputs.begin(),
-                             singleArgumentTransformersForInputs.end());
     inputTransformers.insert(inputTransformers.end(), doubleArgumentTransformersForInputs.begin(),
                              doubleArgumentTransformersForInputs.end());
+    inputTransformers.insert(inputTransformers.end(), singleArgumentTransformersForInputs.begin(),
+                             singleArgumentTransformersForInputs.end());
 
     std::vector<std::shared_ptr<Aya::ITransformer>> singleArgumentTransformersForOutputs = Aya::TransformBuilder<
         double>().GetTransformers(singleArgumentTransformerFunctions, singleArgumentTransformerFunctionNames);
@@ -112,9 +126,12 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     std::vector<std::shared_ptr<Aya::ITransformer>> outputTransformerPool;
     outputTransformerPool.insert(outputTransformerPool.end(), outputTransformers.begin(), outputTransformers.end());
 
-    std::vector<std::vector<size_t>> variableTransformerIndices = {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}};
-    for (size_t i = 3; i < inputTransformers.size() - 1; ++i) {
+    std::vector<std::vector<size_t>> variableTransformerIndices;
+    for (size_t i = 0; i < doubleArgumentTransformersForInputs.size(); ++i) {
         variableTransformerIndices.push_back({0});
+    }
+    for (size_t i = 0; i < singleArgumentTransformersForInputs.size(); ++i) {
+        variableTransformerIndices.push_back({});
     }
     auto mrBuilder = Aya::MRBuilder<double, double, double>(testedFunction, comparer, inputTransformerPool, outputTransformerPool,
                                                             leftValueIndex, rightValueIndex, outputTransformers, variableTransformerIndices);
@@ -125,6 +142,7 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
     Aya::CalculateMRScore<double, double, double>((testedFunction), comparer, finalMRs,
-                                                  validatorInputs, leftValueIndex, rightValueIndex);
-    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, doubleTypeToString, outputMRFile);
+                                                  validatorInputs, leftValueIndex, rightValueIndex, overrideArgs);
+    Aya::ProduceMREvaluationReport(finalMRs, validatorInputs, inputTransformers.size(), outputTransformers.size(),
+        inputTransformerChainLength, outputTransformerChainLength, doubleTypeToString, outputMRFile);
 }

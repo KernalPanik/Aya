@@ -12,6 +12,18 @@ void RunFullTest() {
         0, 1,
         {Aya::GenerateDoublesAsAny(10, 30, 90)},
         {Aya::GenerateDoublesAsAny(10, 30, 90)});
+    GenerateMRsForDoubleDoubleArgFunc(Sine, equals,
+       std::filesystem::current_path().generic_string() + "/SineTest.txt",
+       1, 3,
+       0, 1,
+       {Aya::GenerateDoublesAsAny(10, 30, 90)},
+       {Aya::GenerateDoublesAsAny(10, 30, 90)});
+    GenerateMRsForDoubleDoubleArgFunc(Cosine, equals,
+       std::filesystem::current_path().generic_string() + "/CosineTest.txt",
+       1, 3,
+       0, 1,
+       {Aya::GenerateDoublesAsAny(10, 30, 90)},
+   {Aya::GenerateDoublesAsAny(10, 30, 90)});
     GenerateMRsForDoubleDoubleArgFunc(CosineSquared, equals,
         std::filesystem::current_path().generic_string() + "/Cosine2Test.txt",
         1, 3,
@@ -209,7 +221,55 @@ void RunSinAsinTest(size_t iterationCount) {
     std::cout << std::setprecision(15) << "end value (deg): " << val_deg << std::endl;
 }
 
+inline double Tax(double income) {
+    if (income < 0.0) {
+        return 0.0;
+    }
+
+    if (income > 60000) {
+        return income / 3;
+    }
+
+    return income / 4;
+}
+
+inline double BorkenTax(double income) {
+    if (income < 0.0) {
+        return 0.0;
+    }
+
+    if (income > 60000) {
+        return income / 3;
+    }
+
+    return income / 3;
+}
+
 int main() {
+    GenerateMRsForDoubleDoubleArgFunc(mul2, equals,
+            std::filesystem::current_path().generic_string() + "/Mul2Test.txt",
+            1, 1,
+            0, 1,
+            {{1.0, 4.0, 9.0}},
+            {{10.0, 20.0, 30.0}});
+
+    std::vector<std::any> taxTestValidationValues;
+    for (size_t i = 0; i < 100; i++) {
+        taxTestValidationValues.emplace_back(i * 1000.0);
+    }
+    GenerateMRsForDoubleDoubleArgFunc(Tax, equalsWithMorePrecision,
+    std::filesystem::current_path().generic_string() + "/TaxTest.txt",
+    1, 3,
+    0, 1,
+    {{26000.0, 150.0, 90000.0, 90001.0}},
+    {taxTestValidationValues});
+
+    GenerateMRsForDoubleDoubleArgFunc(BorkenTax, equalsWithMorePrecision,
+   std::filesystem::current_path().generic_string() + "/BorkenTaxTest.txt",
+   1, 3,
+   0, 1,
+   {{26000.0, 150.0, 90000.0, 90001.0}},
+   {taxTestValidationValues});
     RunFullTest();
     RunManyRotationsTest(24*15*1000000);
     RunSinAsinTest(24000);

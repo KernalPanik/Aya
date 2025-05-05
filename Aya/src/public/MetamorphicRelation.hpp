@@ -26,16 +26,16 @@ namespace Aya {
         std::string ToString() const {
             std::stringstream ss;
             for (const auto &InputTransformer: InputTransformers) {
-                ss << InputTransformer->second->ToString("Input", InputTransformer->first) << " ";
+                ss << InputTransformer->second->ToString("input", InputTransformer->first) << " ";
             }
             ss << " === ";
             for (const auto &OutputTransformer: OutputTransformers) {
-                ss << OutputTransformer->second->ToString("OutputState", OutputTransformer->first) <<
+                ss << OutputTransformer->second->ToString("initialState", OutputTransformer->first) <<
                         " ";
             }
 
             ss << " => ";
-            ss << "InputFollowUpState[" << InputFollowUpIndex << "]" << " == " << "OutputFollowUpState[" <<
+            ss << "initialState[" << InputFollowUpIndex << "]" << " == " << "followUpState[" <<
                     OutputFollowUpIndex << "]";
             ss << " LastSuccessRate: " << LastSuccessRate;
 

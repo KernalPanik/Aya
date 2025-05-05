@@ -16,6 +16,14 @@ inline double SineSquared(const double x) {
     return sin(x * PI / 180) * sin(x * PI / 180);
 }
 
+inline double Sine(const double x) {
+    return sin(x * PI / 180);
+}
+
+inline double Cosine(const double x) {
+    return cos(x * PI / 180);
+}
+
 inline double CosineSquared(const double x) {
     return cos(x * PI / 180) * cos(x * PI / 180);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreUtilities.hpp"
-#include "transformer.hpp"
+#include "Transformer.hpp"
 #include "MetamorphicRelation.hpp"
 
 #include <functional>

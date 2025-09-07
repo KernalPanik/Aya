@@ -251,7 +251,7 @@ namespace Aya {
                                 validTestCount++;
                             }
                     } catch (std::domain_error &e) { 
-                        std::cout << "Captured domain error: " << std::endl;
+                       // std::cout << "Captured domain error: " << std::endl;
                     }
                 }
                 inputIterator.next();

@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <any>
 
-#include "aya/Aya.hpp"
+#include "Aya.hpp"
 #include "LinalgTransformers.hpp"
 #include "DoubleTypeTransformers.hpp"
 

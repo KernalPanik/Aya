@@ -17,6 +17,7 @@ set(MATH_SAMPLE_SOURCES
     LinalgTransformers.hpp
     StandardMathTest.hpp
     Stopwatch.hpp
+    MathMutants.hpp
 )
 
 # Create executable

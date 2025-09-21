@@ -4,9 +4,32 @@
 #include <string>
 
 #include "DoubleTypeTransformers.hpp"
-#include "aya/Aya.hpp"
+#include "Aya.hpp"
 
 // Driver for functions of signature double(double) "double double"
+
+inline void GenerateMRsForDoubleDoubleArgFuncInternal(const std::function<double(double)> &testedFunction,
+        const std::function<bool(double, double)> &comparer,
+        const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength,
+        size_t leftValueIndex,
+        size_t rightValueIndex,
+        const std::vector<std::vector<std::any>> &testedInputs,
+        const std::vector<std::vector<std::any>> &validatorInputs,
+        std::vector<Aya::MetamorphicRelation> &finalMRs,
+        bool overrideArgs);
+
+inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)> &testedFunction,
+        const std::function<bool(double, double)> &comparer,
+        const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength,
+        size_t leftValueIndex,
+        size_t rightValueIndex,
+        const std::vector<std::vector<std::any>> &testedInputs,
+        const std::vector<std::vector<std::any>> &validatorInputs,
+        bool overrideArgs = true);
 
 inline double mul2(const double x) {
     return 0;
@@ -65,7 +88,6 @@ inline double AcosFunc(const double x) {
 inline double AtanFunc(const double x) {
   	return RadToDeg(atan(x));
 }
-
 inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)> &testedFunction,
         const std::function<bool(double, double)> &comparer,
         const std::string &outputMRFile,
@@ -75,6 +97,22 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
         size_t rightValueIndex,
         const std::vector<std::vector<std::any>> &testedInputs,
         const std::vector<std::vector<std::any>> &validatorInputs,
+        bool overrideArgs) {
+    std::vector<Aya::MetamorphicRelation> finalMRs;
+    GenerateMRsForDoubleDoubleArgFuncInternal(testedFunction, comparer, outputMRFile, inputTransformerChainLength, 
+        outputTransformerChainLength, leftValueIndex, rightValueIndex, testedInputs, validatorInputs, finalMRs, overrideArgs);
+}
+
+inline void GenerateMRsForDoubleDoubleArgFuncInternal(const std::function<double(double)> &testedFunction,
+        const std::function<bool(double, double)> &comparer,
+        const std::string &outputMRFile,
+        size_t inputTransformerChainLength,
+        size_t outputTransformerChainLength,
+        size_t leftValueIndex,
+        size_t rightValueIndex,
+        const std::vector<std::vector<std::any>> &testedInputs,
+        const std::vector<std::vector<std::any>> &validatorInputs,
+        std::vector<Aya::MetamorphicRelation> &finalMRs,
         bool overrideArgs = true) {
         const std::vector<std::function<void(double &)>> singleArgumentTransformerFunctions = {Cos, Sin, CosDivSin, SinDivCos, Tan, Asin, Acos, Atan, Sin2, Cos2, Square, Sqrt};
     const std::vector<std::string> singleArgumentTransformerFunctionNames = {"Cos", "Sin", "CosDivBySin", "SinDivByCos", "Tan", "Asin", "Acos", "Atan", "SinSquared", "CosSquared", "Square", "Root"};
@@ -138,7 +176,6 @@ inline void GenerateMRsForDoubleDoubleArgFunc(const std::function<double(double)
     mrBuilder.SetEnableImplicitOutputTransforms(true);
 
     size_t overallMatchCount = 0;
-    std::vector<Aya::MetamorphicRelation> finalMRs;
     mrBuilder.SearchForMRs(testedInputs, inputTransformerChainLength, outputTransformerChainLength, overallMatchCount, finalMRs);
 
     Aya::CalculateMRScore<double, double, double>((testedFunction), comparer, finalMRs,

@@ -95,38 +95,6 @@ std::vector<Aya::TransformerPtr> MakeAllTf() {
     return a;
 }
 
-// Fork-combine combiners for doubles
-std::vector<std::pair<std::string, std::function<double(double, double)>>> MakeDoubleFcCombiners() {
-    return {
-        {"Add", [](double a, double b) { return a + b; }},
-        {"Sub", [](double a, double b) { return a - b; }},
-        {"Mul", [](double a, double b) { return a * b; }},
-        {"Div", [](double a, double b) { return b != 0 ? a / b : a; }},
-    };
-}
-
-// Fork-combine pool from a curated subset of no-arg primitives
-std::vector<Aya::TransformerPtr> MakeFcPool() {
-    // Curated subset to keep combinatorial count manageable
-    std::vector<Aya::TransformerPtr> primitives = {
-        Aya::MakeTransformer<double>("Sin", std::function<void(double&)>(
-            [](double& x) { x = std::sin(x * PI / 180.0); })),
-        Aya::MakeTransformer<double>("Cos", std::function<void(double&)>(
-            [](double& x) { x = std::cos(x * PI / 180.0); })),
-        Aya::MakeTransformer<double>("Square", std::function<void(double&)>(
-            [](double& x) { x = x * x; })),
-        Aya::MakeTransformer<double>("Root", std::function<void(double&)>(
-            [](double& x) { if(x >= 0) x = std::sqrt(x); })),
-    };
-    return Aya::MakeForkCombinePool<double>(primitives, MakeDoubleFcCombiners());
-}
-
-std::vector<Aya::TransformerPtr> MakeAllTfWithFc() {
-    auto all = MakeAllTf();
-    auto fc = MakeFcPool();
-    all.insert(all.end(), fc.begin(), fc.end());
-    return all;
-}
 
 // ===========================================================================
 // Generic bench harness
@@ -179,16 +147,14 @@ void BenchFunction(
     std::function<double(double)> func,
     const std::vector<std::vector<std::any>>& sample,
     const std::vector<std::vector<std::any>>& verify,
-    size_t ic, size_t oc,
-    bool use_fork_combine = false
-) {
+    size_t ic, size_t oc) {
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
 
-    std::string label = std::string(name) + (use_fork_combine ? " +FC" : "");
+    std::string label = std::string(name);
     PrintBenchHeader(label.c_str(), ic, oc, hw);
 
-    auto make_pool = [&]() { return use_fork_combine ? MakeAllTfWithFc() : MakeAllTf(); };
+    auto make_pool = [&]() { return MakeAllTf(); };
 
     // Sequential baseline
     size_t seq_raw, seq_uniq;
@@ -237,10 +203,10 @@ void BenchFunction(
 // 2. pow(base, exp) benchmark
 // ===========================================================================
 
-void BenchPow() {
+void BenchPow(size_t ic, size_t oc) {
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("pow(base,exp)", 1, 1, hw);
+    PrintBenchHeader("pow(base,exp)", ic, oc, hw);
 
     auto setup_pow = [](auto& engine) {
         engine.AddInputTransformers(0, {
@@ -290,7 +256,7 @@ void BenchPow() {
         auto engine = Aya::MREngine<double, double, double>(pow_func, Eq);
         setup_pow(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f, true);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f, true);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -302,7 +268,7 @@ void BenchPow() {
         auto engine = Aya::ParallelMREngine<double, double, double>(pow_func, Eq, t);
         setup_pow(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f, true);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f, true);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -315,11 +281,11 @@ void BenchPow() {
 // 3. vector<int> push/pop benchmark
 // ===========================================================================
 
-void BenchVectorPushPop() {
+void BenchVectorPushPop(size_t ic, size_t oc) {
     using Vec = std::vector<int>;
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("vector<int> push/pop", 1, 1, hw);
+    PrintBenchHeader("vector<int> push/pop", ic, oc, hw);
 
     auto vec_eq = [](Vec a, Vec b) { return a == b; };
     auto vec_func = [](Vec v) -> Vec { return v; };
@@ -361,7 +327,7 @@ void BenchVectorPushPop() {
         auto engine = Aya::MREngine<Vec, Vec>(vec_func, vec_eq);
         setup_vec(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -373,7 +339,7 @@ void BenchVectorPushPop() {
         auto engine = Aya::ParallelMREngine<Vec, Vec>(vec_func, vec_eq, t);
         setup_vec(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -396,10 +362,10 @@ inline void Rotate(Vec2& v, double deg) {
     v[0] = x; v[1] = y;
 }
 
-void BenchRotation() {
+void BenchRotation(size_t ic, size_t oc) {
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("2D rotation", 5, 2, hw);
+    PrintBenchHeader("2D rotation", ic, oc, hw);
 
     auto vec2_eq = [](Vec2 a, Vec2 b) {
         return std::abs(a[0]-b[0]) < 1e-6 && std::abs(a[1]-b[1]) < 1e-6;
@@ -441,7 +407,7 @@ void BenchRotation() {
         auto engine = Aya::MREngine<Vec2, Vec2>(rot_func, vec2_eq);
         setup_rot(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(data, data, 5, 2, 0, 0, 1.0f);
+        auto mrs = engine.Search(data, data, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -453,7 +419,7 @@ void BenchRotation() {
         auto engine = Aya::ParallelMREngine<Vec2, Vec2>(rot_func, vec2_eq, t);
         setup_rot(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(data, data, 5, 2, 0, 0, 1.0f);
+        auto mrs = engine.Search(data, data, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -466,11 +432,11 @@ void BenchRotation() {
 // 5. std::string transforms benchmark
 // ===========================================================================
 
-void BenchString() {
+void BenchString(size_t ic, size_t oc) {
     using S = std::string;
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("string sort", 1, 1, hw);
+    PrintBenchHeader("string sort", ic, oc, hw);
 
     auto str_eq = [](S a, S b) { return a == b; };
     auto str_func = [](S s) -> S { std::sort(s.begin(), s.end()); return s; };
@@ -508,7 +474,7 @@ void BenchString() {
         auto engine = Aya::MREngine<S, S>(str_func, str_eq);
         setup_str(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -520,7 +486,7 @@ void BenchString() {
         auto engine = Aya::ParallelMREngine<S, S>(str_func, str_eq, t);
         setup_str(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -540,10 +506,10 @@ struct Point {
     }
 };
 
-void BenchPoint() {
+void BenchPoint(size_t ic, size_t oc) {
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("Point distance", 1, 1, hw);
+    PrintBenchHeader("Point distance", ic, oc, hw);
 
     auto point_func = [](Point p) -> double { return std::sqrt(p.x*p.x + p.y*p.y); };
 
@@ -585,7 +551,7 @@ void BenchPoint() {
         auto engine = Aya::MREngine<double, Point>(point_func, Eq);
         setup_point(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(data, data, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(data, data, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -597,7 +563,7 @@ void BenchPoint() {
         auto engine = Aya::ParallelMREngine<double, Point>(point_func, Eq, t);
         setup_point(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(data, data, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(data, data, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -610,11 +576,11 @@ void BenchPoint() {
 // 7. std::set benchmark
 // ===========================================================================
 
-void BenchSet() {
+void BenchSet(size_t ic, size_t oc) {
     using S = std::set<int>;
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("set<int> ops", 1, 1, hw);
+    PrintBenchHeader("set<int> ops", ic, oc, hw);
 
     auto set_eq = [](S a, S b) { return a == b; };
     auto set_func = [](S s) -> S { return s; };
@@ -658,7 +624,7 @@ void BenchSet() {
         auto engine = Aya::MREngine<S, S>(set_func, set_eq);
         setup_set(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -670,7 +636,7 @@ void BenchSet() {
         auto engine = Aya::ParallelMREngine<S, S>(set_func, set_eq, t);
         setup_set(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -683,11 +649,11 @@ void BenchSet() {
 // 8. std::map benchmark
 // ===========================================================================
 
-void BenchMap() {
+void BenchMap(size_t ic, size_t oc) {
     using M = std::map<std::string, int>;
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("map<string,int> ops", 1, 1, hw);
+    PrintBenchHeader("map<string,int> ops", ic, oc, hw);
 
     auto map_eq = [](M a, M b) { return a == b; };
     auto map_func = [](M m) -> M { return m; };
@@ -738,7 +704,7 @@ void BenchMap() {
         auto engine = Aya::MREngine<M, M>(map_func, map_eq);
         setup_map(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -750,7 +716,7 @@ void BenchMap() {
         auto engine = Aya::ParallelMREngine<M, M>(map_func, map_eq, t);
         setup_map(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -763,11 +729,11 @@ void BenchMap() {
 // 9. Heap property benchmark
 // ===========================================================================
 
-void BenchHeap() {
+void BenchHeap(size_t ic, size_t oc) {
     using Vec = std::vector<int>;
     unsigned hw = std::thread::hardware_concurrency();
     auto thread_counts = GetThreadCounts();
-    PrintBenchHeader("heap property", 1, 1, hw);
+    PrintBenchHeader("heap property", ic, oc, hw);
 
     auto heap_eq = [](Vec a, Vec b) -> bool {
         if (a.empty() && b.empty()) return true;
@@ -810,7 +776,7 @@ void BenchHeap() {
         auto engine = Aya::MREngine<Vec, Vec>(heap_func, heap_eq);
         setup_heap(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         seq_raw = mrs.size();
         seq_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -822,7 +788,7 @@ void BenchHeap() {
         auto engine = Aya::ParallelMREngine<Vec, Vec>(heap_func, heap_eq, t);
         setup_heap(engine);
         auto t0 = std::chrono::high_resolution_clock::now();
-        auto mrs = engine.Search(sample, verify, 1, 1, 0, 0, 1.0f);
+        auto mrs = engine.Search(sample, verify, ic, oc, 0, 0, 1.0f);
         auto t1 = std::chrono::high_resolution_clock::now();
         size_t par_raw = mrs.size();
         size_t par_uniq = Aya::ConsolidateMRs(mrs).size();
@@ -837,13 +803,17 @@ void BenchHeap() {
 
 int main(int argc, char* argv[]) {
     size_t ic = 1, oc = 1;
-    if (argc >= 3) {
-        ic = static_cast<size_t>(std::atoi(argv[1]));
-        oc = static_cast<size_t>(std::atoi(argv[2]));
+    bool run_specific = false;
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--with-specific") {
+            run_specific = true;
+        } else if (i + 1 < argc) {
+            ic = static_cast<size_t>(std::atoi(argv[i]));
+            oc = static_cast<size_t>(std::atoi(argv[i + 1]));
+            ++i;
+        }
     }
-    // Clamp to 2-2 max
-    if (ic > 2) ic = 2;
-    if (oc > 2) oc = 2;
 
     auto trig_s = {GenDoubles(10, 30, 90)};
     auto trig_v = {GenDoubles(10, 30, 90)};
@@ -852,19 +822,15 @@ int main(int argc, char* argv[]) {
     auto pos_s = {GenDoubles(10, 1, 5)};
     auto pos_v = {GenDoubles(10, 1, 5)};
 
-    size_t fc_count = MakeFcPool().size();
     size_t base_count = MakeAllTf().size();
 
     std::cout << std::string(80, '=') << "\n"
               << "Sequential vs Parallel MR Search Benchmark (config "
-              << ic << "-" << oc << ", max 2-2)\n"
+              << ic << "-" << oc << "\n"
               << "Base pool: " << base_count << " transformers"
-              << " | +FC pool: " << base_count + fc_count
-              << " (" << fc_count << " fork-combine)"
               << " | Inputs: 10 sample, 10 verify\n"
               << std::string(80, '=') << "\n";
 
-    // Bench each function without and with fork-combine
     struct FuncEntry {
         const char* name;
         std::function<double(double)> func;
@@ -906,21 +872,19 @@ int main(int argc, char* argv[]) {
     };
 
     for (auto& f : funcs) {
-        // Without fork-combine
-        BenchFunction(f.name, f.func, *f.sample, *f.verify, ic, oc, false);
-        // With fork-combine
-        BenchFunction(f.name, f.func, *f.sample, *f.verify, ic, oc, true);
+        BenchFunction(f.name, f.func, *f.sample, *f.verify, ic, oc);
     }
 
     // --- Non-double benchmarks ---
-    BenchPow();
-    BenchVectorPushPop();
-    BenchRotation();
-    BenchString();
-    BenchPoint();
-    BenchSet();
-    BenchMap();
-    BenchHeap();
+    BenchPow(ic, oc);
+    BenchVectorPushPop(ic, oc);
+    BenchRotation(ic, oc);
+    if (run_specific && !(ic == 5 && oc == 2)) BenchRotation(5, 2);
+    BenchString(ic, oc);
+    BenchPoint(ic, oc);
+    BenchSet(ic, oc);
+    BenchMap(ic, oc);
+    BenchHeap(ic, oc);
 
     std::cout << "\n" << std::string(80, '=') << "\n"
               << "Benchmark complete (config " << ic << "-" << oc << ")\n"

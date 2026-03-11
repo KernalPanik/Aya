@@ -8,18 +8,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BENCH="$SCRIPT_DIR/aya_par_bench"
 
-if [ ! -x "$BENCH" ]; then
-    echo "Compiling benchmark..."
-    g++ -std=c++20 -O2 -pthread -o "$BENCH" "$SCRIPT_DIR/aya_v2_parallel_benchmark.cpp"
-fi
+echo "Compiling benchmark..."
+clang++ -std=c++20 -O2 -pthread -o "$BENCH" "$SCRIPT_DIR/aya_v2_parallel_benchmark.cpp"
 
 CONFIGS=(
     "1 2"
     "1 3"
     "2 1"
     "2 2"
-    "2 3"
-    "3 1"
 )
 
 run() {
@@ -30,7 +26,7 @@ run() {
         echo "################################################################"
         echo "# CONFIG: ${ic}-${oc}"
         echo "################################################################"
-        "$BENCH" "$ic" "$oc"
+        "$BENCH" "$ic" "$oc" --with-specific
     done
 }
 

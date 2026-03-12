@@ -1,7 +1,7 @@
 /**
- * aya_v2_parallel.hpp — Parallel Metamorphic Relation Search
+ * aya_parallel.hpp — Parallel Metamorphic Relation Search
  *
- * Extends aya_v2.hpp with multi-threaded search. Drop-in replacement for
+ * Extends aya.hpp with multi-threaded search. Drop-in replacement for
  * MREngine — same API with an additional thread_count parameter.
  *
  * Parallelization strategy:
@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "aya_v2.hpp"
+#include "aya.hpp"
 
 #include <atomic>
 #include <mutex>

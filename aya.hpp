@@ -1,5 +1,5 @@
 /**
- * Aya.hpp — Metamorphic Relation Generator for Pure Functions (v2)
+ * aya.hpp — Metamorphic Relation Generator for Pure Functions
  *
  * Single-header C++20 library. Merges the original Aya design
  * (mutate-by-ref transformers, OverrideArgs state mechanism,

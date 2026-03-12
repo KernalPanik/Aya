@@ -36,6 +36,9 @@
 *.exe
 *.out
 *.app
+aya_demo
+aya_tests
+aya_par_bench
 
 # debug information files
 *.dwo

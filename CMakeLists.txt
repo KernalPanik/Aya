@@ -30,7 +30,7 @@ if(AYA_BUILD_DEMO)
 endif()
 
 if(AYA_BUILD_TESTS)
-    add_executable(aya_tests aya_v2_tests.cpp)
+    add_executable(aya_tests aya_tests.cpp)
     target_link_libraries(aya_tests PRIVATE aya Threads::Threads)
     target_compile_options(aya_tests PRIVATE -O2)
 
@@ -39,13 +39,13 @@ if(AYA_BUILD_TESTS)
 endif()
 
 if(AYA_BUILD_BENCHMARKS)
-    add_executable(aya_par_bench aya_v2_parallel_benchmark.cpp)
+    add_executable(aya_par_bench aya_parallel_benchmark.cpp)
     target_link_libraries(aya_par_bench PRIVATE aya_parallel)
     target_compile_options(aya_par_bench PRIVATE -O2)
 endif()
 
 # Install rules
-install(FILES aya_v2.hpp aya_v2_parallel.hpp
+install(FILES aya.hpp aya_parallel.hpp
     DESTINATION include/aya
 )
 install(TARGETS aya aya_parallel

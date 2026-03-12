@@ -45,7 +45,7 @@ jobs:
         run: echo "CXX=clang++" >> $GITHUB_ENV
 
       - name: Build tests
-        run: $CXX ${{ matrix.flags }} -o aya_tests aya_v2_tests.cpp
+        run: $CXX ${{ matrix.flags }} -o aya_tests aya_tests.cpp
 
       - name: Run tests
         run: ./aya_tests
@@ -54,4 +54,4 @@ jobs:
         run: $CXX ${{ matrix.flags }} -o aya_demo aya_demo.cpp
 
       - name: Build parallel benchmark
-        run: $CXX ${{ matrix.flags }} -o aya_par_bench aya_v2_parallel_benchmark.cpp
+        run: $CXX ${{ matrix.flags }} -o aya_par_bench aya_parallel_benchmark.cpp

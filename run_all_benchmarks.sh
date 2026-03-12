@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BENCH="$SCRIPT_DIR/aya_par_bench"
 
 echo "Compiling benchmark..."
-clang++ -std=c++20 -O2 -pthread -o "$BENCH" "$SCRIPT_DIR/aya_v2_parallel_benchmark.cpp"
+clang++ -std=c++20 -O2 -pthread -o "$BENCH" "$SCRIPT_DIR/aya_parallel_benchmark.cpp"
 
 CONFIGS=(
     "1 2"

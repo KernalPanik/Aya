@@ -1,7 +1,7 @@
 /**
- * aya_v2_parallel_bench.cpp — Sequential vs Parallel MR Search benchmark.
+ * aya_parallel_benchmark.cpp — Sequential vs Parallel MR Search benchmark.
  *
- * Covers all test functions from aya_v2_tests.cpp as benchmarks:
+ * Covers all test functions from aya_tests.cpp as benchmarks:
  *   - Trig functions (sin, cos, tan, asin, acos, atan, sin², cos²)
  *   - exp / log / sqrt
  *   - pow(base, exp)
@@ -13,10 +13,10 @@
  *   - std::map transforms
  *   - Heap property preservation
  *
- * Build: g++ -std=c++20 -O2 -pthread -o aya_par_bench aya_v2_parallel_benchmark.cpp
+ * Build: g++ -std=c++20 -O2 -pthread -o aya_par_bench aya_parallel_benchmark.cpp
  */
 
-#include "aya_v2_parallel.hpp"
+#include "aya_parallel.hpp"
 
 #include <algorithm>
 #include <array>

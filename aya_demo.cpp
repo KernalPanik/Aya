@@ -1,4 +1,4 @@
-#include "aya_v2_parallel.hpp"
+#include "aya_parallel.hpp"
 
 #include <cmath>
 

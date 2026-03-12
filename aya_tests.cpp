@@ -1,22 +1,22 @@
 /**
- * aya_v2_tests.cpp — Test suite for Aya v2.
+ * aya_tests.cpp — Test suite for Aya.
  *
  * Covers:
- *   1. Original Aya math tests (sin, cos, tan, asin, acos, atan, sin², cos², exp, ln, sqrt, pow)
- *   2. Original STL tests (vector push/pop)
- *   3. Original linalg tests (2D rotation matrices) — portable, no Accelerate dependency
- *   4. NEW: std::map (insert/erase roundtrip, merge idempotence)
- *   5. NEW: std::string (reverse, append, case transforms)
- *   6. NEW: Struct type — 2D Point with geometric transforms
- *   7. NEW: std::set (union/intersection properties)
- *   8. NEW: Mutation testing — sin mutants to verify MR reactivity
- *   9. NEW: Priority queue / heap property preservation
- *  10. NEW: JSON-like nested struct (key-value store with nested access)
+ *   1. Math functions (sin, cos, tan, asin, acos, atan, sin², cos², exp, ln, sqrt, pow)
+ *   2. STL containers (vector push/pop)
+ *   3. Linear algebra (2D rotation matrices) — portable, no Accelerate dependency
+ *   4. std::map (insert/erase roundtrip, merge idempotence)
+ *   5. std::string (reverse, append, case transforms)
+ *   6. Struct type — 2D Point with geometric transforms
+ *   7. std::set (union/intersection properties)
+ *   8. Mutation testing — sin mutants to verify MR reactivity
+ *   9. Priority queue / heap property preservation
+ *  10. JSON-like nested struct (key-value store with nested access)
  *
- * Build: g++ -std=c++20 -O2 -o aya_tests aya_v2_tests.cpp
+ * Build: g++ -std=c++20 -O2 -o aya_tests aya_tests.cpp
  */
 
-#include "aya_v2.hpp"
+#include "aya.hpp"
 
 #include <algorithm>
 #include <array>

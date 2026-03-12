@@ -1,13 +1,16 @@
 # Aya
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
+
 Header-only C++20 library for automatic discovery of **metamorphic relations** (MRs) for pure functions. Given a function under test, a set of input/output transformers, and sample inputs, Aya searches the combinatorial space of transformer compositions and returns the relations that hold across all validation inputs.
 
 ## Headers
 
 | Header | Description |
 |---|---|
-| `aya_v2.hpp` | Core library — `MREngine`, transformers, Cartesian iterator, scoring, reporting |
-| `aya_v2_parallel.hpp` | Drop-in parallel extension — `ParallelMREngine` with configurable thread count |
+| `aya.hpp` | Core library — `MREngine`, transformers, Cartesian iterator, scoring, reporting |
+| `aya_parallel.hpp` | Drop-in parallel extension — `ParallelMREngine` with configurable thread count |
 
 ## Requirements
 
@@ -37,7 +40,7 @@ AddPi( input[0] )    === Negate( initialState[0] )    => initialState[0] == foll
 ### Building and running the test suite
 
 ```bash
-clang++ -std=c++20 -O2 -o aya_tests aya_v2_tests.cpp
+clang++ -std=c++20 -O2 -o aya_tests aya_tests.cpp
 ./aya_tests
 ```
 
@@ -59,7 +62,7 @@ The test suite covers:
 ### Building and running the parallel benchmark
 
 ```bash
-clang++ -std=c++20 -O2 -pthread -o aya_par_bench aya_v2_parallel_benchmark.cpp
+clang++ -std=c++20 -O2 -pthread -o aya_par_bench aya_parallel_benchmark.cpp
 ./aya_par_bench
 ```
 
@@ -68,7 +71,7 @@ clang++ -std=c++20 -O2 -pthread -o aya_par_bench aya_v2_parallel_benchmark.cpp
 ### 1. Define transformers
 
 ```cpp
-#include "aya_v2.hpp"
+#include "aya.hpp"
 
 // No-arg transformer: void(T&)
 auto negate = Aya::MakeTransformer<double>(
@@ -110,7 +113,7 @@ Aya::DumpMRsToStdout(mrs);
 ### 4. Parallel search (drop-in replacement)
 
 ```cpp
-#include "aya_v2_parallel.hpp"
+#include "aya_parallel.hpp"
 
 auto engine = Aya::ParallelMREngine<double, double>(
     func, comparator,
@@ -168,9 +171,9 @@ Key observations:
 ## Project Structure
 
 ```
-aya_v2.hpp                      # Core library
-aya_v2_parallel.hpp             # Parallel extension (includes aya_v2.hpp)
+aya.hpp                         # Core library
+aya_parallel.hpp                # Parallel extension (includes aya.hpp)
 aya_demo.cpp                    # Minimal usage examples (sin, pow)
-aya_v2_tests.cpp                # Full test suite (12 test sections)
-aya_v2_parallel_benchmark.cpp   # Sequential vs parallel benchmark
+aya_tests.cpp                   # Full test suite (12 test sections)
+aya_parallel_benchmark.cpp      # Sequential vs parallel benchmark
 ```

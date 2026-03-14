@@ -1,0 +1,12 @@
+services:
+  gcc:
+    build:
+      context: .
+      dockerfile: Dockerfile.gcc
+    container_name: aya_gcc
+
+  clang:
+    build:
+      context: .
+      dockerfile: Dockerfile.clang
+    container_name: aya_clang

@@ -12,46 +12,36 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            compiler: g++
-            flags: -std=c++20 -O2 -pthread
+            compiler: g++-12
+            packages: g++-12 cmake
           - os: ubuntu-latest
-            compiler: clang++
-            flags: -std=c++20 -O2 -pthread
+            compiler: clang++-18
+            packages: clang-18 cmake
           - os: macos-latest
             compiler: clang++
-            flags: -std=c++20 -O2 -pthread
+            packages: ""
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install GCC 12 (Ubuntu)
-        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'g++'
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-12
-          echo "CXX=g++-12" >> $GITHUB_ENV
+          sudo apt-get install -y ${{ matrix.packages }}
 
-      - name: Install Clang 15 (Ubuntu)
-        if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang++'
+      - name: Configure
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-15
-          echo "CXX=clang++-15" >> $GITHUB_ENV
+          cmake -B build \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+            -DAYA_BUILD_TESTS=ON \
+            -DAYA_BUILD_DEMO=ON \
+            -DAYA_BUILD_BENCHMARKS=ON
 
-      - name: Set compiler (macOS)
-        if: matrix.os == 'macos-latest'
-        run: echo "CXX=clang++" >> $GITHUB_ENV
+      - name: Build
+        run: cmake --build build
 
-      - name: Build tests
-        run: $CXX ${{ matrix.flags }} -o aya_tests aya_tests.cpp
-
-      - name: Run tests
-        run: ./aya_tests
-
-      - name: Build demo
-        run: $CXX ${{ matrix.flags }} -o aya_demo aya_demo.cpp
-
-      - name: Build parallel benchmark
-        run: $CXX ${{ matrix.flags }} -o aya_par_bench aya_parallel_benchmark.cpp
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

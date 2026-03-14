@@ -1,0 +1,17 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y clang-18 cmake && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+COPY . .
+
+RUN cmake -B build \
+    -DCMAKE_CXX_COMPILER=clang++-18 \
+    -DAYA_BUILD_TESTS=ON \
+    -DAYA_BUILD_DEMO=ON \
+    -DAYA_BUILD_BENCHMARKS=ON
+
+RUN cmake --build build
+
+#CMD ["ctest", "--test-dir", "build", "--output-on-failure"]
+CMD ["./build/aya_tests"]

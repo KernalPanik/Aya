@@ -115,12 +115,12 @@ void ScoreMRsParallel(
     };
 
     size_t n = std::min(thread_count, mrs.size());
-    std::vector<std::jthread> threads;
+    std::vector<std::thread> threads;
     threads.reserve(n);
     for (size_t i = 0; i < n; ++i) {
         threads.emplace_back(worker);
     }
-    // jthreads join on destruction
+    for (auto& t : threads) t.join();
 }
 
 // ===========================================================================
@@ -265,12 +265,12 @@ public:
 
         // Launch threads
         {
-            std::vector<std::jthread> threads;
+            std::vector<std::thread> threads;
             threads.reserve(n_threads);
             for (size_t i = 0; i < n_threads; ++i) {
                 threads.emplace_back(search_worker, i);
             }
-            // jthreads join on scope exit
+            for (auto& t : threads) t.join();
         }
 
         // --- Phase 2: Merge thread-local results ---

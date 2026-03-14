@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
-# Compiles and executes aya_tests.cpp
+# Builds and runs aya_tests via CMake
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEST="$SCRIPT_DIR/aya_test"
+BUILD_DIR="$SCRIPT_DIR/build"
 
-echo "Compiling tests..."
-clang++ -std=c++20 -O2 -pthread -o "$TEST" "$SCRIPT_DIR/aya_tests.cpp"
+echo "Configuring..."
+cmake -B "$BUILD_DIR" -S "$SCRIPT_DIR" -DAYA_BUILD_TESTS=ON
 
-time $TEST
+echo "Building tests..."
+cmake --build "$BUILD_DIR" --target aya_tests
+
+echo ""
+./build/aya_tests
+
+rm -rf build

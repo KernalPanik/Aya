@@ -37,7 +37,6 @@ jobs:
           cmake -B build \
             -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
             -DAYA_BUILD_TESTS=ON \
-            -DAYA_BUILD_DEMO=ON \
             -DAYA_BUILD_BENCHMARKS=ON
 
       - name: Build

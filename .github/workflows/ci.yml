@@ -33,12 +33,12 @@ jobs:
           sudo apt-get install -y g++-12
           echo "CXX=g++-12" >> $GITHUB_ENV
 
-      - name: Install Clang 15 (Ubuntu)
+      - name: Install Clang 18 (Ubuntu)
         if: matrix.os == 'ubuntu-latest' && matrix.compiler == 'clang++'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-15
-          echo "CXX=clang++-15" >> $GITHUB_ENV
+          sudo apt-get install -y clang-18
+          echo "CXX=clang++-18" >> $GITHUB_ENV
 
       - name: Set compiler (macOS)
         if: matrix.os == 'macos-latest'

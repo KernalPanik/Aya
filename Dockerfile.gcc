@@ -1,0 +1,15 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y g++-12 && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+COPY . .
+
+ENV CXX=g++-12
+ENV FLAGS="-std=c++20 -O2 -pthread"
+
+RUN $CXX $FLAGS -o aya_tests aya_tests.cpp
+RUN $CXX $FLAGS -o aya_demo aya_demo.cpp
+RUN $CXX $FLAGS -o aya_par_bench aya_parallel_benchmark.cpp
+
+CMD ["./aya_tests"]

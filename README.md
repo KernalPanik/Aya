@@ -14,8 +14,38 @@ Header-only C++20 library for automatic discovery of **metamorphic relations** (
 
 ## Requirements
 
-- C++20 compiler (GCC 12+, Clang 15+, Apple Clang 15+)
+- C++20 compiler:
+  - GCC 12+
+  - Clang 18+ (Linux — earlier versions are incompatible with GCC 14 libstdc++ headers)
+  - Apple Clang 15+ (macOS)
 - `-pthread` for the parallel header
+- Docker + Docker Compose (optional, for containerised testing)
+
+## Local Testing
+
+### With Docker (recommended)
+
+Builds and runs the test suite under both GCC and Clang in isolated containers:
+
+```bash
+docker compose up --build
+```
+
+Each service (`gcc`, `clang`) compiles and runs `aya_tests` independently. Exit codes are propagated — a non-zero exit means tests failed.
+
+### Without Docker
+
+Compile and run the test suite directly:
+
+```bash
+# GCC
+g++ -std=c++20 -O2 -pthread -o aya_tests aya_tests.cpp && ./aya_tests
+
+# Clang (macOS)
+clang++ -std=c++20 -O2 -pthread -o aya_tests aya_tests.cpp && ./aya_tests
+```
+
+All 12 test sections print `PASSED` on success. Any failure prints the failing case and exits non-zero.
 
 ## Quick Start
 

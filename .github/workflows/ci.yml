@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [aya-public]
+    branches: [main]
   pull_request:
-    branches: [aya-public]
+    branches: [main]
 
 jobs:
   core-tests:

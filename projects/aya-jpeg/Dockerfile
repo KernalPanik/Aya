@@ -15,6 +15,7 @@ WORKDIR /app
 
 # Copy everything (build context should be the repo root)
 COPY src/aya.hpp /app/src/aya.hpp
+COPY src/aya_parallel.hpp /app/src/aya_parallel.hpp
 COPY projects/aya-jpeg/ /app/aya-jpeg/
 
 WORKDIR /app/aya-jpeg

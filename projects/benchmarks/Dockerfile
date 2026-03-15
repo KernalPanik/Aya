@@ -1,0 +1,14 @@
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install -y g++-12 cmake && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+COPY . .
+
+RUN cmake -B build \
+    -DCMAKE_CXX_COMPILER=g++-12 \
+    -DAYA_BUILD_BENCHMARKS=ON
+
+RUN cmake --build build
+
+CMD ["./build/aya_par_bench"]

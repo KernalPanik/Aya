@@ -42,3 +42,9 @@ aya_par_bench
 
 # debug information files
 *.dwo
+
+# Meta
+*.cache
+*.DS_Store
+*/.DS_Store
+*/.cache

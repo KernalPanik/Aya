@@ -25,13 +25,11 @@ Header-only C++20 library for automatic discovery of **metamorphic relations** (
 
 ### With Docker (recommended)
 
-Builds and runs the test suite under both GCC and Clang in isolated containers:
+Builds and runs the test suite under both GCC and Clang in isolated containers, and compiles the benchmark and the jpeg test projects:
 
 ```bash
 docker compose up --build
 ```
-
-Each service (`gcc`, `clang`) compiles and runs `aya_tests` independently. Exit codes are propagated — a non-zero exit means tests failed.
 
 ### Without Docker
 
@@ -45,7 +43,7 @@ g++ -std=c++20 -O2 -pthread -I src -o aya_tests src/aya_tests.cpp && ./aya_tests
 clang++ -std=c++20 -O2 -pthread -I src -o aya_tests src/aya_tests.cpp && ./aya_tests
 ```
 
-All 12 test sections print `PASSED` on success. Any failure prints the failing case and exits non-zero.
+Alternatively, use `run_tests.sh` and `run_all_benchmarks.sh` scripts.
 
 ## Quick Start
 
@@ -180,14 +178,6 @@ Key observations:
 - Speedup scales well with thread count, reaching **3-4x at 8 threads** on heavier configs
 - Lighter workloads (config 1-2) show less speedup due to thread overhead dominating
 
-## Project Structure
+## Repository Structure
 
-```
-src/
-  aya.hpp                       # Core library
-  aya_parallel.hpp              # Parallel extension (includes aya.hpp)
-  aya_tests.cpp                 # Full test suite (12 test sections)
-projects/
-  benchmarks/
-    aya_parallel_benchmark.cpp  # Sequential vs parallel benchmark
-```
+Apart from the library source code in the `src` directory, `projects` folder contains sample projects used for more extensive checks. Benchmark project tests the performance and parallel speedup of the MR search, while `aya-jpeg` matches the JPG compression tests mentioned in the paper.

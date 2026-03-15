@@ -5,10 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 ENTRIES=(
-    "lake  https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.03"
-    "baboon   https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.06"
+    "baboon  https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.03"
+    "lake   https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.06"
     "peppers     https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.07"
-    "clock https://sipi.usc.edu/database/download.php?vol=misc&img=5.1.12"
+    "splash https://sipi.usc.edu/database/download.php?vol=misc&img=4.2.01"
 )
 
 # Detect ImageMagick binary

@@ -51,20 +51,18 @@ inline double compute_psnr(const Image& a, const Image& b) {
 // stb JPEG roundtrip
 // ---------------------------------------------------------------------------
 
-namespace detail {
 inline void stb_write_callback(void* context, void* data, int size) {
     auto* buf = static_cast<std::vector<uint8_t>*>(context);
     auto* bytes = static_cast<uint8_t*>(data);
     buf->insert(buf->end(), bytes, bytes + size);
 }
-} // namespace detail
 
 inline Image stb_jpeg_roundtrip(const Image& input, int quality) {
     // Compress
     std::vector<uint8_t> jpeg_buf;
     jpeg_buf.reserve(input.width * input.height * input.channels);
     int ok = stbi_write_jpg_to_func(
-        detail::stb_write_callback, &jpeg_buf,
+        stb_write_callback, &jpeg_buf,
         input.width, input.height, input.channels,
         input.pixels.data(), quality
     );

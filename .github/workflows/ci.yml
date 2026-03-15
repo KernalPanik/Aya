@@ -7,7 +7,7 @@ on:
     branches: [aya-public]
 
 jobs:
-  build-and-test:
+  core-tests:
     strategy:
       matrix:
         include:
@@ -44,3 +44,41 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  compile-aya-jpeg:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: g++-12
+            packages: g++-12 cmake libturbojpeg0-dev
+          - os: ubuntu-latest
+            compiler: clang++-18
+            packages: clang-18 cmake libturbojpeg0-dev
+          - os: macos-latest
+            compiler: clang++
+            packages: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.packages }}
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install jpeg-turbo
+
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+            -S projects/aya-jpeg
+
+      - name: Build
+        run: cmake --build build

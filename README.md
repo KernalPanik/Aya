@@ -39,38 +39,20 @@ Compile and run the test suite directly:
 
 ```bash
 # GCC
-g++ -std=c++20 -O2 -pthread -o aya_tests aya_tests.cpp && ./aya_tests
+g++ -std=c++20 -O2 -pthread -I src -o aya_tests src/aya_tests.cpp && ./aya_tests
 
 # Clang (macOS)
-clang++ -std=c++20 -O2 -pthread -o aya_tests aya_tests.cpp && ./aya_tests
+clang++ -std=c++20 -O2 -pthread -I src -o aya_tests src/aya_tests.cpp && ./aya_tests
 ```
 
 All 12 test sections print `PASSED` on success. Any failure prints the failing case and exits non-zero.
 
 ## Quick Start
 
-### Building the demo
-
-```bash
-clang++ -std=c++20 -O2 -o aya_demo aya_demo.cpp
-./aya_demo
-```
-
-This discovers MRs for `sin(x)` and `pow(base, exp)`, printing results like:
-
-```
-MR Search: sin(x)
-Found 8 MRs with 100% success:
-
-Negate( input[0] )   === Negate( initialState[0] )   => initialState[0] == followUpState[0]
-AddPi( input[0] )    === Negate( initialState[0] )    => initialState[0] == followUpState[0]
-...
-```
-
 ### Building and running the test suite
 
 ```bash
-clang++ -std=c++20 -O2 -o aya_tests aya_tests.cpp
+clang++ -std=c++20 -O2 -I src -o aya_tests src/aya_tests.cpp
 ./aya_tests
 ```
 
@@ -92,7 +74,7 @@ The test suite covers:
 ### Building and running the parallel benchmark
 
 ```bash
-clang++ -std=c++20 -O2 -pthread -o aya_par_bench aya_parallel_benchmark.cpp
+clang++ -std=c++20 -O2 -pthread -I src -o aya_par_bench projects/benchmarks/aya_parallel_benchmark.cpp
 ./aya_par_bench
 ```
 
@@ -201,9 +183,11 @@ Key observations:
 ## Project Structure
 
 ```
-aya.hpp                         # Core library
-aya_parallel.hpp                # Parallel extension (includes aya.hpp)
-aya_demo.cpp                    # Minimal usage examples (sin, pow)
-aya_tests.cpp                   # Full test suite (12 test sections)
-aya_parallel_benchmark.cpp      # Sequential vs parallel benchmark
+src/
+  aya.hpp                       # Core library
+  aya_parallel.hpp              # Parallel extension (includes aya.hpp)
+  aya_tests.cpp                 # Full test suite (12 test sections)
+projects/
+  benchmarks/
+    aya_parallel_benchmark.cpp  # Sequential vs parallel benchmark
 ```

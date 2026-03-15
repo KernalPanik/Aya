@@ -1,12 +1,24 @@
 services:
-  gcc:
+  gcc-test:
     build:
       context: .
       dockerfile: Dockerfile.gcc
     container_name: aya_gcc
 
-  clang:
+  clang-test:
     build:
       context: .
       dockerfile: Dockerfile.clang
     container_name: aya_clang
+
+  aya-jpeg:
+    build:
+      context: .
+      dockerfile: projects/aya-jpeg/Dockerfile
+    container_name: aya_jpeg
+
+  benchmarks:
+    build:
+      context: .
+      dockerfile: projects/benchmarks/Dockerfile
+    container_name: aya_benchmarks

@@ -7,10 +7,8 @@ COPY . .
 
 RUN cmake -B build \
     -DCMAKE_CXX_COMPILER=g++-12 \
-    -DAYA_BUILD_TESTS=ON \
     -DAYA_BUILD_BENCHMARKS=ON
 
 RUN cmake --build build
 
-#CMD ["ctest", "--test-dir", "build", "--output-on-failure"]
-CMD ["./build/aya_tests"]
+CMD ["./build/aya_par_bench"]

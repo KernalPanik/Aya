@@ -1,0 +1,5 @@
+build/
+results/*.csv
+test_images/*.png
+test_images/*.tiff
+test_images/*.tif

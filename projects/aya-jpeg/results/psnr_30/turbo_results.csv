@@ -1,0 +1,10 @@
+backend,psnr_threshold,quality,total_mrs,avg_success_rate,perfect_count
+turbo,30.0,10,325,0.0000,0
+turbo,30.0,20,325,0.0031,0
+turbo,30.0,30,325,0.1631,0
+turbo,30.0,40,325,0.1631,0
+turbo,30.0,50,325,0.1662,0
+turbo,30.0,60,325,0.1662,0
+turbo,30.0,70,325,0.2492,0
+turbo,30.0,80,374,0.3824,0
+turbo,30.0,90,386,0.5889,214
